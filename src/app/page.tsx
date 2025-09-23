@@ -1,103 +1,338 @@
-import Image from "next/image";
+'use client';
+
+import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@heroui/react';
+import Image from 'next/image';
+import songData from '../../public/databanpick.json';
+
+console.log('songData loaded:', songData);
+console.log('songData length:', songData?.length);
+
+export interface Song {
+  imgUrl: string;
+  artist: string;
+  title: string;
+  lv: string;
+  diff: string;
+  isDx: boolean;
+}
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  console.log('Home component rendering');
+  const router = useRouter();
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [showResult, setShowResult] = useState(false);
+  const [selectedSong, setSelectedSong] = useState<Song | null>(null);
+  const [randomHistory, setRandomHistory] = useState<Song[]>([]);
+  const [showStars, setShowStars] = useState(false);
+  const [showBanPick, setShowBanPick] = useState(false);
+  const [banPickSongs, setBanPickSongs] = useState<Song[]>([]);
+  const [finalSongs, setFinalSongs] = useState<Song[]>([]);
+  const [animationPhase, setAnimationPhase] = useState<'fast' | 'slow' | 'idle'>('idle');
+  const [showHistory, setShowHistory] = useState(false);
+  const [showHistoryDetails, setShowHistoryDetails] = useState(false);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const popupRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const h = localStorage.getItem('randomHistory');
+    if (h) {
+      const parsed = JSON.parse(h);
+      setRandomHistory(parsed);
+      if (parsed.length >= 6) {
+        startBanPick();
+      }
+    }
+  }, []);
+  useEffect(() => {
+    if (banPickSongs.length <= 3 && finalSongs.length === 0) {
+      setFinalSongs(banPickSongs);
+    }
+  }, [banPickSongs, finalSongs]);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const handleRandom = () => {
+    if (randomHistory.length >= 6) {
+      startBanPick();
+      return;
+    }
+
+    setIsAnimating(true);
+    setAnimationPhase('fast');
+    setTimeout(() => setAnimationPhase('slow'), 2500);
+    setTimeout(() => {
+      setAnimationPhase('idle');
+      setIsAnimating(false);
+      const randomSong = songData[Math.floor(Math.random() * songData.length)];
+      setSelectedSong(randomSong);
+      setRandomHistory(prev => {
+        const newHistory = [...prev, randomSong];
+        localStorage.setItem('randomHistory', JSON.stringify(newHistory));
+        return newHistory;
+      });
+      setShowResult(true);
+      setShowStars(true);
+      if (audioRef.current) {
+        audioRef.current.play();
+      }
+      // Hide stars after animation
+      setTimeout(() => setShowStars(false), 5000);
+    }, 3000);
+  };
+
+  const startBanPick = () => {
+    // Select 6 random songs for ban pick
+    const shuffled = [...songData].sort(() => 0.5 - Math.random());
+    setBanPickSongs(shuffled.slice(0, 6));
+    setShowBanPick(true);
+    setShowResult(false);
+  };
+
+  const handleBanPick = (song: Song) => {
+    setBanPickSongs(prev => prev.filter(s => s !== song));
+  };
+
+  const handleOutsideClick = (event: React.MouseEvent) => {
+    if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
+      setShowResult(false);
+      setShowStars(false);
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+    }
+  };
+
+  const handleReset = () => {
+    localStorage.removeItem('randomHistory');
+    setRandomHistory([]);
+    setSelectedSong(null);
+    setShowResult(false);
+    setShowStars(false);
+    setShowBanPick(false);
+    setBanPickSongs([]);
+    setFinalSongs([]);
+    setAnimationPhase('idle');
+    setShowHistory(false);
+    setShowHistoryDetails(false);
+  };
+
+  // Create multiple images for the moving row
+  const images = Array.from({ length: 20 }, (_, i) => i);
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center text-black">
+      <div className="relative w-full h-64 overflow-hidden mb-8">
+        <div
+          className={`absolute inset-0 flex ${isAnimating
+              ? animationPhase === 'fast'
+                ? 'animate-move-fast-phase'
+                : animationPhase === 'slow'
+                  ? 'animate-move-slow-phase'
+                  : ''
+              : 'animate-move-loop'
+            }`}
+        >
+          {images.map((_, index) => (
+            <div key={index} className="flex-shrink-0 w-64 h-64 mx-4">
+              <Image
+                src="/assets/randomnoutline.png"
+                alt="Random outline"
+                width={256}
+                height={256}
+                className="w-full h-full"
+              />
+            </div>
+          ))}
+          {/* Duplicate the images for seamless loop */}
+          {images.map((_, index) => (
+            <div key={`dup-${index}`} className="flex-shrink-0 w-64 h-64 mx-4">
+              <Image
+                src="/assets/randomnoutline.png"
+                alt="Random outline"
+                width={256}
+                height={256}
+                className="w-full h-full"
+              />
+            </div>
+          ))}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+      </div>
+
+      {!showResult && !showBanPick && (
+        <div className="text-center">
+          <Button
+            color="primary"
+            size="lg"
+            onPress={handleRandom}
+            disabled={isAnimating}
+          >
+            Random ({randomHistory.length}/6)
+          </Button>
+          {randomHistory.length > 0 && (
+            <p className="text-gray-600 mt-4">
+              Random History: {randomHistory.length}/6 songs selected
+            </p>
+          )}
+          <div className="mt-4 flex gap-4 justify-center">
+            <Button
+              onPress={() => setShowHistoryDetails(!showHistoryDetails)}
+              variant="bordered"
+            >
+              {showHistoryDetails ? 'Hide History' : 'Check History'}
+            </Button>
+            <Button
+              onPress={handleReset}
+              color="danger"
+            >
+              Reset
+            </Button>
+          </div>
+          {showHistoryDetails && randomHistory.length > 0 && (
+            <div className="mt-4 max-w-4xl mx-auto">
+              <h3 className="text-lg font-bold mb-4">Random History Details</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {randomHistory.map((song, index) => (
+                  <div key={index} className="border border-gray-200 rounded-lg p-4 text-center">
+                    <Image
+                      src={song.imgUrl}
+                      alt={song.title}
+                      width={100}
+                      height={100}
+                      className="mx-auto mb-2"
+                    />
+                    <h4 className="font-bold text-sm">{song.title}</h4>
+                    <p className="text-gray-600 text-xs">{song.artist}</p>
+                    <p className="text-purple-600 text-xs">{song.lv} {song.diff}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {showResult && (
+        <div
+          className="fixed inset-0 flex items-center justify-center z-50"
+          onClick={handleOutsideClick}
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          {/* Star effects */}
+          {showStars && (
+            <>
+              {[...Array(20)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute animate-star-explosion"
+                  style={{
+                    left: `${Math.random() * 100}%`,
+                    top: `${Math.random() * 100}%`,
+                    animationDelay: `${Math.random() * 2}s`,
+                  }}
+                >
+                  ⭐
+                </div>
+              ))}
+              {[...Array(10)].map((_, i) => (
+                <div
+                  key={`fall-${i}`}
+                  className="absolute animate-star-fall text-yellow-400 text-2xl"
+                  style={{
+                    left: `${Math.random() * 100}%`,
+                    animationDelay: `${Math.random() * 3}s`,
+                  }}
+                >
+                  ⭐
+                </div>
+              ))}
+            </>
+          )}
+
+          <div
+            ref={popupRef}
+            className="bg-white p-8 rounded-lg shadow-2xl animate-popup text-center relative z-10"
+          >
+            <h1 className="text-4xl font-bold mb-2">{selectedSong?.title}</h1>
+            <p className="text-xl text-gray-600 mb-4">{selectedSong?.artist}</p>
+            <p className="text-lg text-purple-600 mb-4">{selectedSong?.lv} {selectedSong?.diff}</p>
+            <Image
+              src={selectedSong?.imgUrl || ''}
+              alt="Jacket"
+              width={256}
+              height={256}
+              className="mx-auto mb-4"
+            />
+            <p className="text-gray-600 text-sm mt-4">
+              Click outside to close
+            </p>
+          </div>
+        </div>
+      )}
+
+      {showBanPick && (
+        <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white p-8 rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <h2 className="text-3xl font-bold mb-6 text-center">Ban Pick Phase</h2>
+            <p className="text-center text-gray-600 mb-6">
+              Click on songs to ban them ({3 - (6 - banPickSongs.length)} bans remaining)
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {banPickSongs.map((song, index) => (
+                <div
+                  key={index}
+                  className="border-2 border-gray-200 rounded-lg p-4 cursor-pointer hover:border-red-500 transition-colors"
+                  onClick={() => handleBanPick(song)}
+                >
+                  <Image
+                    src={song.imgUrl}
+                    alt={song.title}
+                    width={150}
+                    height={150}
+                    className="mx-auto mb-2"
+                  />
+                  <h3 className="font-bold text-center">{song.title}</h3>
+                  <p className="text-gray-600 text-center text-sm">{song.artist}</p>
+                  <p className="text-purple-600 text-center text-sm">{song.lv} {song.diff}</p>
+                </div>
+              ))}
+            </div>
+            {finalSongs.length > 0 && (
+              <div className="mt-8 p-4 bg-green-50 rounded-lg">
+                <h3 className="text-xl font-bold mb-4 text-center">Final Selection ({finalSongs.length}/3)</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {finalSongs.map((song, index) => (
+                    <div key={index} className="text-center">
+                      <Image
+                        src={song.imgUrl}
+                        alt={song.title}
+                        width={120}
+                        height={120}
+                        className="mx-auto mb-2"
+                      />
+                      <h4 className="font-bold">{song.title}</h4>
+                      <p className="text-gray-600 text-sm">{song.artist}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div className="mt-6 text-center">
+              <Button
+                onPress={handleReset}
+                color="danger"
+                size="lg"
+              >
+                Reset & Go Back to Random
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <audio
+        ref={audioRef}
+        src="/assets/SSvid.net--Xaleid-scopiX-xi-maimai-でらっくす.mp3"
+        preload="auto"
+      />
     </div>
   );
 }

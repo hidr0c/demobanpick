@@ -20,7 +20,140 @@
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: white;
+  color: black;
   font-family: Arial, Helvetica, sans-serif;
+}
+
+@keyframes move-loop {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+@keyframes move-fast {
+  0% {
+    transform: translateX(-200%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+@keyframes move-fast-phase {
+  0% {
+    transform: translateX(-200%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+@keyframes move-slow-phase {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+@keyframes spin-fast-row {
+  0% {
+    transform: translateX(0) rotate(0deg);
+  }
+  100% {
+    transform: translateX(50vw) rotate(720deg);
+  }
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes popup {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) translateY(-80px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-move-slow {
+  animation: move-slow 20s linear infinite;
+}
+
+.animate-move-loop {
+  animation: move-loop 15s linear infinite;
+}
+
+.animate-move-fast {
+  animation: move-fast 8s cubic-bezier(0, 0.95, 0.4, 0.99);
+}
+
+.animate-move-fast-phase {
+  animation: move-fast-phase 0.5s linear infinite;
+}
+
+.animate-move-slow-phase {
+  animation: move-slow-phase 1s linear infinite;
+}
+
+.animate-spin-fast-row {
+  animation: spin-fast-row 2s ease-in-out;
+}
+
+.animate-fade-in {
+  animation: fade-in 1s ease-out;
+}
+
+.animate-popup {
+   animation: popup 0.7s cubic-bezier(0.2, 0.8, 0.2, 1.2);
+ }
+
+@keyframes star-explosion {
+  0% {
+    opacity: 0;
+    transform: scale(0) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.5) rotate(180deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.5) rotate(360deg);
+  }
+}
+
+@keyframes star-fall {
+  0% {
+    opacity: 1;
+    transform: translateY(-100vh) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(100vh) rotate(360deg);
+  }
+}
+
+.animate-star-explosion {
+  animation: star-explosion 2s ease-out forwards;
+}
+
+.animate-star-fall {
+  animation: star-fall 3s linear infinite;
 }
