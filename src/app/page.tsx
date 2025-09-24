@@ -34,46 +34,70 @@ export default function Home() {
   const [showHistoryDetails, setShowHistoryDetails] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const popupRef = useRef<HTMLDivElement>(null);
+
+  /* This use effect checks if enough songs are selected to go to ban/pick phase */
   useEffect(() => {
+    // Get item with key 'randomHistory' from local storage
     const h = localStorage.getItem('randomHistory');
+
+    // If data exists, parse the JSON string into an array and updates randomHistory
     if (h) {
       const parsed = JSON.parse(h);
       setRandomHistory(parsed);
+
+      // Start ban/pick phase once 6 songs are selected
       if (parsed.length >= 6) {
         startBanPick();
       }
     }
   }, []);
+  
+  /* This use effect is used for banning and picking songs */
   useEffect(() => {
+    // finalSongs is the number of songs that needs banning
+    // banPickSongs is the number of songs remaining in the pool
     if (banPickSongs.length <= 3 && finalSongs.length === 0) {
       setFinalSongs(banPickSongs);
     }
   }, [banPickSongs, finalSongs]);
 
+  /* This function runs when the random button is pressed */
   const handleRandom = () => {
+    // Start ban pick when random history reaches 6 songs
     if (randomHistory.length >= 6) {
       startBanPick();
       return;
     }
 
+    // Start spinning
     setIsAnimating(true);
     setAnimationPhase('fast');
-    setTimeout(() => setAnimationPhase('slow'), 2500);
+    setTimeout(() => setAnimationPhase('slow'), 2000);
+    
+    // What happens when the wheel finishes spinning
     setTimeout(() => {
+      // Return animation to idle state
       setAnimationPhase('idle');
       setIsAnimating(false);
+
+      // Pick selected song
       const randomSong = songData[Math.floor(Math.random() * songData.length)];
       setSelectedSong(randomSong);
+
+      // Update random history
       setRandomHistory(prev => {
         const newHistory = [...prev, randomSong];
         localStorage.setItem('randomHistory', JSON.stringify(newHistory));
         return newHistory;
       });
+
+      // Show result
       setShowResult(true);
       setShowStars(true);
       if (audioRef.current) {
         audioRef.current.play();
       }
+
       // Hide stars after animation
       setTimeout(() => setShowStars(false), 5000);
     }, 3000);
@@ -87,6 +111,7 @@ export default function Home() {
     setShowResult(false);
   };
 
+  /* This function simply removes the song from the pool of selected songs */
   const handleBanPick = (song: Song) => {
     setBanPickSongs(prev => prev.filter(s => s !== song));
   };
@@ -119,6 +144,7 @@ export default function Home() {
   // Create multiple images for the moving row
   const images = Array.from({ length: 20 }, (_, i) => i);
 
+  // This return the HTML code corresponding to whatever is happening above
   return (
     <div className="min-h-screen flex flex-col items-center justify-center text-black">
       <div className="relative w-full h-64 overflow-hidden mb-8">
@@ -130,27 +156,27 @@ export default function Home() {
                   ? 'animate-move-slow-phase'
                   : ''
               : 'animate-move-loop'
-            }`}
-        >
+            }`}>
           {images.map((_, index) => (
             <div key={index} className="flex-shrink-0 w-64 h-64 mx-4">
               <Image
-                src="/assets/randomnoutline.png"
+                src="/assets/random.png"
                 alt="Random outline"
-                width={256}
-                height={256}
+                width={260}
+                height={301}
                 className="w-full h-full"
               />
             </div>
           ))}
+
           {/* Duplicate the images for seamless loop */}
           {images.map((_, index) => (
             <div key={`dup-${index}`} className="flex-shrink-0 w-64 h-64 mx-4">
               <Image
-                src="/assets/randomnoutline.png"
+                src="/assets/random.png"
                 alt="Random outline"
-                width={256}
-                height={256}
+                width={260}
+                height={301}
                 className="w-full h-full"
               />
             </div>
