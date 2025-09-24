@@ -63,8 +63,8 @@ export default function Home() {
 
   /* This function runs when the random button is pressed */
   const handleRandom = () => {
-    // Start ban pick when random history reaches 6 songs
-    if (randomHistory.length >= 6) {
+    // Start ban pick when conditions are met
+    if (randomHistory.length >= 6 || randomHistory.length === songData.length) {
       startBanPick();
       return;
     }
@@ -81,7 +81,16 @@ export default function Home() {
       setIsAnimating(false);
 
       // Pick selected song
-      const randomSong = songData[Math.floor(Math.random() * songData.length)];
+      const pickRandomNoDup = () => {
+        let pickedSong = songData[Math.floor(Math.random() * songData.length)];
+
+        while (randomHistory.includes(pickedSong)) {
+          pickedSong = songData[Math.floor(Math.random() * songData.length)];
+        }
+
+        return pickedSong;
+      }
+      const randomSong = pickRandomNoDup();
       setSelectedSong(randomSong);
 
       // Update random history
