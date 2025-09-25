@@ -157,3 +157,73 @@ body {
 .animate-star-fall {
   animation: star-fall 3s linear infinite;
 }
+
+/* 3D Carousel styles */
+.scene {
+  margin: 40px 0;
+  perspective: 1000px;
+}
+
+.carousel {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+  will-change: transform; /* Hint to browser to optimize */
+}
+
+/* When animating fast, use a much shorter transition time */
+.carousel.animating-fast {
+  transition: transform 0.05s linear;
+  will-change: transform;
+}
+
+/* When animating medium speed */
+.carousel.animating-medium {
+  transition: transform 0.15s cubic-bezier(0.33, 1, 0.68, 1);
+  will-change: transform;
+}
+
+/* When slowing down */
+.carousel.animating-slow {
+  transition: transform 0.3s cubic-bezier(0, 0.55, 0.45, 1);
+  will-change: transform;
+}
+
+/* Very slow continuous rotation for idle state */
+.carousel.animating-idle {
+  transition: transform 1.5s cubic-bezier(0.45, 0, 0.55, 1);
+  will-change: transform;
+}
+
+.carousel__cell {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 1px solid #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.3s, transform 0.3s;
+  backface-visibility: visible;
+}
+
+.carousel__cell:hover {
+  opacity: 0.8;
+  transform: scale(1.05);
+}
+
+@keyframes pulse-border {
+  0%, 100% {
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.8);
+  }
+}
+
+.carousel__cell.selected {
+  border: 2px solid rgb(99, 102, 241);
+  animation: pulse-border 1.5s infinite ease-in-out;
+}
