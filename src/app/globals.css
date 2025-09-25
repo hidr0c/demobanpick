@@ -121,8 +121,8 @@ body {
 }
 
 .animate-popup {
-   animation: popup 0.7s cubic-bezier(0.2, 0.8, 0.2, 1.2);
- }
+  animation: popup 0.7s cubic-bezier(0.2, 0.8, 0.2, 1.2);
+}
 
 @keyframes star-explosion {
   0% {
@@ -215,7 +215,8 @@ body {
 }
 
 @keyframes pulse-border {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.4);
   }
   50% {

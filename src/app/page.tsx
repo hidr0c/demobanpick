@@ -55,17 +55,17 @@ export default function Home() {
       rotateCarousel();
     }
   }, [cellCount, selectedIndex]);
-  
+
   // Start idle animation when component mounts
   useEffect(() => {
     startIdleAnimation();
-    
+
     return () => {
       // Cleanup animation on unmount
       stopIdleAnimation();
     };
   }, []);
-  
+
   // Manage idle animation based on active state
   useEffect(() => {
     if (isAnimating || showResult || showBanPick) {
@@ -90,28 +90,28 @@ export default function Home() {
       // Stop idle animation when starting active animation
       stopIdleAnimation();
       setIsAnimating(true);
-      
+
       // Pick a final random position first to ensure consistency
       const finalIndex = Math.floor(Math.random() * cellCount);
       const targetSong = songData[finalIndex % songData.length];
-      
+
       // First, apply fast animation class
       if (carouselRef.current) {
         carouselRef.current.className = 'carousel animating-fast';
       }
-      
+
       // Use requestAnimationFrame for smoother animation
       let spins = 0;
       const maxSpins = 20; // Increased for smoother effect
       let lastSpinTime = performance.now();
-      
+
       const doSpin = (timestamp: number) => {
         // Calculate time elapsed since last spin
         const elapsed = timestamp - lastSpinTime;
-        
+
         // Calculate progress (0 to 1)
         const progress = spins / maxSpins;
-        
+
         // Determine desired interval based on progress
         let desiredInterval;
         if (progress < 0.3) {
@@ -124,7 +124,7 @@ export default function Home() {
           // Slower at end
           desiredInterval = 100 + (progress - 0.7) / 0.3 * 200;
         }
-        
+
         // Update animation class based on progress
         if (carouselRef.current) {
           if (progress > 0.7) {
@@ -133,21 +133,21 @@ export default function Home() {
             carouselRef.current.className = 'carousel animating-medium';
           }
         }
-        
+
         // Only update if enough time has passed
         if (elapsed >= desiredInterval) {
           spins++;
           setSelectedIndex(prev => (prev + 1) % cellCount);
           lastSpinTime = timestamp;
         }
-        
+
         if (spins < maxSpins) {
           requestAnimationFrame(doSpin);
         } else {
           // Set the final position to ensure consistency with the selected song
           setSelectedIndex(finalIndex);
           setSelectedSong(targetSong);
-          
+
           // Return to normal animation class
           setTimeout(() => {
             if (carouselRef.current) {
@@ -157,7 +157,7 @@ export default function Home() {
           }, 500);
         }
       };
-      
+
       // Start the animation loop
       requestAnimationFrame(doSpin);
     }
@@ -170,34 +170,34 @@ export default function Home() {
   const nextCell = () => {
     setSelectedIndex(index => (index + 1) % cellCount);
   };
-  
+
   // Idle animation functions
   const startIdleAnimation = () => {
     if (isIdleAnimating || isAnimating) return;
-    
+
     setIsIdleAnimating(true);
     if (carouselRef.current) {
       carouselRef.current.className = 'carousel animating-idle';
     }
-    
+
     let lastTime = performance.now();
     const idleSpeed = 6000; // 6 seconds per full rotation
-    
+
     const animateIdle = (time: number) => {
       if (!isIdleAnimating) return;
-      
+
       const elapsed = time - lastTime;
       if (elapsed > idleSpeed / cellCount) {
         setSelectedIndex(index => (index + 1) % cellCount);
         lastTime = time;
       }
-      
+
       idleAnimationRef.current = requestAnimationFrame(animateIdle);
     };
-    
+
     idleAnimationRef.current = requestAnimationFrame(animateIdle);
   };
-  
+
   const stopIdleAnimation = () => {
     setIsIdleAnimating(false);
     if (idleAnimationRef.current !== null) {
@@ -227,21 +227,21 @@ export default function Home() {
       startBanPick();
       return;
     }
-    
+
     // Stop idle animation and set as actively animating
     stopIdleAnimation();
     setIsAnimating(true);
 
     // Total animation duration - 5.5 seconds
     const totalDuration = 5500;
-    
+
     // Pick a random final position and song FIRST to ensure consistency
     const finalIndex = Math.floor(Math.random() * cellCount);
     const randomSong = songData[finalIndex % songData.length];
-    
+
     // Store the target song for later use
     const targetSong = randomSong;
-    
+
     // Apply fast animation class at the beginning
     if (carouselRef.current) {
       carouselRef.current.className = 'carousel animating-fast';
@@ -250,23 +250,23 @@ export default function Home() {
     // Use requestAnimationFrame for smoother animation
     const startTime = performance.now();
     let lastFrameTime = startTime;
-    
+
     // Animation function using requestAnimationFrame
     const spinAnimation = (currentTime: number) => {
       // Calculate elapsed time and progress
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / totalDuration, 1);
-      
+
       // Calculate time since last frame
       const frameDelta = currentTime - lastFrameTime;
-      
+
       // Three phases of animation
       let frameInterval;
-      
+
       if (progress < 0.2) {
         // Phase 1: Very fast (30ms between cells)
         frameInterval = 30;
-        
+
         // Keep fast animation class
         if (carouselRef.current) {
           carouselRef.current.className = 'carousel animating-fast';
@@ -274,7 +274,7 @@ export default function Home() {
       } else if (progress < 0.8) {
         // Phase 2: Gradual slowdown (30ms to 200ms)
         frameInterval = 30 + Math.pow((progress - 0.2) / 0.6, 2) * 170;
-        
+
         // Medium animation speed in middle phase
         if (progress > 0.5 && carouselRef.current) {
           carouselRef.current.className = 'carousel animating-medium';
@@ -282,19 +282,19 @@ export default function Home() {
       } else {
         // Phase 3: Final slowdown (200ms to 500ms)
         frameInterval = 200 + Math.pow((progress - 0.8) / 0.2, 2) * 300;
-        
+
         // Slow animation in final phase
         if (carouselRef.current) {
           carouselRef.current.className = 'carousel animating-slow';
         }
       }
-      
+
       // Only update position if enough time has passed since last update
       if (frameDelta >= frameInterval) {
         nextCell();
         lastFrameTime = currentTime;
       }
-      
+
       // Continue animation or finish
       if (progress < 1) {
         requestAnimationFrame(spinAnimation);
@@ -302,14 +302,14 @@ export default function Home() {
         // Force final position and ensure it matches the pre-selected song
         setSelectedIndex(finalIndex);
         setSelectedSong(targetSong);
-        
+
         // Update history with the pre-selected song
         setRandomHistory(prev => {
           const newHistory = [...prev, targetSong];
           localStorage.setItem('randomHistory', JSON.stringify(newHistory));
           return newHistory;
         });
-        
+
         // Reset carousel animation class
         if (carouselRef.current) {
           setTimeout(() => {
@@ -318,17 +318,17 @@ export default function Home() {
             }
           }, 500);
         }
-        
+
         // Show result popup
         setShowResult(true);
         setShowStars(true);
         setIsAnimating(false);
-        
+
         // Hide stars after animation
         setTimeout(() => setShowStars(false), 5000);
       }
     };
-    
+
     // Start the animation
     requestAnimationFrame(spinAnimation);
   };
@@ -378,13 +378,13 @@ export default function Home() {
         <div className="text-center">
           {/* 3D Carousel */}
           <div className="scene mb-8" style={{ perspective: '1000px', width: '240px', height: '240px', margin: '0 auto' }}>
-            <div 
-              ref={carouselRef} 
-              className={`carousel ${isAnimating ? 'animating-fast' : isIdleAnimating ? 'animating-idle' : ''}`} 
-              style={{ 
-                width: '100%', 
-                height: '100%', 
-                position: 'relative', 
+            <div
+              ref={carouselRef}
+              className={`carousel ${isAnimating ? 'animating-fast' : isIdleAnimating ? 'animating-idle' : ''}`}
+              style={{
+                width: '100%',
+                height: '100%',
+                position: 'relative',
                 transformStyle: 'preserve-3d'
               }}
             >
@@ -423,28 +423,28 @@ export default function Home() {
               })}
             </div>
           </div>
-          
+
           {/* Show current song info */}
           <div className="mt-4 mb-4 text-center">
             <h3 className="text-lg font-bold">{songData[selectedIndex % songData.length]?.title}</h3>
             <p className="text-gray-600">{songData[selectedIndex % songData.length]?.artist}</p>
             <p className="text-purple-600 text-sm">
-              {songData[selectedIndex % songData.length]?.lv} 
+              {songData[selectedIndex % songData.length]?.lv}
               {" "}
               {songData[selectedIndex % songData.length]?.diff}
             </p>
           </div>
-          
+
           <div className="carousel-controls mb-6 flex justify-center gap-4">
-            <Button 
-              onPress={previousCell} 
-              variant="bordered" 
+            <Button
+              onPress={previousCell}
+              variant="bordered"
               startContent={<span>◀</span>}
               isDisabled={isAnimating}
             >
               Previous
             </Button>
-            <Button 
+            <Button
               onPress={handleRandom}
               color="primary"
               size="lg"
@@ -454,16 +454,16 @@ export default function Home() {
             >
               {isAnimating ? "Spinning..." : `Random (${randomHistory.length}/6)`}
             </Button>
-            <Button 
-              onPress={nextCell} 
-              variant="bordered" 
+            <Button
+              onPress={nextCell}
+              variant="bordered"
               endContent={<span>▶</span>}
               isDisabled={isAnimating}
             >
               Next
             </Button>
           </div>
-          
+
           <Button
             color="secondary"
             size="md"
