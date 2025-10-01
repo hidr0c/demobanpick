@@ -1,11 +1,5 @@
 // To do: Make wheel changes to corresponding pools in different rounds
 
-/*
-Song wheel manipulation
-- Task: Make a function to update cellCount to corresponding number of songs in pools.
-Song ban / pick
-*/
-
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -31,9 +25,9 @@ export interface Song {
   isDx: boolean;
 }
 
-interface RoundSetting{
+export interface RoundSetting{
   poolPath: string;
-  total: number;
+  totalBanPick: number;
   ban: number;
   pick: number;
 }
@@ -49,7 +43,7 @@ export default function Home() {
   const [showBanPick, setShowBanPick] = useState(false);
   const [banPickSongs, setBanPickSongs] = useState<Song[]>([]);
   const [finalSongs, setFinalSongs] = useState<Song[]>([]);
-  const [roundSetting, setRoundSetting] = useState<RoundSetting[]>([]);
+  const [roundSetting, setRoundSetting] = useState<RoundSetting>(banPickSettings[0]);
   const [animationPhase, setAnimationPhase] = useState<'fast' | 'slow' | 'idle'>('idle');
   const [showHistory, setShowHistory] = useState(false);
   const [showHistoryDetails, setShowHistoryDetails] = useState(false);
@@ -232,20 +226,19 @@ export default function Home() {
     if (h) {
       const parsed = JSON.parse(h);
       setRandomHistory(parsed);
-      if (parsed.length >= 6) {
+      if (parsed.length >= roundSetting.totalBanPick) {
         startBanPick();
       }
     }
   }, []);
   useEffect(() => {
-    // Task: Make ban pick songs length changable depends on rounds
-    if (banPickSongs.length <= 3 && finalSongs.length === 0) {
+    if (banPickSongs.length <= roundSetting.pick && finalSongs.length === 0) {
       setFinalSongs(banPickSongs);
     }
   }, [banPickSongs, finalSongs]);
 
   const handleRandom = () => {
-    if (randomHistory.length >= 6) {
+    if (randomHistory.length >= roundSetting.totalBanPick) {
       startBanPick();
       return;
     }
@@ -356,10 +349,8 @@ export default function Home() {
   };
 
   const startBanPick = () => {
-    // Select 6 random songs for ban pick
-    // Task: The amount of random songs is changable for different roudns
     const shuffled = [...songData].sort(() => 0.5 - Math.random());
-    setBanPickSongs(shuffled.slice(0, 6));
+    setBanPickSongs(shuffled.slice(0, roundSetting.totalBanPick));
     setShowBanPick(true);
     setShowResult(false);
   };
@@ -475,7 +466,7 @@ export default function Home() {
               isDisabled={isAnimating}
               isLoading={isAnimating}
             >
-              {isAnimating ? "Spinning..." : `Random (${randomHistory.length}/6)`}
+              {isAnimating ? "Spinning..." : `Random (${randomHistory.length}/${roundSetting.totalBanPick})`}
             </Button>
             <Button
               onPress={nextCell}
@@ -498,7 +489,7 @@ export default function Home() {
           </Button>
           {randomHistory.length > 0 && (
             <p className="text-gray-600 mt-4">
-              Random History: {randomHistory.length}/6 songs selected
+              Random History: {randomHistory.length} / {roundSetting.totalBanPick} songs selected
             </p>
           )}
           <div className="mt-4 flex gap-4 justify-center">
@@ -601,7 +592,7 @@ export default function Home() {
           <div className="bg-white p-8 rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <h2 className="text-3xl font-bold mb-6 text-center">Ban Pick Phase</h2>
             <p className="text-center text-gray-600 mb-6">
-              Click on songs to ban them ({3 - (6 - banPickSongs.length)} bans remaining)
+              Click on songs to ban them ({roundSetting.ban - (roundSetting.totalBanPick - banPickSongs.length)} bans remaining)
             </p>
 
             {/* Display songs for banning */}
@@ -629,7 +620,7 @@ export default function Home() {
             {/* Display final selection */}
             {finalSongs.length > 0 && (
               <div className="mt-8 p-4 bg-green-50 rounded-lg">
-                <h3 className="text-xl font-bold mb-4 text-center">Final Selection ({finalSongs.length}/3)</h3>
+                <h3 className="text-xl font-bold mb-4 text-center">Final Selection ({finalSongs.length} / {roundSetting.pick})</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {finalSongs.map((song, index) => (
                     <div key={index} className="text-center">
