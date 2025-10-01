@@ -1,0 +1,26 @@
+[
+  {
+    "poolPath": "../../public/pools/qualBottom.json",
+    "totalBanPick": 5,
+    "ban": 2,
+    "pick": 2
+  },
+  {
+    "poolPath": "../../public/pools/qualTop.json",
+    "totalBanPick": 5,
+    "ban": 2,
+    "pick": 2
+  },
+  {
+    "poolPath": "../../public/pools/semiFinals.json",
+    "totalBanPick": 6,
+    "ban": 2,
+    "pick": 3
+  },
+  {
+    "poolPath": "../../public/pools/finals.json",
+    "totalBanPick": 7,
+    "ban": 3,
+    "pick": 3
+  }
+]
