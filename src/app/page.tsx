@@ -1,13 +1,26 @@
+// To do: Make wheel changes to corresponding pools in different rounds
+
+/*
+Song wheel manipulation
+- Task: Make a function to update cellCount to corresponding number of songs in pools.
+Song ban / pick
+*/
+
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@heroui/react';
 import Image from 'next/image';
-import songData from '../../public/databanpick.json';
+import banPickSettings from '../../public/roundBanPickSettings.json';
+
+// Task: How to import different song datas from pools folder to here?
+import songData from '../../public/pools/qualBottom.json';
 
 console.log('songData loaded:', songData);
 console.log('songData length:', songData?.length);
+console.log('banPickSettings:', banPickSettings);
+console.log('banPickSettings length:', banPickSettings?.length);
 
 export interface Song {
   imgUrl: string;
@@ -16,6 +29,13 @@ export interface Song {
   lv: string;
   diff: string;
   isDx: boolean;
+}
+
+interface RoundSetting{
+  poolPath: string;
+  total: number;
+  ban: number;
+  pick: number;
 }
 
 export default function Home() {
@@ -29,6 +49,7 @@ export default function Home() {
   const [showBanPick, setShowBanPick] = useState(false);
   const [banPickSongs, setBanPickSongs] = useState<Song[]>([]);
   const [finalSongs, setFinalSongs] = useState<Song[]>([]);
+  const [roundSetting, setRoundSetting] = useState<RoundSetting[]>([]);
   const [animationPhase, setAnimationPhase] = useState<'fast' | 'slow' | 'idle'>('idle');
   const [showHistory, setShowHistory] = useState(false);
   const [showHistoryDetails, setShowHistoryDetails] = useState(false);
@@ -36,7 +57,7 @@ export default function Home() {
 
   // 3D Carousel state
   const carouselRef = useRef<HTMLDivElement>(null);
-  const [cellCount, setCellCount] = useState(8);
+  const [cellCount, setCellCount] = useState(songData.length * 2);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isHorizontal] = useState(true);
   const [radius, setRadius] = useState(0);
@@ -217,6 +238,7 @@ export default function Home() {
     }
   }, []);
   useEffect(() => {
+    // Task: Make ban pick songs length changable depends on rounds
     if (banPickSongs.length <= 3 && finalSongs.length === 0) {
       setFinalSongs(banPickSongs);
     }
@@ -335,6 +357,7 @@ export default function Home() {
 
   const startBanPick = () => {
     // Select 6 random songs for ban pick
+    // Task: The amount of random songs is changable for different roudns
     const shuffled = [...songData].sort(() => 0.5 - Math.random());
     setBanPickSongs(shuffled.slice(0, 6));
     setShowBanPick(true);
@@ -580,6 +603,8 @@ export default function Home() {
             <p className="text-center text-gray-600 mb-6">
               Click on songs to ban them ({3 - (6 - banPickSongs.length)} bans remaining)
             </p>
+
+            {/* Display songs for banning */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {banPickSongs.map((song, index) => (
                 <div
@@ -600,6 +625,8 @@ export default function Home() {
                 </div>
               ))}
             </div>
+
+            {/* Display final selection */}
             {finalSongs.length > 0 && (
               <div className="mt-8 p-4 bg-green-50 rounded-lg">
                 <h3 className="text-xl font-bold mb-4 text-center">Final Selection ({finalSongs.length}/3)</h3>
