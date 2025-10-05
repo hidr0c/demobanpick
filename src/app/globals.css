@@ -169,25 +169,25 @@ body {
   height: 100%;
   position: relative;
   transform-style: preserve-3d;
-  transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
-  will-change: transform; /* Hint to browser to optimize */
+  transition: transform 0.8s cubic-bezier(0.25, 0.1, 0.25, 1);
+  will-change: transform;
 }
 
-/* When animating fast, use a much shorter transition time */
+/* When animating fast - no transition, updates are handled by JS */
 .carousel.animating-fast {
-  transition: transform 0.05s linear;
+  transition: none;
   will-change: transform;
 }
 
-/* When animating medium speed */
+/* When animating medium speed - minimal transition */
 .carousel.animating-medium {
-  transition: transform 0.15s cubic-bezier(0.33, 1, 0.68, 1);
+  transition: none;
   will-change: transform;
 }
 
-/* When slowing down */
+/* When slowing down - minimal transition */
 .carousel.animating-slow {
-  transition: transform 0.3s cubic-bezier(0, 0.55, 0.45, 1);
+  transition: none;
   will-change: transform;
 }
 
