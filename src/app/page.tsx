@@ -1,13 +1,20 @@
+// To do: Make wheel changes to corresponding pools in different rounds
+
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@heroui/react';
 import Image from 'next/image';
-import songData from '../../public/databanpick.json';
+import banPickSettings from '../../public/roundBanPickSettings.json';
+
+// Task: How to import different song datas from pools folder to here?
+import songData from '../../public/pools/qualBottom.json';
 
 console.log('songData loaded:', songData);
 console.log('songData length:', songData?.length);
+console.log('banPickSettings:', banPickSettings);
+console.log('banPickSettings length:', banPickSettings?.length);
 
 export interface Song {
   imgUrl: string;
@@ -16,6 +23,13 @@ export interface Song {
   lv: string;
   diff: string;
   isDx: boolean;
+}
+
+export interface RoundSetting{
+  poolPath: string;
+  totalBanPick: number;
+  ban: number;
+  pick: number;
 }
 
 export default function Home() {
@@ -29,6 +43,7 @@ export default function Home() {
   const [showBanPick, setShowBanPick] = useState(false);
   const [banPickSongs, setBanPickSongs] = useState<Song[]>([]);
   const [finalSongs, setFinalSongs] = useState<Song[]>([]);
+  const [roundSetting, setRoundSetting] = useState<RoundSetting>(banPickSettings[0]);
   const [animationPhase, setAnimationPhase] = useState<'fast' | 'slow' | 'idle'>('idle');
   const [showHistory, setShowHistory] = useState(false);
   const [showHistoryDetails, setShowHistoryDetails] = useState(false);
@@ -36,7 +51,7 @@ export default function Home() {
 
   // 3D Carousel state
   const carouselRef = useRef<HTMLDivElement>(null);
-  const [cellCount, setCellCount] = useState(8);
+  const [cellCount, setCellCount] = useState(songData.length * 2);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isHorizontal] = useState(true);
   const [radius, setRadius] = useState(0);
@@ -211,19 +226,19 @@ export default function Home() {
     if (h) {
       const parsed = JSON.parse(h);
       setRandomHistory(parsed);
-      if (parsed.length >= 6) {
+      if (parsed.length >= roundSetting.totalBanPick) {
         startBanPick();
       }
     }
   }, []);
   useEffect(() => {
-    if (banPickSongs.length <= 3 && finalSongs.length === 0) {
+    if (banPickSongs.length <= roundSetting.pick && finalSongs.length === 0) {
       setFinalSongs(banPickSongs);
     }
   }, [banPickSongs, finalSongs]);
 
   const handleRandom = () => {
-    if (randomHistory.length >= 6) {
+    if (randomHistory.length >= roundSetting.totalBanPick) {
       startBanPick();
       return;
     }
@@ -334,9 +349,8 @@ export default function Home() {
   };
 
   const startBanPick = () => {
-    // Select 6 random songs for ban pick
     const shuffled = [...songData].sort(() => 0.5 - Math.random());
-    setBanPickSongs(shuffled.slice(0, 6));
+    setBanPickSongs(shuffled.slice(0, roundSetting.totalBanPick));
     setShowBanPick(true);
     setShowResult(false);
   };
@@ -452,7 +466,7 @@ export default function Home() {
               isDisabled={isAnimating}
               isLoading={isAnimating}
             >
-              {isAnimating ? "Spinning..." : `Random (${randomHistory.length}/6)`}
+              {isAnimating ? "Spinning..." : `Random (${randomHistory.length}/${roundSetting.totalBanPick})`}
             </Button>
             <Button
               onPress={nextCell}
@@ -475,7 +489,7 @@ export default function Home() {
           </Button>
           {randomHistory.length > 0 && (
             <p className="text-gray-600 mt-4">
-              Random History: {randomHistory.length}/6 songs selected
+              Random History: {randomHistory.length} / {roundSetting.totalBanPick} songs selected
             </p>
           )}
           <div className="mt-4 flex gap-4 justify-center">
@@ -578,8 +592,10 @@ export default function Home() {
           <div className="bg-white p-8 rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <h2 className="text-3xl font-bold mb-6 text-center">Ban Pick Phase</h2>
             <p className="text-center text-gray-600 mb-6">
-              Click on songs to ban them ({3 - (6 - banPickSongs.length)} bans remaining)
+              Click on songs to ban them ({roundSetting.ban - (roundSetting.totalBanPick - banPickSongs.length)} bans remaining)
             </p>
+
+            {/* Display songs for banning */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {banPickSongs.map((song, index) => (
                 <div
@@ -600,9 +616,11 @@ export default function Home() {
                 </div>
               ))}
             </div>
+
+            {/* Display final selection */}
             {finalSongs.length > 0 && (
               <div className="mt-8 p-4 bg-green-50 rounded-lg">
-                <h3 className="text-xl font-bold mb-4 text-center">Final Selection ({finalSongs.length}/3)</h3>
+                <h3 className="text-xl font-bold mb-4 text-center">Final Selection ({finalSongs.length} / {roundSetting.pick})</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {finalSongs.map((song, index) => (
                     <div key={index} className="text-center">
