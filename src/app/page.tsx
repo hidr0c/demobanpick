@@ -50,6 +50,7 @@ export default function Home() {
   // 3D Carousel state
   const carouselRef = useRef<HTMLDivElement>(null);
   const [cellCount, setCellCount] = useState(songData.length * 2);
+  const [cellWidth] = useState(240);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isHorizontal] = useState(true);
   const [radius, setRadius] = useState(0);
@@ -64,9 +65,9 @@ export default function Home() {
   // 3D Carousel initialization
   useEffect(() => {
     if (carouselRef.current) {
-    const cellWidth = 120; 
-    const newRadius = Math.round(cellWidth / 2 / Math.tan(Math.PI / cellCount));   
-    setRadius(newRadius);  
+    const cellW = cellWidth; 
+    const newRadius = Math.round(cellW / 2 / Math.tan(Math.PI / cellCount));
+    setRadius(newRadius);
     setTheta(360 / cellCount);
     rotateCarousel();
     }
@@ -496,8 +497,8 @@ export default function Home() {
               className="scene mb-8" 
               style={{ 
                 perspective: '1000px', 
-                width: '10px',
-                height: '240px', 
+                width: `${cellWidth}px`,
+                height: `${cellWidth}px`, 
                 margin: '0 auto',
                 display: 'flex',
                 justifyContent: 'center', 
@@ -521,8 +522,8 @@ export default function Home() {
                       className={`carousel__cell ${selectedIndex === i ? 'selected' : ''}`}
                       style={{
                         position: 'absolute',
-                        width: '120px',
-                        height: '120px',
+                        width: `${cellWidth}px`,
+                        height: `${cellWidth}px`,
                         border: '1px solid #ccc',
                         borderRadius: '8px',
                         boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
@@ -537,8 +538,8 @@ export default function Home() {
                       <Image
                         src={song.imgUrl}
                         alt={song.title}
-                        width={120}
-                        height={120}
+                        width={cellWidth}
+                        height={cellWidth}
                         className="object-cover rounded-lg shadow-md"
                       />
                     </div>
