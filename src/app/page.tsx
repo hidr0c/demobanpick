@@ -188,13 +188,14 @@ export default function Home() {
   const nextCell = () => {
     setSelectedIndex(index => (index + 1) % cellCount);
   };
-
+  
   // Idle animation functions
   const startIdleAnimation = () => {
     if (isIdleAnimating || isAnimating) return;
-
+    
     setIsIdleAnimating(true);
     if (carouselRef.current) {
+      nextCell();
       carouselRef.current.className = 'carousel animating-idle';
     }
 
