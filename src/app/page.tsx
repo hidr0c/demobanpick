@@ -46,6 +46,7 @@ export default function Home() {
   const [showHistory, setShowHistory] = useState(false);
   const [showHistoryDetails, setShowHistoryDetails] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
+  const [isCarouselReady, setIsCarouselReady] = useState(false);
 
   // 3D Carousel state
   const carouselRef = useRef<HTMLDivElement>(null);
@@ -62,6 +63,17 @@ export default function Home() {
 
   const rotateFn = isHorizontal ? 'rotateY' : 'rotateX';
 
+   const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty) {
+      case 'EXPERT':
+        return 'red';
+      case 'MASTER':
+        return '#9333ea'; // a shade of purple
+      default:
+        return '#DDA0DD'; // plum, for RE:MASTER
+    }
+  };
+
   // 3D Carousel initialization
   useEffect(() => {
     if (carouselRef.current) {
@@ -70,6 +82,7 @@ export default function Home() {
     setRadius(newRadius);
     setTheta(360 / cellCount);
     rotateCarousel();
+    setIsCarouselReady(true); // Đánh dấu carousel đã sẵn sàng
     }
   }, [cellCount, selectedIndex]);
 
@@ -255,7 +268,7 @@ export default function Home() {
     let finalIndex = Math.floor(Math.random() * cellCount);
     let targetSong = songData[finalIndex % songData.length];
     let attempts = 0;
-    while (randomHistory.some(s => s.title === targetSong.title) && attempts < 100) {
+    while (randomHistory.some(s => s.title === targetSong.title && s.diff === targetSong.diff) && attempts < 100) {
     finalIndex = Math.floor(Math.random() * cellCount);
     targetSong = songData[finalIndex % songData.length];
     attempts++;
@@ -454,6 +467,7 @@ export default function Home() {
   const startBanPick = () => {
     const shuffled = [...songData].sort(() => 0.5 - Math.random());
     setBanPickSongs(shuffled.slice(0, roundSetting.totalBanPick));
+    setBanPickSongs([...randomHistory]);
     setShowBanPick(true);
     setShowResult(false);
   };
@@ -506,8 +520,8 @@ export default function Home() {
                 }}
             >
               <div
-                ref={carouselRef}
-                className={`carousel ${isAnimating ? 'animating-fast' : isIdleAnimating ? 'animating-idle' : ''}`}
+                ref={carouselRef}                
+                className={`carousel ${isCarouselReady ? (isAnimating ? 'animating-fast' : isIdleAnimating ? 'animating-idle' : '') : 'no-transition'}`}
                 style={{
                   width: '100%',
                   height: '100%',
@@ -554,15 +568,7 @@ export default function Home() {
           <div className="mt-4 mb-4 text-center">
             <h3 className="text-lg font-bold">{songData[selectedIndex % songData.length]?.title}</h3>
             <p className="text-gray-600">{songData[selectedIndex % songData.length]?.artist}</p>
-            <p
-              className="text-sm"
-              style={{
-              color:
-              songData[selectedIndex % songData.length]?.diff === "EXPERT"
-              ? "red"
-              : "#9333ea", // giữ nguyên màu tím cũ (text-purple-600)
-              }}
-            >
+            <p className="text-sm" style={{ color: getDifficultyColor(songData[selectedIndex % songData.length]?.diff) }}>
               {songData[selectedIndex % songData.length]?.lv}{" "}
               {songData[selectedIndex % songData.length]?.diff}
             </p>
@@ -632,7 +638,9 @@ export default function Home() {
                     />
                     <h4 className="font-bold text-sm">{song.title}</h4>
                     <p className="text-gray-600 text-xs">{song.artist}</p>
-                    <p className="text-purple-600 text-xs">{song.lv} {song.diff}</p>
+                    <p className="text-xs" style={{ color: getDifficultyColor(song.diff) }}>
+                      {song.lv} {song.diff}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -683,7 +691,9 @@ export default function Home() {
           >
             <h1 className="text-4xl font-bold mb-2">{selectedSong.title}</h1>
             <p className="text-xl text-gray-600 mb-4">{selectedSong.artist}</p>
-            <p className="text-lg text-purple-600 mb-4">{selectedSong.lv} {selectedSong.diff}</p>
+            <p className="text-lg mb-4" style={{ color: getDifficultyColor(selectedSong.diff) }}>
+              {selectedSong.lv} {selectedSong.diff}
+            </p>
             <Image
               src={selectedSong.imgUrl}
               alt="Jacket"
@@ -723,7 +733,9 @@ export default function Home() {
                   />
                   <h3 className="font-bold text-center">{song.title}</h3>
                   <p className="text-gray-600 text-center text-sm">{song.artist}</p>
-                  <p className="text-purple-600 text-center text-sm">{song.lv} {song.diff}</p>
+                  <p className="text-center text-sm" style={{ color: getDifficultyColor(song.diff) }}>
+                    {song.lv} {song.diff}
+                  </p>
                 </div>
               ))}
             </div>
