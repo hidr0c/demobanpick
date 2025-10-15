@@ -569,8 +569,8 @@ export default function Home() {
             <h3 className="text-lg font-bold">{songData[selectedIndex % songData.length]?.title}</h3>
             <p className="text-gray-600">{songData[selectedIndex % songData.length]?.artist}</p>
             <p className="text-sm" style={{ color: getDifficultyColor(songData[selectedIndex % songData.length]?.diff) }}>
-              {songData[selectedIndex % songData.length]?.lv}{" "}
-              {songData[selectedIndex % songData.length]?.diff}
+              {songData[selectedIndex % songData.length]?.diff}{" "}
+              {songData[selectedIndex % songData.length]?.lv}
             </p>
           </div>
 
@@ -639,7 +639,7 @@ export default function Home() {
                     <h4 className="font-bold text-sm">{song.title}</h4>
                     <p className="text-gray-600 text-xs">{song.artist}</p>
                     <p className="text-xs" style={{ color: getDifficultyColor(song.diff) }}>
-                      {song.lv} {song.diff}
+                      {song.diff} {song.lv}
                     </p>
                   </div>
                 ))}
@@ -692,7 +692,7 @@ export default function Home() {
             <h1 className="text-4xl font-bold mb-2">{selectedSong.title}</h1>
             <p className="text-xl text-gray-600 mb-4">{selectedSong.artist}</p>
             <p className="text-lg mb-4" style={{ color: getDifficultyColor(selectedSong.diff) }}>
-              {selectedSong.lv} {selectedSong.diff}
+              {selectedSong.diff} {selectedSong.lv}
             </p>
             <Image
               src={selectedSong.imgUrl}
@@ -734,7 +734,7 @@ export default function Home() {
                   <h3 className="font-bold text-center">{song.title}</h3>
                   <p className="text-gray-600 text-center text-sm">{song.artist}</p>
                   <p className="text-center text-sm" style={{ color: getDifficultyColor(song.diff) }}>
-                    {song.lv} {song.diff}
+                    {song.diff} {song.lv}
                   </p>
                 </div>
               ))}
