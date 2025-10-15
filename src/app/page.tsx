@@ -7,7 +7,7 @@ import Image from 'next/image';
 import banPickSettings from '../../public/roundBanPickSettings.json';
 
 // Task: How to import different song datas from pools folder to here?
-import songData from '../../public/pools/qualBottom.json';
+import songData from '../../public/pools/newbieSemi.json';
 
 console.log('songData loaded:', songData);
 console.log('songData length:', songData?.length);
