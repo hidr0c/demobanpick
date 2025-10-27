@@ -499,6 +499,32 @@ export default function Home() {
     setShowHistoryDetails(false);
   };
 
+  const handleRemoveHistory = (index: number) => {
+    setRandomHistory(prev => {
+    const removed = prev[index];
+    const newArr = prev.filter((_, i) => i !== index);
+    localStorage.setItem('randomHistory', JSON.stringify(newArr));
+
+    // Also remove from banPickSongs / finalSongs if present (match by title+diff)
+    if (removed) {
+      setBanPickSongs(bp => bp.filter(s => !(s.title === removed.title && s.diff === removed.diff)));
+      setFinalSongs(f => f.filter(s => !(s.title === removed.title && s.diff === removed.diff)));
+       // If history is now below required, hide ban/pick modal
+      if (newArr.length < roundSetting.totalBanPick) {
+         setShowBanPick(false);
+      }
+       // If the removed song was currently selected in popup, close it
+      if (selectedSong && selectedSong.title === removed.title && selectedSong.diff === removed.diff) {
+         setSelectedSong(null);
+         setShowResult(false);
+         setShowStars(false);
+      }
+    }
+
+     return newArr;
+   });
+ };
+
   // Create multiple images for the moving row
   const images = Array.from({ length: 20 }, (_, i) => i);
 
@@ -627,16 +653,26 @@ export default function Home() {
               <h3 className="text-lg font-bold mb-4">Random History Details</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {randomHistory.map((song, index) => (
-                  <div key={index} className="border border-gray-200 rounded-lg p-4 text-center">
+                  <div
+                    key={`${song.title}-${song.diff}-${index}`}
+                    className="border border-gray-200 rounded-lg p-4 text-center relative"
+                  >
+                    <button
+                      onClick={() => handleRemoveHistory(index)}
+                      className="absolute top-2 right-2 text-sm text-red-600 hover:opacity-80"
+                      title="Remove from history"
+                      aria-label={`Remove ${song.title} from history`}
+                    >
+                      ✖
+                    </button>
                     <Image
                       src={song.imgUrl}
                       alt={song.title}
                       width={100}
                       height={100}
-
                       className="mx-auto rounded-xl"
                     />
-                    <h4 className="font-bold text-sm">{song.title}</h4>
+                    <h4 className="font-bold text-sm mt-2">{song.title}</h4>
                     <p className="text-gray-600 text-xs">{song.artist}</p>
                     <p className="text-xs" style={{ color: getDifficultyColor(song.diff) }}>
                       {song.diff} {song.lv}
