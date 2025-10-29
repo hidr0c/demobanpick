@@ -5,30 +5,12 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@heroui/react';
 import Image from 'next/image';
 import banPickSettings from '../../public/roundBanPickSettings.json';
+import songData from '../../public/pools/qualBottom.json';
+import {Song, RoundSetting} from './interface';
 
-// Task: How to import different song datas from pools folder to here?
-import songData from '../../public/pools/newbieSemi.json';
-
-console.log('songData loaded:', songData);
-console.log('songData length:', songData?.length);
-console.log('banPickSettings:', banPickSettings);
-console.log('banPickSettings length:', banPickSettings?.length);
-
-export interface Song {
-  imgUrl: string;
-  artist: string;
-  title: string;
-  lv: string;
-  diff: string;
-  isDx: boolean;
-}
-
-export interface RoundSetting {
-  poolPath: string;
-  totalBanPick: number;
-  ban: number;
-  pick: number;
-}
+import EmblaCarousel from './embla-carousel/EmblaCarousel';
+import './css/embla.css'
+console.log(songData?.length, "songs loaded");
 
 export default function Home() {
   console.log('Home component rendering');
@@ -60,9 +42,14 @@ export default function Home() {
   const idleAnimationRef = useRef<number | null>(null);
   const targetIndexRef = useRef<number | null>(null);
   const currentRotationRef = useRef(0);
-
   const rotateFn = isHorizontal ? 'rotateY' : 'rotateX';
 
+  // Options for embla-carousel
+  const OPTIONS = { loop: true }
+  const SLIDE_COUNT = songData?.length
+  const SLIDES = Array.from(Array(SLIDE_COUNT).keys())
+
+  // Difficulty color
    const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case 'EXPERT':
@@ -532,6 +519,12 @@ export default function Home() {
     <div className="min-h-screen flex flex-col items-center justify-center text-black">
       {!showResult && !showBanPick && (
         <div className="w-full flex flex-col items-center justify-center" style={{ minHeight: '110vh' }}>
+
+          {/* Embla-carousel */}
+          <div className="w-full flex justify-center mt-8">
+          <EmblaCarousel slides={SLIDES} options={OPTIONS} />
+          </div>
+
           {/* Carousel ở trên, căn giữa */}
           <div className="w-full flex justify-center mt-8">
             <div 
@@ -598,35 +591,6 @@ export default function Home() {
               {songData[selectedIndex % songData.length]?.diff}{" "}
               {songData[selectedIndex % songData.length]?.lv}
             </p>
-          </div>
-
-          <div className="carousel-controls mb-6 flex justify-center gap-4">
-            <Button
-              onPress={previousCell}
-              variant="bordered"
-              startContent={<span>◀</span>}
-              isDisabled={isAnimating}
-            >
-              Previous
-            </Button>
-            <Button
-              onPress={handleRandom}
-              color="primary"
-              size="lg"
-              className="px-8"
-              isDisabled={isAnimating}
-              isLoading={isAnimating}
-            >
-              {isAnimating ? "Spinning..." : `Random (${randomHistory.length}/${roundSetting.totalBanPick})`}
-            </Button>
-            <Button
-              onPress={nextCell}
-              variant="bordered"
-              endContent={<span>▶</span>}
-              isDisabled={isAnimating}
-            >
-              Next
-            </Button>
           </div>
 
           {randomHistory.length > 0 && (
