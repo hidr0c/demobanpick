@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@heroui/react';
 import Image from 'next/image';
 import banPickSettings from '../../public/roundBanPickSettings.json';
-import songData from '../../public/pools/qualBottom.json';
+import songData from '../../public/pools/newbieSemi.json';
 import {Song, RoundSetting} from './interface';
 
 import EmblaCarousel from './embla-carousel/EmblaCarousel';
@@ -46,9 +46,9 @@ export default function Home() {
 
   // Options for embla-carousel
   const OPTIONS = { loop: true };
-  const SLIDE_COUNT = 677;
-  const SLIDES = Array.from(Array(SLIDE_COUNT).keys());
-  
+  const SLIDE_COUNT = songData?.length
+  const SLIDES = songData;
+
   // Difficulty color
    const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -61,414 +61,414 @@ export default function Home() {
     }
   };
 
-  // 3D Carousel initialization
-  useEffect(() => {
-    if (carouselRef.current) {
-    const cellW = cellWidth; 
-    const newRadius = Math.round(cellW / 2 / Math.tan(Math.PI / cellCount));
-    setRadius(newRadius);
-    setTheta(360 / cellCount);
-    rotateCarousel();
-    setIsCarouselReady(true); // Đánh dấu carousel đã sẵn sàng
-    }
-  }, [cellCount, selectedIndex]);
+  // // 3D Carousel initialization
+  // useEffect(() => {
+  //   if (carouselRef.current) {
+  //   const cellW = cellWidth; 
+  //   const newRadius = Math.round(cellW / 2 / Math.tan(Math.PI / cellCount));
+  //   setRadius(newRadius);
+  //   setTheta(360 / cellCount);
+  //   rotateCarousel();
+  //   setIsCarouselReady(true); // Đánh dấu carousel đã sẵn sàng
+  //   }
+  // }, [cellCount, selectedIndex]);
 
-  // Start idle animation when component mounts
-  useEffect(() => {
-    startIdleAnimation();
+  // // Start idle animation when component mounts
+  // useEffect(() => {
+  //   startIdleAnimation();
 
-    return () => {
-      // Cleanup animation on unmount
-      stopIdleAnimation();
-    };
-  }, []);
+  //   return () => {
+  //     // Cleanup animation on unmount
+  //     stopIdleAnimation();
+  //   };
+  // }, []);
 
-  // Manage idle animation based on active state
-  useEffect(() => {
-    if (isAnimating || showResult || showBanPick) {
-      // Stop idle animation when actively animating or showing results
-      stopIdleAnimation();
-    } else if (!isIdleAnimating) {
-      // Restart idle animation when returning to idle state
-      startIdleAnimation();
-    }
-  }, [isAnimating, showResult, showBanPick, isIdleAnimating]);
+  // // Manage idle animation based on active state
+  // useEffect(() => {
+  //   if (isAnimating || showResult || showBanPick) {
+  //     // Stop idle animation when actively animating or showing results
+  //     stopIdleAnimation();
+  //   } else if (!isIdleAnimating) {
+  //     // Restart idle animation when returning to idle state
+  //     startIdleAnimation();
+  //   }
+  // }, [isAnimating, showResult, showBanPick, isIdleAnimating]);
 
-  // Rotation functions for carousel
-  const rotateCarousel = (angle?: number) => {
-    if (carouselRef.current) {
-      const rotationAngle = angle !== undefined ? angle : theta * selectedIndex * -1;
-      carouselRef.current.style.transform = `translateZ(${-radius}px) ${rotateFn}(${rotationAngle}deg)`;
-    }
-  };
+  // // Rotation functions for carousel
+  // const rotateCarousel = (angle?: number) => {
+  //   if (carouselRef.current) {
+  //     const rotationAngle = angle !== undefined ? angle : theta * selectedIndex * -1;
+  //     carouselRef.current.style.transform = `translateZ(${-radius}px) ${rotateFn}(${rotationAngle}deg)`;
+  //   }
+  // };
 
-  const rotateRandomCarousel = () => {
-    if (carouselRef.current && !isAnimating) {
-      // Stop idle animation when starting active animation
-      stopIdleAnimation();
-      setIsAnimating(true);
+  // const rotateRandomCarousel = () => {
+  //   if (carouselRef.current && !isAnimating) {
+  //     // Stop idle animation when starting active animation
+  //     stopIdleAnimation();
+  //     setIsAnimating(true);
 
-      // Pick a final random position first to ensure consistency
-      const finalIndex = Math.floor(Math.random() * cellCount);
-      const targetSong = songData[finalIndex % songData.length];
-      targetIndexRef.current = finalIndex;
+  //     // Pick a final random position first to ensure consistency
+  //     const finalIndex = Math.floor(Math.random() * cellCount);
+  //     const targetSong = songData[finalIndex % songData.length];
+  //     targetIndexRef.current = finalIndex;
 
-      // Calculate angles for smooth animation
-      const startAngle = theta * selectedIndex * -1;
-      const minSpins = 2;
-      const extraRotation = 360 * minSpins;
-      currentRotationRef.current = startAngle;
+  //     // Calculate angles for smooth animation
+  //     const startAngle = theta * selectedIndex * -1;
+  //     const minSpins = 2;
+  //     const extraRotation = 360 * minSpins;
+  //     currentRotationRef.current = startAngle;
 
-      // First, apply fast animation class
-      if (carouselRef.current) {
-        carouselRef.current.className = 'carousel animating-fast';
-      }
+  //     // First, apply fast animation class
+  //     if (carouselRef.current) {
+  //       carouselRef.current.className = 'carousel animating-fast';
+  //     }
 
-      const totalDuration = 3000; // 3 seconds
-      const startTime = performance.now();
+  //     const totalDuration = 3000; // 3 seconds
+  //     const startTime = performance.now();
 
-      const doSpin = (timestamp: number) => {
-        const elapsed = timestamp - startTime;
-        const progress = Math.min(elapsed / totalDuration, 1);
+  //     const doSpin = (timestamp: number) => {
+  //       const elapsed = timestamp - startTime;
+  //       const progress = Math.min(elapsed / totalDuration, 1);
 
-        // Ease out cubic for smooth deceleration
-        const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
-        const easedProgress = easeOutCubic(progress);
+  //       // Ease out cubic for smooth deceleration
+  //       const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+  //       const easedProgress = easeOutCubic(progress);
 
-        // Calculate current angle
-        const currentAngle = startAngle - (extraRotation + (theta * finalIndex)) * easedProgress;
-        currentRotationRef.current = currentAngle;
+  //       // Calculate current angle
+  //       const currentAngle = startAngle - (extraRotation + (theta * finalIndex)) * easedProgress;
+  //       currentRotationRef.current = currentAngle;
 
-        // Update animation class based on progress
-        if (carouselRef.current) {
-          if (progress > 0.7) {
-            carouselRef.current.className = 'carousel animating-slow';
-          } else if (progress > 0.3) {
-            carouselRef.current.className = 'carousel animating-medium';
-          }
-        }
+  //       // Update animation class based on progress
+  //       if (carouselRef.current) {
+  //         if (progress > 0.7) {
+  //           carouselRef.current.className = 'carousel animating-slow';
+  //         } else if (progress > 0.3) {
+  //           carouselRef.current.className = 'carousel animating-medium';
+  //         }
+  //       }
 
-        // Apply rotation
-        rotateCarousel(currentAngle);
+  //       // Apply rotation
+  //       rotateCarousel(currentAngle);
 
-        // Update selected index based on current position
-        const normalizedAngle = ((currentAngle % 360) + 360) % 360;
-        const currentCell = Math.round(normalizedAngle / theta) % cellCount;
-        setSelectedIndex(currentCell);
+  //       // Update selected index based on current position
+  //       const normalizedAngle = ((currentAngle % 360) + 360) % 360;
+  //       const currentCell = Math.round(normalizedAngle / theta) % cellCount;
+  //       setSelectedIndex(currentCell);
 
-        if (progress < 1) {
-          requestAnimationFrame(doSpin);
-        } else {
-          // Set the final position to ensure consistency with the selected song
-          const finalAngle = theta * finalIndex * -1;
-          rotateCarousel(finalAngle);
-          setSelectedIndex(finalIndex);
-          setSelectedSong(targetSong);
-          targetIndexRef.current = null;
+  //       if (progress < 1) {
+  //         requestAnimationFrame(doSpin);
+  //       } else {
+  //         // Set the final position to ensure consistency with the selected song
+  //         const finalAngle = theta * finalIndex * -1;
+  //         rotateCarousel(finalAngle);
+  //         setSelectedIndex(finalIndex);
+  //         setSelectedSong(targetSong);
+  //         targetIndexRef.current = null;
 
-          // Return to normal animation class
-          setTimeout(() => {
-            if (carouselRef.current) {
-              carouselRef.current.className = 'carousel';
-            }
-            setIsAnimating(false);
-          }, 300);
-        }
-      };
+  //         // Return to normal animation class
+  //         setTimeout(() => {
+  //           if (carouselRef.current) {
+  //             carouselRef.current.className = 'carousel';
+  //           }
+  //           setIsAnimating(false);
+  //         }, 300);
+  //       }
+  //     };
 
-      // Start the animation loop
-      requestAnimationFrame(doSpin);
-    }
-  };
+  //     // Start the animation loop
+  //     requestAnimationFrame(doSpin);
+  //   }
+  // };
 
-  const previousCell = () => {
-    setSelectedIndex(index => (index - 1 + cellCount) % cellCount);
-  };
+  // const previousCell = () => {
+  //   setSelectedIndex(index => (index - 1 + cellCount) % cellCount);
+  // };
 
-  const nextCell = () => {
-    setSelectedIndex(index => (index + 1) % cellCount);
-  };
+  // const nextCell = () => {
+  //   setSelectedIndex(index => (index + 1) % cellCount);
+  // };
   
-  // Idle animation functions
-  const startIdleAnimation = () => {
-    if (isIdleAnimating || isAnimating) return;
+  // // Idle animation functions
+  // const startIdleAnimation = () => {
+  //   if (isIdleAnimating || isAnimating) return;
     
-    setIsIdleAnimating(true);
-    if (carouselRef.current) {
-      nextCell();
-      carouselRef.current.className = 'carousel animating-idle';
-    }
+  //   setIsIdleAnimating(true);
+  //   if (carouselRef.current) {
+  //     nextCell();
+  //     carouselRef.current.className = 'carousel animating-idle';
+  //   }
 
-    let lastTime = performance.now();
-    const idleSpeed = 6000; // 6 seconds per full rotation
+  //   let lastTime = performance.now();
+  //   const idleSpeed = 6000; // 6 seconds per full rotation
 
-    const animateIdle = (time: number) => {
-      if (!isIdleAnimating) return;
+  //   const animateIdle = (time: number) => {
+  //     if (!isIdleAnimating) return;
 
-      const elapsed = time - lastTime;
-      if (elapsed > idleSpeed / cellCount) {
-        setSelectedIndex(index => (index + 1) % cellCount);
-        lastTime = time;
-      }
+  //     const elapsed = time - lastTime;
+  //     if (elapsed > idleSpeed / cellCount) {
+  //       setSelectedIndex(index => (index + 1) % cellCount);
+  //       lastTime = time;
+  //     }
 
-      idleAnimationRef.current = requestAnimationFrame(animateIdle);
-    };
+  //     idleAnimationRef.current = requestAnimationFrame(animateIdle);
+  //   };
 
-    idleAnimationRef.current = requestAnimationFrame(animateIdle);
-  };
+  //   idleAnimationRef.current = requestAnimationFrame(animateIdle);
+  // };
 
-  const stopIdleAnimation = () => {
-    setIsIdleAnimating(false);
-    if (idleAnimationRef.current !== null) {
-      cancelAnimationFrame(idleAnimationRef.current);
-      idleAnimationRef.current = null;
-    }
-  };
+  // const stopIdleAnimation = () => {
+  //   setIsIdleAnimating(false);
+  //   if (idleAnimationRef.current !== null) {
+  //     cancelAnimationFrame(idleAnimationRef.current);
+  //     idleAnimationRef.current = null;
+  //   }
+  // };
 
-  useEffect(() => {
-    const h = localStorage.getItem('randomHistory');
-    if (h) {
-      const parsed = JSON.parse(h);
-      setRandomHistory(parsed);
-      if (parsed.length >= roundSetting.totalBanPick) {
-        startBanPick();
-      }
-    }
-  }, []);
-  useEffect(() => {
-    if (banPickSongs.length <= roundSetting.pick && finalSongs.length === 0) {
-      setFinalSongs(banPickSongs);
-    }
-  }, [banPickSongs, finalSongs]);
+  // useEffect(() => {
+  //   const h = localStorage.getItem('randomHistory');
+  //   if (h) {
+  //     const parsed = JSON.parse(h);
+  //     setRandomHistory(parsed);
+  //     if (parsed.length >= roundSetting.totalBanPick) {
+  //       startBanPick();
+  //     }
+  //   }
+  // }, []);
+  // useEffect(() => {
+  //   if (banPickSongs.length <= roundSetting.pick && finalSongs.length === 0) {
+  //     setFinalSongs(banPickSongs);
+  //   }
+  // }, [banPickSongs, finalSongs]);
 
-  const handleRandom = () => {
-    if (randomHistory.length >= roundSetting.totalBanPick) {
-      startBanPick();
-      return;
-    }
+  // const handleRandom = () => {
+  //   if (randomHistory.length >= roundSetting.totalBanPick) {
+  //     startBanPick();
+  //     return;
+  //   }
 
-    // Stop idle animation and set as actively animating
-    stopIdleAnimation();
-    setIsAnimating(true);
+  //   // Stop idle animation and set as actively animating
+  //   stopIdleAnimation();
+  //   setIsAnimating(true);
 
-    // STEP 1: Random kết quả TRƯỚC khi bắt đầu animation
-    let finalIndex = Math.floor(Math.random() * cellCount);
-    let targetSong = songData[finalIndex % songData.length];
-    let attempts = 0;
-    while (randomHistory.some(s => s.title === targetSong.title && s.diff === targetSong.diff) && attempts < 100) {
-    finalIndex = Math.floor(Math.random() * cellCount);
-    targetSong = songData[finalIndex % songData.length];
-    attempts++;
-  }
+  //   // STEP 1: Random kết quả TRƯỚC khi bắt đầu animation
+  //   let finalIndex = Math.floor(Math.random() * cellCount);
+  //   let targetSong = songData[finalIndex % songData.length];
+  //   let attempts = 0;
+  //   while (randomHistory.some(s => s.title === targetSong.title && s.diff === targetSong.diff) && attempts < 100) {
+  //   finalIndex = Math.floor(Math.random() * cellCount);
+  //   targetSong = songData[finalIndex % songData.length];
+  //   attempts++;
+  // }
 
-    targetIndexRef.current = finalIndex;
+  //   targetIndexRef.current = finalIndex;
 
-    // STEP 2: Tính toán các thông số animation
-    const startAngle = theta * selectedIndex * -1;
-    const targetAngle = theta * finalIndex * -1;
+  //   // STEP 2: Tính toán các thông số animation
+  //   const startAngle = theta * selectedIndex * -1;
+  //   const targetAngle = theta * finalIndex * -1;
 
-    // Animation settings
-    const totalDuration = 4000; // 4 seconds total
-    const minSpins = 3; // Minimum full rotations
+  //   // Animation settings
+  //   const totalDuration = 4000; // 4 seconds total
+  //   const minSpins = 3; // Minimum full rotations
 
-    // Tính khoảng cách từ vị trí hiện tại đến target
-    const directDistance = Math.abs(finalIndex - selectedIndex);
-    const wrappedDistance = cellCount - directDistance;
-    const shortestDistance = Math.min(directDistance, wrappedDistance);
+  //   // Tính khoảng cách từ vị trí hiện tại đến target
+  //   const directDistance = Math.abs(finalIndex - selectedIndex);
+  //   const wrappedDistance = cellCount - directDistance;
+  //   const shortestDistance = Math.min(directDistance, wrappedDistance);
 
-    // Tính số vòng quay cần thiết để đủ thời gian animation
-    // Công thức: minSpins vòng + khoảng cách đến target
-    const totalCells = (minSpins * cellCount) + shortestDistance;
-    const extraRotation = 360 * minSpins;
+  //   // Tính số vòng quay cần thiết để đủ thời gian animation
+  //   // Công thức: minSpins vòng + khoảng cách đến target
+  //   const totalCells = (minSpins * cellCount) + shortestDistance;
+  //   const extraRotation = 360 * minSpins;
 
-    currentRotationRef.current = startAngle;
+  //   currentRotationRef.current = startAngle;
 
-    // Apply fast animation at the beginning
-    if (carouselRef.current) {
-      carouselRef.current.className = 'carousel animating-fast';
-    }
+  //   // Apply fast animation at the beginning
+  //   if (carouselRef.current) {
+  //     carouselRef.current.className = 'carousel animating-fast';
+  //   }
 
-    const startTime = performance.now();
+  //   const startTime = performance.now();
 
-    // Animation function using requestAnimationFrame
-    const spinAnimation = (currentTime: number) => {
-      const elapsed = currentTime - startTime;
-      let progress = Math.min(elapsed / totalDuration, 1);
+  //   // Animation function using requestAnimationFrame
+  //   const spinAnimation = (currentTime: number) => {
+  //     const elapsed = currentTime - startTime;
+  //     let progress = Math.min(elapsed / totalDuration, 1);
 
-      // Easing function: starts fast, ends slow (ease-out cubic)
-      const easeOutCubic = (t: number) => {
-        return 1 - Math.pow(1 - t, 3);
-      };
+  //     // Easing function: starts fast, ends slow (ease-out cubic)
+  //     const easeOutCubic = (t: number) => {
+  //       return 1 - Math.pow(1 - t, 3);
+  //     };
 
-      const easedProgress = easeOutCubic(progress);
+  //     const easedProgress = easeOutCubic(progress);
 
-      // STEP 3: Tính toán góc quay hiện tại
-      // Quay theo chiều âm (ngược chiều kim đồng hồ)
-      let targetRotation;
-      if (finalIndex >= selectedIndex) {
-        // Target ở phía trước, quay thuận
-        targetRotation = extraRotation + (finalIndex - selectedIndex) * theta;
-      } else {
-        // Target ở phía sau, quay qua 0
-        targetRotation = extraRotation + (cellCount - selectedIndex + finalIndex) * theta;
-      }
+  //     // STEP 3: Tính toán góc quay hiện tại
+  //     // Quay theo chiều âm (ngược chiều kim đồng hồ)
+  //     let targetRotation;
+  //     if (finalIndex >= selectedIndex) {
+  //       // Target ở phía trước, quay thuận
+  //       targetRotation = extraRotation + (finalIndex - selectedIndex) * theta;
+  //     } else {
+  //       // Target ở phía sau, quay qua 0
+  //       targetRotation = extraRotation + (cellCount - selectedIndex + finalIndex) * theta;
+  //     }
 
-      const currentAngle = startAngle - (targetRotation * easedProgress);
-      currentRotationRef.current = currentAngle;
+  //     const currentAngle = startAngle - (targetRotation * easedProgress);
+  //     currentRotationRef.current = currentAngle;
 
-      // Update CSS class based on progress for smoother transitions
-      if (carouselRef.current) {
-        if (progress < 0.3) {
-          carouselRef.current.className = 'carousel animating-fast';
-        } else if (progress < 0.7) {
-          carouselRef.current.className = 'carousel animating-medium';
-        } else {
-          carouselRef.current.className = 'carousel animating-slow';
-        }
-      }
+  //     // Update CSS class based on progress for smoother transitions
+  //     if (carouselRef.current) {
+  //       if (progress < 0.3) {
+  //         carouselRef.current.className = 'carousel animating-fast';
+  //       } else if (progress < 0.7) {
+  //         carouselRef.current.className = 'carousel animating-medium';
+  //       } else {
+  //         carouselRef.current.className = 'carousel animating-slow';
+  //       }
+  //     }
 
-      // Apply rotation directly to carousel
-      rotateCarousel(currentAngle);
+  //     // Apply rotation directly to carousel
+  //     rotateCarousel(currentAngle);
 
-      // Calculate which cell we're currently showing
-      const normalizedAngle = (((-currentAngle) % 360) + 360) % 360;
-      const currentCell = Math.round(normalizedAngle / theta) % cellCount;
-      setSelectedIndex(currentCell);
+  //     // Calculate which cell we're currently showing
+  //     const normalizedAngle = (((-currentAngle) % 360) + 360) % 360;
+  //     const currentCell = Math.round(normalizedAngle / theta) % cellCount;
+  //     setSelectedIndex(currentCell);
 
-      // STEP 4: Kiểm tra điều kiện kết thúc
-      // Nếu progress = 1 VÀ đã đến đúng target position
-      if (progress >= 1) {
-        const currentNormalizedAngle = (((-currentAngle) % 360) + 360) % 360;
-        const currentPosition = Math.round(currentNormalizedAngle / theta) % cellCount;
+  //     // STEP 4: Kiểm tra điều kiện kết thúc
+  //     // Nếu progress = 1 VÀ đã đến đúng target position
+  //     if (progress >= 1) {
+  //       const currentNormalizedAngle = (((-currentAngle) % 360) + 360) % 360;
+  //       const currentPosition = Math.round(currentNormalizedAngle / theta) % cellCount;
 
-        // Kiểm tra xem đã đến đúng vị trí target chưa
-        if (currentPosition === finalIndex) {
-          // ĐÃ ĐẾN ĐÚNG VỊ TRÍ - Kết thúc animation
-          const finalAngle = theta * finalIndex * -1;
-          rotateCarousel(finalAngle);
-          setSelectedIndex(finalIndex);
-          setSelectedSong(targetSong);
-          targetIndexRef.current = null;
+  //       // Kiểm tra xem đã đến đúng vị trí target chưa
+  //       if (currentPosition === finalIndex) {
+  //         // ĐÃ ĐẾN ĐÚNG VỊ TRÍ - Kết thúc animation
+  //         const finalAngle = theta * finalIndex * -1;
+  //         rotateCarousel(finalAngle);
+  //         setSelectedIndex(finalIndex);
+  //         setSelectedSong(targetSong);
+  //         targetIndexRef.current = null;
 
-          // Update history with the pre-selected song
-          setRandomHistory(prev => {
-            const newHistory = [...prev, targetSong];
-            localStorage.setItem('randomHistory', JSON.stringify(newHistory));
-            return newHistory;
-          });
+  //         // Update history with the pre-selected song
+  //         setRandomHistory(prev => {
+  //           const newHistory = [...prev, targetSong];
+  //           localStorage.setItem('randomHistory', JSON.stringify(newHistory));
+  //           return newHistory;
+  //         });
 
-          // Reset carousel animation class
-          if (carouselRef.current) {
-            setTimeout(() => {
-              if (carouselRef.current) {
-                carouselRef.current.className = 'carousel';
-              }
-            }, 300);
-          }
+  //         // Reset carousel animation class
+  //         if (carouselRef.current) {
+  //           setTimeout(() => {
+  //             if (carouselRef.current) {
+  //               carouselRef.current.className = 'carousel';
+  //             }
+  //           }, 300);
+  //         }
 
-          // Show result popup
-          setShowResult(true);
-          setShowStars(true);
-          setIsAnimating(false);
+  //         // Show result popup
+  //         setShowResult(true);
+  //         setShowStars(true);
+  //         setIsAnimating(false);
 
-          // Hide stars after animation
-          setTimeout(() => setShowStars(false), 5000);
-        } else {
-          // CHƯA ĐẾN VỊ TRÍ - Tiếp tục quay với tốc độ chậm
-          // Calculate how much more we need to rotate
-          const currentPos = currentPosition;
-          let remainingCells;
+  //         // Hide stars after animation
+  //         setTimeout(() => setShowStars(false), 5000);
+  //       } else {
+  //         // CHƯA ĐẾN VỊ TRÍ - Tiếp tục quay với tốc độ chậm
+  //         // Calculate how much more we need to rotate
+  //         const currentPos = currentPosition;
+  //         let remainingCells;
 
-          if (finalIndex >= currentPos) {
-            remainingCells = finalIndex - currentPos;
-          } else {
-            remainingCells = cellCount - currentPos + finalIndex;
-          }
+  //         if (finalIndex >= currentPos) {
+  //           remainingCells = finalIndex - currentPos;
+  //         } else {
+  //           remainingCells = cellCount - currentPos + finalIndex;
+  //         }
 
-          // Continue rotating slowly until we reach target
-          const additionalRotation = remainingCells * theta;
-          const newTargetAngle = currentAngle - additionalRotation;
+  //         // Continue rotating slowly until we reach target
+  //         const additionalRotation = remainingCells * theta;
+  //         const newTargetAngle = currentAngle - additionalRotation;
 
-          // Slow animation for final approach
-          if (carouselRef.current) {
-            carouselRef.current.className = 'carousel animating-slow';
-          }
+  //         // Slow animation for final approach
+  //         if (carouselRef.current) {
+  //           carouselRef.current.className = 'carousel animating-slow';
+  //         }
 
-          const finalApproachDuration = 500; // 0.5 seconds for final approach
-          const finalStartTime = performance.now();
+  //         const finalApproachDuration = 500; // 0.5 seconds for final approach
+  //         const finalStartTime = performance.now();
 
-          const finalApproach = (time: number) => {
-            const finalElapsed = time - finalStartTime;
-            const finalProgress = Math.min(finalElapsed / finalApproachDuration, 1);
+  //         const finalApproach = (time: number) => {
+  //           const finalElapsed = time - finalStartTime;
+  //           const finalProgress = Math.min(finalElapsed / finalApproachDuration, 1);
 
-            const finalAngle = currentAngle - (additionalRotation * finalProgress);
-            rotateCarousel(finalAngle);
+  //           const finalAngle = currentAngle - (additionalRotation * finalProgress);
+  //           rotateCarousel(finalAngle);
 
-            const finalNormalizedAngle = (((-finalAngle) % 360) + 360) % 360;
-            const finalCell = Math.round(finalNormalizedAngle / theta) % cellCount;
-            setSelectedIndex(finalCell);
+  //           const finalNormalizedAngle = (((-finalAngle) % 360) + 360) % 360;
+  //           const finalCell = Math.round(finalNormalizedAngle / theta) % cellCount;
+  //           setSelectedIndex(finalCell);
 
-            if (finalProgress < 1) {
-              requestAnimationFrame(finalApproach);
-            } else {
-              // Force exact position
-              const exactAngle = theta * finalIndex * -1;
-              rotateCarousel(exactAngle);
-              setSelectedIndex(finalIndex);
-              setSelectedSong(targetSong);
-              targetIndexRef.current = null;
+  //           if (finalProgress < 1) {
+  //             requestAnimationFrame(finalApproach);
+  //           } else {
+  //             // Force exact position
+  //             const exactAngle = theta * finalIndex * -1;
+  //             rotateCarousel(exactAngle);
+  //             setSelectedIndex(finalIndex);
+  //             setSelectedSong(targetSong);
+  //             targetIndexRef.current = null;
 
-              setRandomHistory(prev => {
-                const newHistory = [...prev, targetSong];
-                localStorage.setItem('randomHistory', JSON.stringify(newHistory));
-                return newHistory;
-              });
+  //             setRandomHistory(prev => {
+  //               const newHistory = [...prev, targetSong];
+  //               localStorage.setItem('randomHistory', JSON.stringify(newHistory));
+  //               return newHistory;
+  //             });
 
-              if (carouselRef.current) {
-                setTimeout(() => {
-                  if (carouselRef.current) {
-                    carouselRef.current.className = 'carousel';
-                  }
-                }, 300);
-              }
+  //             if (carouselRef.current) {
+  //               setTimeout(() => {
+  //                 if (carouselRef.current) {
+  //                   carouselRef.current.className = 'carousel';
+  //                 }
+  //               }, 300);
+  //             }
 
-              setShowResult(true);
-              setShowStars(true);
-              setIsAnimating(false);
-              setTimeout(() => setShowStars(false), 5000);
-            }
-          };
+  //             setShowResult(true);
+  //             setShowStars(true);
+  //             setIsAnimating(false);
+  //             setTimeout(() => setShowStars(false), 5000);
+  //           }
+  //         };
 
-          requestAnimationFrame(finalApproach);
-        }
-      } else {
-        // Continue main animation
-        requestAnimationFrame(spinAnimation);
-      }
-    };
+  //         requestAnimationFrame(finalApproach);
+  //       }
+  //     } else {
+  //       // Continue main animation
+  //       requestAnimationFrame(spinAnimation);
+  //     }
+  //   };
 
-    // Start the animation
-    requestAnimationFrame(spinAnimation);
-  };
+  //   // Start the animation
+  //   requestAnimationFrame(spinAnimation);
+  // };
 
-  const startBanPick = () => {
-    const shuffled = [...songData].sort(() => 0.5 - Math.random());
-    setBanPickSongs(shuffled.slice(0, roundSetting.totalBanPick));
-    setBanPickSongs([...randomHistory]);
-    setShowBanPick(true);
-    setShowResult(false);
-  };
+  // const startBanPick = () => {
+  //   const shuffled = [...songData].sort(() => 0.5 - Math.random());
+  //   setBanPickSongs(shuffled.slice(0, roundSetting.totalBanPick));
+  //   setBanPickSongs([...randomHistory]);
+  //   setShowBanPick(true);
+  //   setShowResult(false);
+  // };
 
-  const handleBanPick = (song: Song) => {
-    setBanPickSongs(prev => prev.filter(s => s !== song));
-  };
+  // const handleBanPick = (song: Song) => {
+  //   setBanPickSongs(prev => prev.filter(s => s !== song));
+  // };
 
   const handleOutsideClick = (event: React.MouseEvent) => {
     if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
       setShowResult(false);
       setShowStars(false);
       // Restart idle animation after popup closes
-      setTimeout(startIdleAnimation, 500);
+      // setTimeout(startIdleAnimation, 500);
     }
   };
 
@@ -526,7 +526,7 @@ export default function Home() {
           </div>
 
           {/* Carousel ở trên, căn giữa */}
-          <div className="w-full flex justify-center mt-8">
+          { /* <div className="w-full flex justify-center mt-8">
             <div 
               className="scene mb-8" 
               style={{ 
@@ -581,7 +581,7 @@ export default function Home() {
                 })}
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* Show current song info */}
           <div className="mt-4 mb-4 text-center">
@@ -722,7 +722,7 @@ export default function Home() {
                 <div
                   key={index}
                   className="border-2 border-gray-200 rounded-lg p-4 cursor-pointer hover:border-red-500 transition-colors"
-                  onClick={() => handleBanPick(song)}
+                  /* onClick={() => handleBanPick(song)} */
                 >
                   <Image
                     src={song.imgUrl}

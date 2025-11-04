@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@heroui/react';
-// import {Song} from '../interface';
+import {Song} from '../interface';
 import { EmblaOptionsType } from 'embla-carousel';
 import {
   PrevButton,
@@ -10,7 +10,7 @@ import {
 import useEmblaCarousel from 'embla-carousel-react';
 
 type PropType = {
-  slides: number[];
+  slides: Song[];
   options?: EmblaOptionsType;
 }
 
@@ -39,9 +39,9 @@ const EmblaCarousel: React.FC<PropType> = (props) => {
     <section className="embla">
       <div className="embla__viewport" ref={emblaRef}>
         <div className="embla__container">
-          {slides.map((index) => (
-            <div className="embla__slide" key={index}>
-              <div className="embla__slide__number">{index + 1}</div>
+          {slides.map((song) => (
+            <div className="embla__slide" key={song.id}>
+              <img className="embla__slide__number" src={song.imgUrl} alt={song.id}/>
             </div>
           ))}
         </div>

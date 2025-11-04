@@ -1,10 +1,11 @@
 export interface Song {
+  id: string;
   imgUrl: string;
   artist: string;
   title: string;
   lv: string;
   diff: string;
-  isDx: boolean;
+  isDx: string;
 }
 
 export interface RoundSetting {
