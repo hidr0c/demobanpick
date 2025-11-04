@@ -45,10 +45,10 @@ export default function Home() {
   const rotateFn = isHorizontal ? 'rotateY' : 'rotateX';
 
   // Options for embla-carousel
-  const OPTIONS = { loop: true }
-  const SLIDE_COUNT = songData?.length
-  const SLIDES = Array.from(Array(SLIDE_COUNT).keys())
-
+  const OPTIONS = { loop: true };
+  const SLIDE_COUNT = 677;
+  const SLIDES = Array.from(Array(SLIDE_COUNT).keys());
+  
   // Difficulty color
    const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {

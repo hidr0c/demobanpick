@@ -30,6 +30,11 @@ const EmblaCarousel: React.FC<PropType> = (props) => {
         getRandomIndex(index);
     }
 
+    // Changing some options for the carousel
+    emblaApi?.reInit({
+      loop: true,
+      duration: 200
+    });
     return (
     <section className="embla">
       <div className="embla__viewport" ref={emblaRef}>
