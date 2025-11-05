@@ -10,6 +10,7 @@ type UsePrevNextButtonsType = {
   onPrevButtonClick: () => void;
   getRandomIndex: (index: number) => void;
   onNextButtonClick: () => void;
+  onRandomButtonClickWithAnimation: () => void;
 }
 
 export const usePrevNextButtons = (
@@ -26,9 +27,69 @@ export const usePrevNextButtons = (
     emblaApi.scrollNext();
   }, [emblaApi])
 
-    const onRandomButtonClick = useCallback((index: number) => {
+  const onRandomButtonClick = useCallback((index: number) => {
     if (!emblaApi) return;
     emblaApi.scrollTo(index);
+  }, [emblaApi])
+
+  /**
+   * Animated random spin effect with smooth deceleration
+   * Spins at least 2 full rotations before landing on random target
+   */
+  const onRandomButtonClickWithAnimation = useCallback(() => {
+    if (!emblaApi) return;
+
+    const totalSlides = emblaApi.scrollSnapList().length;
+    const targetIndex = Math.floor(Math.random() * totalSlides);
+    const currentIndex = emblaApi.selectedScrollSnap();
+
+    // Minimum 2 full rotations before landing
+    const minSpins = 2;
+    const extraSpins = minSpins * totalSlides;
+
+    // Calculate steps needed to reach target
+    let stepsToTarget = targetIndex - currentIndex;
+    if (stepsToTarget <= 0) {
+      stepsToTarget += totalSlides;
+    }
+
+    const totalSteps = extraSpins + stepsToTarget;
+
+    // 3-second animation with ease-out cubic curve
+    const TOTAL_DURATION = 3000;
+    const startTime = performance.now();
+
+    let currentStep = 0;
+    let isAnimating = true;
+    let animationFrameId: number;
+
+    const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+
+    const animateSpin = () => {
+      if (!isAnimating) {
+        cancelAnimationFrame(animationFrameId);
+        return;
+      }
+
+      const elapsed = performance.now() - startTime;
+      const progress = Math.min(elapsed / TOTAL_DURATION, 1);
+      const easedProgress = easeOutCubic(progress);
+      const targetStep = Math.floor(easedProgress * totalSteps);
+
+      // Scroll one step at a time to prevent overshooting
+      if (currentStep < targetStep && currentStep < totalSteps) {
+        emblaApi.scrollNext();
+        currentStep++;
+      }
+
+      if (progress < 1) {
+        animationFrameId = requestAnimationFrame(animateSpin);
+      } else {
+        isAnimating = false;
+      }
+    };
+
+    animationFrameId = requestAnimationFrame(animateSpin);
   }, [emblaApi])
 
   const onSelect = useCallback((emblaApi: EmblaCarouselType) => {
@@ -45,7 +106,8 @@ export const usePrevNextButtons = (
   return {
     onPrevButtonClick,
     getRandomIndex: onRandomButtonClick,
-    onNextButtonClick
+    onNextButtonClick,
+    onRandomButtonClickWithAnimation
   }
 }
 

@@ -1,19 +1,17 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@heroui/react';
 import Image from 'next/image';
 import banPickSettings from '../../public/roundBanPickSettings.json';
 import songData from '../../public/pools/newbieSemi.json';
-import {Song, RoundSetting} from './interface';
+import { Song, RoundSetting } from './interface';
 
 import EmblaCarousel from './embla-carousel/EmblaCarousel';
 import './css/embla.css'
-console.log(songData?.length, "songs loaded");
 
 export default function Home() {
-  console.log('Home component rendering');
   const router = useRouter();
   const [isAnimating, setIsAnimating] = useState(false);
   const [showResult, setShowResult] = useState(false);
@@ -49,17 +47,24 @@ export default function Home() {
   const SLIDE_COUNT = songData?.length
   const SLIDES = songData;
 
-  // Difficulty color
-   const getDifficultyColor = (difficulty: string) => {
+  // Callback to sync Embla carousel index with our state
+  const handleSlideChange = useCallback((index: number) => {
+    setSelectedIndex(index);
+  }, []);
+
+  // Difficulty color - memoize to avoid recreating on every render
+  const getDifficultyColor = useCallback((difficulty: string) => {
     switch (difficulty) {
       case 'EXPERT':
-        return 'red';
+        return '#ef4444'; // red-500
       case 'MASTER':
-        return '#9333ea'; // a shade of purple
+        return '#9333ea'; // purple-600
+      case 'RE:MASTER':
+        return '#ec4899'; // pink-500
       default:
-        return '#DDA0DD'; // plum, for RE:MASTER
+        return '#a855f7'; // purple-500
     }
-  };
+  }, []);
 
   // // 3D Carousel initialization
   // useEffect(() => {
@@ -188,11 +193,11 @@ export default function Home() {
   // const nextCell = () => {
   //   setSelectedIndex(index => (index + 1) % cellCount);
   // };
-  
+
   // // Idle animation functions
   // const startIdleAnimation = () => {
   //   if (isIdleAnimating || isAnimating) return;
-    
+
   //   setIsIdleAnimating(true);
   //   if (carouselRef.current) {
   //     nextCell();
@@ -488,29 +493,29 @@ export default function Home() {
 
   const handleRemoveHistory = (index: number) => {
     setRandomHistory(prev => {
-    const removed = prev[index];
-    const newArr = prev.filter((_, i) => i !== index);
-    localStorage.setItem('randomHistory', JSON.stringify(newArr));
+      const removed = prev[index];
+      const newArr = prev.filter((_, i) => i !== index);
+      localStorage.setItem('randomHistory', JSON.stringify(newArr));
 
-    // Also remove from banPickSongs / finalSongs if present (match by title+diff)
-    if (removed) {
-      setBanPickSongs(bp => bp.filter(s => !(s.title === removed.title && s.diff === removed.diff)));
-      setFinalSongs(f => f.filter(s => !(s.title === removed.title && s.diff === removed.diff)));
-       // If history is now below required, hide ban/pick modal
-      if (newArr.length < roundSetting.totalBanPick) {
-         setShowBanPick(false);
+      // Also remove from banPickSongs / finalSongs if present (match by title+diff)
+      if (removed) {
+        setBanPickSongs(bp => bp.filter(s => !(s.title === removed.title && s.diff === removed.diff)));
+        setFinalSongs(f => f.filter(s => !(s.title === removed.title && s.diff === removed.diff)));
+        // If history is now below required, hide ban/pick modal
+        if (newArr.length < roundSetting.totalBanPick) {
+          setShowBanPick(false);
+        }
+        // If the removed song was currently selected in popup, close it
+        if (selectedSong && selectedSong.title === removed.title && selectedSong.diff === removed.diff) {
+          setSelectedSong(null);
+          setShowResult(false);
+          setShowStars(false);
+        }
       }
-       // If the removed song was currently selected in popup, close it
-      if (selectedSong && selectedSong.title === removed.title && selectedSong.diff === removed.diff) {
-         setSelectedSong(null);
-         setShowResult(false);
-         setShowStars(false);
-      }
-    }
 
-     return newArr;
-   });
- };
+      return newArr;
+    });
+  };
 
   // Create multiple images for the moving row
   const images = Array.from({ length: 20 }, (_, i) => i);
@@ -522,7 +527,7 @@ export default function Home() {
 
           {/* Embla-carousel */}
           <div className="w-full flex justify-center mt-8">
-          <EmblaCarousel slides={SLIDES} options={OPTIONS} />
+            <EmblaCarousel slides={SLIDES} options={OPTIONS} onSlideChange={handleSlideChange} />
           </div>
 
           {/* Carousel ở trên, căn giữa */}
@@ -722,7 +727,7 @@ export default function Home() {
                 <div
                   key={index}
                   className="border-2 border-gray-200 rounded-lg p-4 cursor-pointer hover:border-red-500 transition-colors"
-                  /* onClick={() => handleBanPick(song)} */
+                /* onClick={() => handleBanPick(song)} */
                 >
                   <Image
                     src={song.imgUrl}
