@@ -5,6 +5,7 @@ import React, {
   useState
 } from 'react'
 import { EmblaCarouselType } from 'embla-carousel'
+import { Song } from '../interface'
 
 type UsePrevNextButtonsType = {
   onPrevButtonClick: () => void;
@@ -14,7 +15,9 @@ type UsePrevNextButtonsType = {
 }
 
 export const usePrevNextButtons = (
-  emblaApi: EmblaCarouselType | undefined
+  emblaApi: EmblaCarouselType | undefined,
+  slides: Song[],
+  onAnimationComplete?: (song: Song) => void
 ): UsePrevNextButtonsType => {
 
   const onPrevButtonClick = useCallback(() => {
@@ -43,19 +46,15 @@ export const usePrevNextButtons = (
     const targetIndex = Math.floor(Math.random() * totalSlides);
     const currentIndex = emblaApi.selectedScrollSnap();
 
-    // Minimum 2 full rotations before landing
     const minSpins = 2;
     const extraSpins = minSpins * totalSlides;
 
-    // Calculate steps needed to reach target
     let stepsToTarget = targetIndex - currentIndex;
     if (stepsToTarget <= 0) {
       stepsToTarget += totalSlides;
     }
 
     const totalSteps = extraSpins + stepsToTarget;
-
-    // 3-second animation with ease-out cubic curve
     const TOTAL_DURATION = 3000;
     const startTime = performance.now();
 
@@ -63,7 +62,8 @@ export const usePrevNextButtons = (
     let isAnimating = true;
     let animationFrameId: number;
 
-    const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+    const easeInOutCubic = (t: number) =>
+      t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
     const animateSpin = () => {
       if (!isAnimating) {
@@ -73,10 +73,9 @@ export const usePrevNextButtons = (
 
       const elapsed = performance.now() - startTime;
       const progress = Math.min(elapsed / TOTAL_DURATION, 1);
-      const easedProgress = easeOutCubic(progress);
+      const easedProgress = easeInOutCubic(progress);
       const targetStep = Math.floor(easedProgress * totalSteps);
 
-      // Scroll one step at a time to prevent overshooting
       if (currentStep < targetStep && currentStep < totalSteps) {
         emblaApi.scrollNext();
         currentStep++;
@@ -86,11 +85,20 @@ export const usePrevNextButtons = (
         animationFrameId = requestAnimationFrame(animateSpin);
       } else {
         isAnimating = false;
+        
+        // Wait for carousel to fully settle before getting result
+        if (onAnimationComplete && slides) {
+          setTimeout(() => {
+            const finalIndex = emblaApi.selectedScrollSnap();
+            const finalSong = slides[finalIndex % slides.length];
+            onAnimationComplete(finalSong);
+          }, 800);
+        }
       }
     };
 
     animationFrameId = requestAnimationFrame(animateSpin);
-  }, [emblaApi])
+  }, [emblaApi, slides, onAnimationComplete])
 
   const onSelect = useCallback((emblaApi: EmblaCarouselType) => {
 

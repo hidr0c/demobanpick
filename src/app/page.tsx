@@ -9,6 +9,7 @@ import songData from '../../public/pools/newbieSemi.json';
 import { Song, RoundSetting } from './interface';
 
 import EmblaCarousel from './embla-carousel/EmblaCarousel';
+import BanPickCarousel from './components/BanPickCarousel';
 import './css/embla.css'
 
 export default function Home() {
@@ -27,6 +28,16 @@ export default function Home() {
   const [showHistoryDetails, setShowHistoryDetails] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
   const [isCarouselReady, setIsCarouselReady] = useState(false);
+
+  const [randomRound, setRandomRound] = useState(0);
+  const [randomResults, setRandomResults] = useState<Song[]>([]);
+  const [showRandomPopup, setShowRandomPopup] = useState(false);
+  const [bannedSongs, setBannedSongs] = useState<Song[]>([]);
+  const [showFinalOnly, setShowFinalOnly] = useState(false);
+
+  const preSelectedSongs = useMemo(() =>
+    songData.filter(song => ['7', '8', '13'].includes(song.id))
+    , []);
 
   // 3D Carousel state
   const carouselRef = useRef<HTMLDivElement>(null);
@@ -56,417 +67,65 @@ export default function Home() {
   const getDifficultyColor = useCallback((difficulty: string) => {
     switch (difficulty) {
       case 'EXPERT':
-        return '#ef4444'; // red-500
+        return '#ef4444';
       case 'MASTER':
-        return '#9333ea'; // purple-600
+        return '#9333ea';
       case 'RE:MASTER':
-        return '#ec4899'; // pink-500
+        return '#ec4899';
       default:
-        return '#a855f7'; // purple-500
+        return '#a855f7';
     }
   }, []);
 
-  // // 3D Carousel initialization
-  // useEffect(() => {
-  //   if (carouselRef.current) {
-  //   const cellW = cellWidth; 
-  //   const newRadius = Math.round(cellW / 2 / Math.tan(Math.PI / cellCount));
-  //   setRadius(newRadius);
-  //   setTheta(360 / cellCount);
-  //   rotateCarousel();
-  //   setIsCarouselReady(true); // Đánh dấu carousel đã sẵn sàng
-  //   }
-  // }, [cellCount, selectedIndex]);
-
-  // // Start idle animation when component mounts
-  // useEffect(() => {
-  //   startIdleAnimation();
-
-  //   return () => {
-  //     // Cleanup animation on unmount
-  //     stopIdleAnimation();
-  //   };
-  // }, []);
-
-  // // Manage idle animation based on active state
-  // useEffect(() => {
-  //   if (isAnimating || showResult || showBanPick) {
-  //     // Stop idle animation when actively animating or showing results
-  //     stopIdleAnimation();
-  //   } else if (!isIdleAnimating) {
-  //     // Restart idle animation when returning to idle state
-  //     startIdleAnimation();
-  //   }
-  // }, [isAnimating, showResult, showBanPick, isIdleAnimating]);
-
-  // // Rotation functions for carousel
-  // const rotateCarousel = (angle?: number) => {
-  //   if (carouselRef.current) {
-  //     const rotationAngle = angle !== undefined ? angle : theta * selectedIndex * -1;
-  //     carouselRef.current.style.transform = `translateZ(${-radius}px) ${rotateFn}(${rotationAngle}deg)`;
-  //   }
-  // };
-
-  // const rotateRandomCarousel = () => {
-  //   if (carouselRef.current && !isAnimating) {
-  //     // Stop idle animation when starting active animation
-  //     stopIdleAnimation();
-  //     setIsAnimating(true);
-
-  //     // Pick a final random position first to ensure consistency
-  //     const finalIndex = Math.floor(Math.random() * cellCount);
-  //     const targetSong = songData[finalIndex % songData.length];
-  //     targetIndexRef.current = finalIndex;
-
-  //     // Calculate angles for smooth animation
-  //     const startAngle = theta * selectedIndex * -1;
-  //     const minSpins = 2;
-  //     const extraRotation = 360 * minSpins;
-  //     currentRotationRef.current = startAngle;
-
-  //     // First, apply fast animation class
-  //     if (carouselRef.current) {
-  //       carouselRef.current.className = 'carousel animating-fast';
-  //     }
-
-  //     const totalDuration = 3000; // 3 seconds
-  //     const startTime = performance.now();
-
-  //     const doSpin = (timestamp: number) => {
-  //       const elapsed = timestamp - startTime;
-  //       const progress = Math.min(elapsed / totalDuration, 1);
-
-  //       // Ease out cubic for smooth deceleration
-  //       const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
-  //       const easedProgress = easeOutCubic(progress);
-
-  //       // Calculate current angle
-  //       const currentAngle = startAngle - (extraRotation + (theta * finalIndex)) * easedProgress;
-  //       currentRotationRef.current = currentAngle;
-
-  //       // Update animation class based on progress
-  //       if (carouselRef.current) {
-  //         if (progress > 0.7) {
-  //           carouselRef.current.className = 'carousel animating-slow';
-  //         } else if (progress > 0.3) {
-  //           carouselRef.current.className = 'carousel animating-medium';
-  //         }
-  //       }
-
-  //       // Apply rotation
-  //       rotateCarousel(currentAngle);
-
-  //       // Update selected index based on current position
-  //       const normalizedAngle = ((currentAngle % 360) + 360) % 360;
-  //       const currentCell = Math.round(normalizedAngle / theta) % cellCount;
-  //       setSelectedIndex(currentCell);
-
-  //       if (progress < 1) {
-  //         requestAnimationFrame(doSpin);
-  //       } else {
-  //         // Set the final position to ensure consistency with the selected song
-  //         const finalAngle = theta * finalIndex * -1;
-  //         rotateCarousel(finalAngle);
-  //         setSelectedIndex(finalIndex);
-  //         setSelectedSong(targetSong);
-  //         targetIndexRef.current = null;
-
-  //         // Return to normal animation class
-  //         setTimeout(() => {
-  //           if (carouselRef.current) {
-  //             carouselRef.current.className = 'carousel';
-  //           }
-  //           setIsAnimating(false);
-  //         }, 300);
-  //       }
-  //     };
-
-  //     // Start the animation loop
-  //     requestAnimationFrame(doSpin);
-  //   }
-  // };
-
-  // const previousCell = () => {
-  //   setSelectedIndex(index => (index - 1 + cellCount) % cellCount);
-  // };
-
-  // const nextCell = () => {
-  //   setSelectedIndex(index => (index + 1) % cellCount);
-  // };
-
-  // // Idle animation functions
-  // const startIdleAnimation = () => {
-  //   if (isIdleAnimating || isAnimating) return;
-
-  //   setIsIdleAnimating(true);
-  //   if (carouselRef.current) {
-  //     nextCell();
-  //     carouselRef.current.className = 'carousel animating-idle';
-  //   }
-
-  //   let lastTime = performance.now();
-  //   const idleSpeed = 6000; // 6 seconds per full rotation
-
-  //   const animateIdle = (time: number) => {
-  //     if (!isIdleAnimating) return;
-
-  //     const elapsed = time - lastTime;
-  //     if (elapsed > idleSpeed / cellCount) {
-  //       setSelectedIndex(index => (index + 1) % cellCount);
-  //       lastTime = time;
-  //     }
-
-  //     idleAnimationRef.current = requestAnimationFrame(animateIdle);
-  //   };
-
-  //   idleAnimationRef.current = requestAnimationFrame(animateIdle);
-  // };
-
-  // const stopIdleAnimation = () => {
-  //   setIsIdleAnimating(false);
-  //   if (idleAnimationRef.current !== null) {
-  //     cancelAnimationFrame(idleAnimationRef.current);
-  //     idleAnimationRef.current = null;
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   const h = localStorage.getItem('randomHistory');
-  //   if (h) {
-  //     const parsed = JSON.parse(h);
-  //     setRandomHistory(parsed);
-  //     if (parsed.length >= roundSetting.totalBanPick) {
-  //       startBanPick();
-  //     }
-  //   }
-  // }, []);
-  // useEffect(() => {
-  //   if (banPickSongs.length <= roundSetting.pick && finalSongs.length === 0) {
-  //     setFinalSongs(banPickSongs);
-  //   }
-  // }, [banPickSongs, finalSongs]);
-
-  // const handleRandom = () => {
-  //   if (randomHistory.length >= roundSetting.totalBanPick) {
-  //     startBanPick();
-  //     return;
-  //   }
-
-  //   // Stop idle animation and set as actively animating
-  //   stopIdleAnimation();
-  //   setIsAnimating(true);
-
-  //   // STEP 1: Random kết quả TRƯỚC khi bắt đầu animation
-  //   let finalIndex = Math.floor(Math.random() * cellCount);
-  //   let targetSong = songData[finalIndex % songData.length];
-  //   let attempts = 0;
-  //   while (randomHistory.some(s => s.title === targetSong.title && s.diff === targetSong.diff) && attempts < 100) {
-  //   finalIndex = Math.floor(Math.random() * cellCount);
-  //   targetSong = songData[finalIndex % songData.length];
-  //   attempts++;
-  // }
-
-  //   targetIndexRef.current = finalIndex;
-
-  //   // STEP 2: Tính toán các thông số animation
-  //   const startAngle = theta * selectedIndex * -1;
-  //   const targetAngle = theta * finalIndex * -1;
-
-  //   // Animation settings
-  //   const totalDuration = 4000; // 4 seconds total
-  //   const minSpins = 3; // Minimum full rotations
-
-  //   // Tính khoảng cách từ vị trí hiện tại đến target
-  //   const directDistance = Math.abs(finalIndex - selectedIndex);
-  //   const wrappedDistance = cellCount - directDistance;
-  //   const shortestDistance = Math.min(directDistance, wrappedDistance);
-
-  //   // Tính số vòng quay cần thiết để đủ thời gian animation
-  //   // Công thức: minSpins vòng + khoảng cách đến target
-  //   const totalCells = (minSpins * cellCount) + shortestDistance;
-  //   const extraRotation = 360 * minSpins;
-
-  //   currentRotationRef.current = startAngle;
-
-  //   // Apply fast animation at the beginning
-  //   if (carouselRef.current) {
-  //     carouselRef.current.className = 'carousel animating-fast';
-  //   }
-
-  //   const startTime = performance.now();
-
-  //   // Animation function using requestAnimationFrame
-  //   const spinAnimation = (currentTime: number) => {
-  //     const elapsed = currentTime - startTime;
-  //     let progress = Math.min(elapsed / totalDuration, 1);
-
-  //     // Easing function: starts fast, ends slow (ease-out cubic)
-  //     const easeOutCubic = (t: number) => {
-  //       return 1 - Math.pow(1 - t, 3);
-  //     };
-
-  //     const easedProgress = easeOutCubic(progress);
-
-  //     // STEP 3: Tính toán góc quay hiện tại
-  //     // Quay theo chiều âm (ngược chiều kim đồng hồ)
-  //     let targetRotation;
-  //     if (finalIndex >= selectedIndex) {
-  //       // Target ở phía trước, quay thuận
-  //       targetRotation = extraRotation + (finalIndex - selectedIndex) * theta;
-  //     } else {
-  //       // Target ở phía sau, quay qua 0
-  //       targetRotation = extraRotation + (cellCount - selectedIndex + finalIndex) * theta;
-  //     }
-
-  //     const currentAngle = startAngle - (targetRotation * easedProgress);
-  //     currentRotationRef.current = currentAngle;
-
-  //     // Update CSS class based on progress for smoother transitions
-  //     if (carouselRef.current) {
-  //       if (progress < 0.3) {
-  //         carouselRef.current.className = 'carousel animating-fast';
-  //       } else if (progress < 0.7) {
-  //         carouselRef.current.className = 'carousel animating-medium';
-  //       } else {
-  //         carouselRef.current.className = 'carousel animating-slow';
-  //       }
-  //     }
-
-  //     // Apply rotation directly to carousel
-  //     rotateCarousel(currentAngle);
-
-  //     // Calculate which cell we're currently showing
-  //     const normalizedAngle = (((-currentAngle) % 360) + 360) % 360;
-  //     const currentCell = Math.round(normalizedAngle / theta) % cellCount;
-  //     setSelectedIndex(currentCell);
-
-  //     // STEP 4: Kiểm tra điều kiện kết thúc
-  //     // Nếu progress = 1 VÀ đã đến đúng target position
-  //     if (progress >= 1) {
-  //       const currentNormalizedAngle = (((-currentAngle) % 360) + 360) % 360;
-  //       const currentPosition = Math.round(currentNormalizedAngle / theta) % cellCount;
-
-  //       // Kiểm tra xem đã đến đúng vị trí target chưa
-  //       if (currentPosition === finalIndex) {
-  //         // ĐÃ ĐẾN ĐÚNG VỊ TRÍ - Kết thúc animation
-  //         const finalAngle = theta * finalIndex * -1;
-  //         rotateCarousel(finalAngle);
-  //         setSelectedIndex(finalIndex);
-  //         setSelectedSong(targetSong);
-  //         targetIndexRef.current = null;
-
-  //         // Update history with the pre-selected song
-  //         setRandomHistory(prev => {
-  //           const newHistory = [...prev, targetSong];
-  //           localStorage.setItem('randomHistory', JSON.stringify(newHistory));
-  //           return newHistory;
-  //         });
-
-  //         // Reset carousel animation class
-  //         if (carouselRef.current) {
-  //           setTimeout(() => {
-  //             if (carouselRef.current) {
-  //               carouselRef.current.className = 'carousel';
-  //             }
-  //           }, 300);
-  //         }
-
-  //         // Show result popup
-  //         setShowResult(true);
-  //         setShowStars(true);
-  //         setIsAnimating(false);
-
-  //         // Hide stars after animation
-  //         setTimeout(() => setShowStars(false), 5000);
-  //       } else {
-  //         // CHƯA ĐẾN VỊ TRÍ - Tiếp tục quay với tốc độ chậm
-  //         // Calculate how much more we need to rotate
-  //         const currentPos = currentPosition;
-  //         let remainingCells;
-
-  //         if (finalIndex >= currentPos) {
-  //           remainingCells = finalIndex - currentPos;
-  //         } else {
-  //           remainingCells = cellCount - currentPos + finalIndex;
-  //         }
-
-  //         // Continue rotating slowly until we reach target
-  //         const additionalRotation = remainingCells * theta;
-  //         const newTargetAngle = currentAngle - additionalRotation;
-
-  //         // Slow animation for final approach
-  //         if (carouselRef.current) {
-  //           carouselRef.current.className = 'carousel animating-slow';
-  //         }
-
-  //         const finalApproachDuration = 500; // 0.5 seconds for final approach
-  //         const finalStartTime = performance.now();
-
-  //         const finalApproach = (time: number) => {
-  //           const finalElapsed = time - finalStartTime;
-  //           const finalProgress = Math.min(finalElapsed / finalApproachDuration, 1);
-
-  //           const finalAngle = currentAngle - (additionalRotation * finalProgress);
-  //           rotateCarousel(finalAngle);
-
-  //           const finalNormalizedAngle = (((-finalAngle) % 360) + 360) % 360;
-  //           const finalCell = Math.round(finalNormalizedAngle / theta) % cellCount;
-  //           setSelectedIndex(finalCell);
-
-  //           if (finalProgress < 1) {
-  //             requestAnimationFrame(finalApproach);
-  //           } else {
-  //             // Force exact position
-  //             const exactAngle = theta * finalIndex * -1;
-  //             rotateCarousel(exactAngle);
-  //             setSelectedIndex(finalIndex);
-  //             setSelectedSong(targetSong);
-  //             targetIndexRef.current = null;
-
-  //             setRandomHistory(prev => {
-  //               const newHistory = [...prev, targetSong];
-  //               localStorage.setItem('randomHistory', JSON.stringify(newHistory));
-  //               return newHistory;
-  //             });
-
-  //             if (carouselRef.current) {
-  //               setTimeout(() => {
-  //                 if (carouselRef.current) {
-  //                   carouselRef.current.className = 'carousel';
-  //                 }
-  //               }, 300);
-  //             }
-
-  //             setShowResult(true);
-  //             setShowStars(true);
-  //             setIsAnimating(false);
-  //             setTimeout(() => setShowStars(false), 5000);
-  //           }
-  //         };
-
-  //         requestAnimationFrame(finalApproach);
-  //       }
-  //     } else {
-  //       // Continue main animation
-  //       requestAnimationFrame(spinAnimation);
-  //     }
-  //   };
-
-  //   // Start the animation
-  //   requestAnimationFrame(spinAnimation);
-  // };
-
-  // const startBanPick = () => {
-  //   const shuffled = [...songData].sort(() => 0.5 - Math.random());
-  //   setBanPickSongs(shuffled.slice(0, roundSetting.totalBanPick));
-  //   setBanPickSongs([...randomHistory]);
-  //   setShowBanPick(true);
-  //   setShowResult(false);
-  // };
-
-  // const handleBanPick = (song: Song) => {
-  //   setBanPickSongs(prev => prev.filter(s => s !== song));
-  // };
+  const handleRandomComplete = useCallback((song: Song) => {
+    if (randomRound < 2) {
+      setRandomResults(prev => [...prev, song]);
+      setSelectedSong(song);
+      setShowRandomPopup(true);
+    }
+  }, [randomRound]);
+
+  const handlePopupContinue = useCallback(() => {
+    setShowRandomPopup(false);
+    setRandomRound(prev => prev + 1);
+
+    if (randomRound + 1 >= 2) {
+      setTimeout(() => {
+        const allSongs = [...preSelectedSongs, ...randomResults];
+        setBanPickSongs(allSongs);
+        setShowBanPick(true);
+      }, 500);
+    }
+  }, [randomRound, randomResults, preSelectedSongs]);
+
+  const handleBanPick = useCallback((song: Song) => {
+    const remainingBans = roundSetting.ban - bannedSongs.length;
+
+    if (remainingBans > 0) {
+      setBannedSongs(prev => [...prev, song]);
+    } else if (finalSongs.length < roundSetting.pick) {
+      setFinalSongs(prev => [...prev, song]);
+    }
+  }, [bannedSongs.length, finalSongs.length, roundSetting.ban, roundSetting.pick]);
+
+  const handleReset = useCallback(() => {
+    localStorage.removeItem('randomHistory');
+    setRandomHistory([]);
+    setSelectedSong(null);
+    setShowResult(false);
+    setShowStars(false);
+    setShowBanPick(false);
+    setBanPickSongs([]);
+    setFinalSongs([]);
+    setBannedSongs([]);
+    setShowFinalOnly(false);
+    setAnimationPhase('idle');
+    setShowHistory(false);
+    setShowHistoryDetails(false);
+    setRandomRound(0);
+    setRandomResults([]);
+    setShowRandomPopup(false);
+  }, []);
 
   const handleOutsideClick = (event: React.MouseEvent) => {
     if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
@@ -477,19 +136,7 @@ export default function Home() {
     }
   };
 
-  const handleReset = () => {
-    localStorage.removeItem('randomHistory');
-    setRandomHistory([]);
-    setSelectedSong(null);
-    setShowResult(false);
-    setShowStars(false);
-    setShowBanPick(false);
-    setBanPickSongs([]);
-    setFinalSongs([]);
-    setAnimationPhase('idle');
-    setShowHistory(false);
-    setShowHistoryDetails(false);
-  };
+  // handleReset moved to top with other handlers
 
   const handleRemoveHistory = (index: number) => {
     setRandomHistory(prev => {
@@ -517,6 +164,19 @@ export default function Home() {
     });
   };
 
+  // Spacebar keybind
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.code === 'Space' && showBanPick) {
+        e.preventDefault();
+        handleReset();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [showBanPick, handleReset]);
+
   // Create multiple images for the moving row
   const images = Array.from({ length: 20 }, (_, i) => i);
 
@@ -525,9 +185,23 @@ export default function Home() {
       {!showResult && !showBanPick && (
         <div className="w-full flex flex-col items-center justify-center" style={{ minHeight: '110vh' }}>
 
-          {/* Embla-carousel */}
+          {randomRound < 2 && (
+            <div className="mb-4 text-center">
+              <h2 className="text-2xl font-bold">Random Round {randomRound + 1} / 2</h2>
+              <p className="text-gray-600">Spin to select a song</p>
+            </div>
+          )}
+
           <div className="w-full flex justify-center mt-8">
-            <EmblaCarousel slides={SLIDES} options={OPTIONS} onSlideChange={handleSlideChange} />
+            <EmblaCarousel
+              slides={SLIDES}
+              options={OPTIONS}
+              onSlideChange={handleSlideChange}
+              onRandomComplete={handleRandomComplete}
+              disabled={randomRound >= 2}
+              isIdleEnabled={!showRandomPopup && randomRound < 2}
+              showPopup={showRandomPopup}
+            />
           </div>
 
           {/* Carousel ở trên, căn giữa */}
@@ -654,6 +328,38 @@ export default function Home() {
         </div>
       )}
 
+      {showRandomPopup && selectedSong && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/70">
+          <div className="bg-white rounded-lg shadow-2xl max-w-md relative p-8 pt-12">
+            <button
+              onClick={handlePopupContinue}
+              className="absolute top-3 right-3 w-10 h-10 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-full text-3xl font-bold transition-colors"
+            >
+              ✕
+            </button>
+            <Image
+              src={selectedSong.imgUrl}
+              alt={selectedSong.title}
+              width={280}
+              height={280}
+              className="mx-auto mb-4 rounded-lg"
+              style={{
+                border: `5px solid ${getDifficultyColor(selectedSong.diff)}`,
+                boxShadow: `0 0 20px ${getDifficultyColor(selectedSong.diff)}aa`
+              }}
+            />
+            <h3 className="text-xl font-bold text-center mb-2">{selectedSong.title}</h3>
+            <p className="text-gray-600 text-center mb-2">{selectedSong.artist}</p>
+            <p
+              className="text-center font-bold text-lg"
+              style={{ color: getDifficultyColor(selectedSong.diff) }}
+            >
+              {selectedSong.diff} {selectedSong.lv}
+            </p>
+          </div>
+        </div>
+      )}
+
       {showResult && selectedSong && (
         <div
           className="fixed inset-0 flex items-center justify-center z-50"
@@ -714,67 +420,41 @@ export default function Home() {
       )}
 
       {showBanPick && (
-        <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white p-8 rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <h2 className="text-3xl font-bold mb-6 text-center">Ban Pick Phase</h2>
-            <p className="text-center text-gray-600 mb-6">
-              Click on songs to ban them ({roundSetting.ban - (roundSetting.totalBanPick - banPickSongs.length)} bans remaining)
-            </p>
+        <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-2xl w-full max-w-7xl mx-4 p-8">
+            <BanPickCarousel
+              songs={banPickSongs}
+              onBan={(song) => {
+                setBannedSongs(prev => [...prev, song]);
+              }}
+              onPick={(song) => {
+                setFinalSongs(prev => [...prev, song]);
+              }}
+              bannedSongs={bannedSongs}
+              pickedSongs={finalSongs}
+              remainingBans={roundSetting.ban - bannedSongs.length}
+              remainingPicks={roundSetting.pick - finalSongs.length}
+              onComplete={() => setShowFinalOnly(true)}
+              showFinalOnly={showFinalOnly}
+            />
 
-            {/* Display songs for banning */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {banPickSongs.map((song, index) => (
-                <div
-                  key={index}
-                  className="border-2 border-gray-200 rounded-lg p-4 cursor-pointer hover:border-red-500 transition-colors"
-                /* onClick={() => handleBanPick(song)} */
-                >
-                  <Image
-                    src={song.imgUrl}
-                    alt={song.title}
-                    width={150}
-                    height={150}
-                    className="mx-auto mb-2"
-                  />
-                  <h3 className="font-bold text-center">{song.title}</h3>
-                  <p className="text-gray-600 text-center text-sm">{song.artist}</p>
-                  <p className="text-center text-sm" style={{ color: getDifficultyColor(song.diff) }}>
-                    {song.diff} {song.lv}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            {/* Display final selection */}
-            {finalSongs.length > 0 && (
-              <div className="mt-8 p-4 bg-green-50 rounded-lg">
-                <h3 className="text-xl font-bold mb-4 text-center">Final Selection ({finalSongs.length} / {roundSetting.pick})</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {finalSongs.map((song, index) => (
-                    <div key={index} className="text-center">
-                      <Image
-                        src={song.imgUrl}
-                        alt={song.title}
-                        width={120}
-                        height={120}
-                        className="mx-auto mb-2"
-                      />
-                      <h4 className="font-bold">{song.title}</h4>
-                      <p className="text-gray-600 text-sm">{song.artist}</p>
-                    </div>
-                  ))}
-                </div>
+            {showFinalOnly && (
+              <div className="mt-8 text-center">
+                <p className="text-sm text-gray-500 mb-4">Press Spacebar to start new random</p>
               </div>
             )}
-            <div className="mt-6 text-center">
-              <Button
-                onPress={handleReset}
-                color="danger"
-                size="lg"
-              >
-                Reset & Go Back to Random
-              </Button>
-            </div>
+
+            {!showFinalOnly && finalSongs.length === 0 && bannedSongs.length === 0 && (
+              <div className="mt-6 text-center">
+                <Button
+                  onPress={handleReset}
+                  color="danger"
+                  variant="bordered"
+                >
+                  Cancel & Reset
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       )}

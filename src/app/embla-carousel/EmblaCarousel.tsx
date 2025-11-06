@@ -13,20 +13,29 @@ type PropType = {
   slides: Song[];
   options?: EmblaOptionsType;
   onSlideChange?: (index: number) => void;
+  onRandomComplete?: (song: Song) => void;
+  disabled?: boolean;
+  isIdleEnabled?: boolean;
+  showPopup?: boolean;
 }
 
 
 const EmblaCarousel: React.FC<PropType> = (props) => {
-  const { slides, options, onSlideChange } = props;
+  const { slides, options, onSlideChange, onRandomComplete, disabled, isIdleEnabled = false, showPopup = false } = props;
   const [emblaRef, emblaApi] = useEmblaCarousel(options);
   const [isUserInteracting, setIsUserInteracting] = React.useState(false);
+  const idleIntervalRef = React.useRef<NodeJS.Timeout | null>(null);
 
   const {
     onPrevButtonClick,
     getRandomIndex,
     onNextButtonClick,
     onRandomButtonClickWithAnimation
-  } = usePrevNextButtons(emblaApi);
+  } = usePrevNextButtons(emblaApi, slides, (song) => {
+    if (onRandomComplete && song) {
+      setTimeout(() => onRandomComplete(song), 500);
+    }
+  });
 
   // Track slide changes and notify parent
   React.useEffect(() => {
@@ -50,19 +59,61 @@ const EmblaCarousel: React.FC<PropType> = (props) => {
     };
   }, [emblaApi, onSlideChange]);
 
-  // TODO: Idle animation (auto-scroll) - disabled for now
+  // Idle animation - smooth continuous scroll
+  React.useEffect(() => {
+    if (!emblaApi || !isIdleEnabled) {
+      if (idleIntervalRef.current) {
+        clearInterval(idleIntervalRef.current);
+        idleIntervalRef.current = null;
+      }
+      return;
+    }
+
+    const scroll = () => {
+      if (emblaApi && isIdleEnabled) {
+        emblaApi.scrollNext();
+      }
+    };
+
+    // Slower interval for smoother appearance
+    idleIntervalRef.current = setInterval(scroll, 3000);
+
+    return () => {
+      if (idleIntervalRef.current) {
+        clearInterval(idleIntervalRef.current);
+        idleIntervalRef.current = null;
+      }
+    };
+  }, [emblaApi, isIdleEnabled]);
 
   const onRandomButtonClick = () => {
     onRandomButtonClickWithAnimation();
   }
 
-  // Configure carousel for fast transitions during spin animation
+  // Keybind: Enter to random
+  React.useEffect(() => {
+    if (!emblaApi || disabled || showPopup) return;
+
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && !disabled && !showPopup) {
+        onRandomButtonClick();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyPress);
+    };
+  }, [emblaApi, disabled, showPopup, onRandomButtonClick]);
+
+  // Configure carousel for smooth transitions
   React.useEffect(() => {
     if (!emblaApi) return;
 
     emblaApi.reInit({
       loop: true,
-      duration: 20,
+      duration: 30, // Slower duration for smoother idle animation
       skipSnaps: false
     });
   }, [emblaApi]);
@@ -99,31 +150,6 @@ const EmblaCarousel: React.FC<PropType> = (props) => {
             );
           })}
         </div>
-      </div>
-
-      <div className="carousel-controls mb-6 flex justify-center gap-4">
-        <Button
-          onPress={onPrevButtonClick}
-          variant="bordered"
-          startContent={<span>◀</span>}
-        >
-          Previous
-        </Button>
-        <Button
-          onPress={onRandomButtonClick}
-          color="primary"
-          size="lg"
-          className="px-8"
-        >
-          Random
-        </Button>
-        <Button
-          onPress={onNextButtonClick}
-          variant="bordered"
-          endContent={<span>▶</span>}
-        >
-          Next
-        </Button>
       </div>
     </section>
   )
