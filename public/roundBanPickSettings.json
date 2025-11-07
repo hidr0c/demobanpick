@@ -1,7 +1,6 @@
 [
   {
     "name": "Newbie Semi-Final",
-    "poolPath": "../../public/pools/newbieSemi.json",
     "totalBanPick": 6,
     "random": 4,
     "ban": 2,
@@ -9,7 +8,6 @@
   },
   {
     "name": "Newbie Final",
-    "poolPath": "../../public/pools/newbieFinal.json",
     "totalBanPick": 7,
     "random": 4,
     "ban": 2,
@@ -17,7 +15,6 @@
   },
   {
     "name": "Pro Top 8",
-    "poolPath": "../../public/pools/proTop8.json",
     "totalBanPick": 5,
     "random": 2,
     "ban": 2,
@@ -25,7 +22,6 @@
   },
   {
     "name": "Pro Semi-Final",
-    "poolPath": "../../public/pools/proSemi.json",
     "totalBanPick": 5,
     "random": 2,
     "ban": 2,
@@ -33,7 +29,6 @@
   },
     {
     "name": "Pro Final",
-    "poolPath": "../../public/pools/proFinal.json",
     "totalBanPick": 7,
     "random": 3,
     "ban": 2,

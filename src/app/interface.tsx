@@ -9,8 +9,9 @@ export interface Song {
 }
 
 export interface RoundSetting {
-  poolPath: string;
+  name: string;
   totalBanPick: number;
+  random: number;
   ban: number;
   pick: number;
 }

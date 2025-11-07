@@ -5,14 +5,19 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@heroui/react';
 import Image from 'next/image';
 import banPickSettings from '../../public/roundBanPickSettings.json';
-import songData from '../../public/pools/newbieSemi.json';
 import { Song, RoundSetting } from './interface';
 
 import EmblaCarousel from './embla-carousel/EmblaCarousel';
 import BanPickCarousel from './components/BanPickCarousel';
 import './css/embla.css'
 
+import songData from '../../public/pools/newbieSemi.json';
 export default function Home() {
+  const [roundIndex, setRoundIndex] = useState(0); // 0 is newbie semi, 1 is newbie final, 2 is pro top 8, 3 is pro semi, 4 is pro final
+  const preSelectedSongs = useMemo(() =>
+    songData.filter(song => ['7', '8', '13'].includes(song.id))
+    , []);
+
   const router = useRouter();
   const [isAnimating, setIsAnimating] = useState(false);
   const [showResult, setShowResult] = useState(false);
@@ -22,14 +27,13 @@ export default function Home() {
   const [showBanPick, setShowBanPick] = useState(false);
   const [banPickSongs, setBanPickSongs] = useState<Song[]>([]);
   const [finalSongs, setFinalSongs] = useState<Song[]>([]);
-  const [roundSetting, setRoundSetting] = useState<RoundSetting>(banPickSettings[0]);
+  const [banPickSetting, setBanPickSetting] = useState<RoundSetting>(banPickSettings[roundIndex]);
   const [animationPhase, setAnimationPhase] = useState<'fast' | 'slow' | 'idle'>('idle');
   const [showHistory, setShowHistory] = useState(false);
   const [showHistoryDetails, setShowHistoryDetails] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
   const [isCarouselReady, setIsCarouselReady] = useState(false);
 
-  const [roundIndex, setRoundIndex] = useState(0); // 0 is newbie semi, 1 is newbie final, 2 is pro top 8, 3 is pro semi, 4 is pro final
   const [randomRound, setRandomRound] = useState(0);
   const [randomResults, setRandomResults] = useState<Song[]>([]);
   const [showRandomPopup, setShowRandomPopup] = useState(false);
@@ -37,9 +41,7 @@ export default function Home() {
   const [showFinalOnly, setShowFinalOnly] = useState(false);
   const [isRandomAnimating, setIsRandomAnimating] = useState(false);
 
-  const preSelectedSongs = useMemo(() =>
-    songData.filter(song => ['7', '8', '13'].includes(song.id))
-    , []);
+
 
   // 3D Carousel state
   const carouselRef = useRef<HTMLDivElement>(null);
@@ -81,7 +83,7 @@ export default function Home() {
 
   const handleRandomComplete = useCallback((song: Song) => {
     setIsRandomAnimating(false);
-    if (randomRound < banPickSettings[roundIndex].random) {
+    if (randomRound < banPickSetting.random) {
       setRandomResults(prev => [...prev, song]);
       setSelectedSong(song);
       setShowRandomPopup(true);
@@ -92,7 +94,7 @@ export default function Home() {
     setShowRandomPopup(false);
     setRandomRound(prev => prev + 1);
 
-    if (randomRound + 1 >= banPickSettings[roundIndex].random) {
+    if (randomRound + 1 >= banPickSetting.random) {
       setTimeout(() => {
         const allSongs = [...randomResults, ...preSelectedSongs];
         setBanPickSongs(allSongs);
@@ -102,14 +104,14 @@ export default function Home() {
   }, [randomRound, randomResults, preSelectedSongs]);
 
   const handleBanPick = useCallback((song: Song) => {
-    const remainingBans = roundSetting.ban - bannedSongs.length;
+    const remainingBans = banPickSetting.ban - bannedSongs.length;
 
     if (remainingBans > 0) {
       setBannedSongs(prev => [...prev, song]);
-    } else if (finalSongs.length < roundSetting.pick) {
+    } else if (finalSongs.length < banPickSetting.pick) {
       setFinalSongs(prev => [...prev, song]);
     }
-  }, [bannedSongs.length, finalSongs.length, roundSetting.ban, roundSetting.pick]);
+  }, [bannedSongs.length, finalSongs.length, banPickSetting.ban, banPickSetting.pick]);
 
   const handleReset = useCallback(() => {
     localStorage.removeItem('randomHistory');
@@ -152,7 +154,7 @@ export default function Home() {
         setBanPickSongs(bp => bp.filter(s => !(s.title === removed.title && s.diff === removed.diff)));
         setFinalSongs(f => f.filter(s => !(s.title === removed.title && s.diff === removed.diff)));
         // If history is now below required, hide ban/pick modal
-        if (newArr.length < roundSetting.totalBanPick) {
+        if (newArr.length < banPickSetting.totalBanPick) {
           setShowBanPick(false);
         }
         // If the removed song was currently selected in popup, close it
@@ -191,9 +193,9 @@ export default function Home() {
       {!showResult && !showBanPick && (
         <div className="w-full flex flex-col items-center justify-center" style={{ minHeight: '110vh' }}>
 
-          {randomRound < banPickSettings[roundIndex].random && (
+          {randomRound < banPickSetting.random && (
             <div className="mb-4 text-center">
-              <h2 className="text-2xl font-bold">Random Round {randomRound + 1} / {banPickSettings[roundIndex].random} </h2>
+              <h2 className="text-2xl font-bold">Random Round {randomRound + 1} / {banPickSetting.random} </h2>
               <p className="text-gray-600">Spin to select a song</p>
             </div>
           )}
@@ -205,8 +207,8 @@ export default function Home() {
               onSlideChange={handleSlideChange}
               onRandomComplete={handleRandomComplete}
               onRandomStart={() => setIsRandomAnimating(true)}
-              disabled={randomRound >= banPickSettings[roundIndex].random || isRandomAnimating}
-              isIdleEnabled={!showRandomPopup && randomRound < banPickSettings[roundIndex].random && !isRandomAnimating}
+              disabled={randomRound >= banPickSetting.random || isRandomAnimating}
+              isIdleEnabled={!showRandomPopup && randomRound < banPickSetting.random && !isRandomAnimating}
               showPopup={showRandomPopup}
             />
           </div>
@@ -281,7 +283,7 @@ export default function Home() {
 
           {randomHistory.length > 0 && (
             <p className="text-gray-600 mt-4">
-              Random History: {randomHistory.length} / {roundSetting.totalBanPick} songs selected
+              Random History: {randomHistory.length} / {banPickSetting.totalBanPick} songs selected
             </p>
           )}
           <div className="mt-4 flex gap-4 justify-center">
@@ -450,8 +452,8 @@ export default function Home() {
               }}
               bannedSongs={bannedSongs}
               pickedSongs={finalSongs}
-              remainingBans={roundSetting.ban - bannedSongs.length}
-              remainingPicks={roundSetting.pick - finalSongs.length}
+              remainingBans={banPickSetting.ban - bannedSongs.length}
+              remainingPicks={banPickSetting.pick - finalSongs.length}
               onComplete={() => setShowFinalOnly(true)}
               showFinalOnly={showFinalOnly}
             />
