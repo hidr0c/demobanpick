@@ -17,7 +17,8 @@ type UsePrevNextButtonsType = {
 export const usePrevNextButtons = (
   emblaApi: EmblaCarouselType | undefined,
   slides: Song[],
-  onAnimationComplete?: (song: Song) => void
+  onAnimationComplete?: (song: Song) => void,
+  onAnimationStart?: () => void
 ): UsePrevNextButtonsType => {
 
   const onPrevButtonClick = useCallback(() => {
@@ -41,6 +42,10 @@ export const usePrevNextButtons = (
    */
   const onRandomButtonClickWithAnimation = useCallback(() => {
     if (!emblaApi) return;
+
+    if (onAnimationStart) {
+      onAnimationStart();
+    }
 
     const totalSlides = emblaApi.scrollSnapList().length;
     const targetIndex = Math.floor(Math.random() * totalSlides);
@@ -85,7 +90,7 @@ export const usePrevNextButtons = (
         animationFrameId = requestAnimationFrame(animateSpin);
       } else {
         isAnimating = false;
-        
+
         // Wait for carousel to fully settle before getting result
         if (onAnimationComplete && slides) {
           setTimeout(() => {
@@ -98,7 +103,7 @@ export const usePrevNextButtons = (
     };
 
     animationFrameId = requestAnimationFrame(animateSpin);
-  }, [emblaApi, slides, onAnimationComplete])
+  }, [emblaApi, slides, onAnimationComplete, onAnimationStart])
 
   const onSelect = useCallback((emblaApi: EmblaCarouselType) => {
 

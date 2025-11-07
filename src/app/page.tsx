@@ -34,6 +34,7 @@ export default function Home() {
   const [showRandomPopup, setShowRandomPopup] = useState(false);
   const [bannedSongs, setBannedSongs] = useState<Song[]>([]);
   const [showFinalOnly, setShowFinalOnly] = useState(false);
+  const [isRandomAnimating, setIsRandomAnimating] = useState(false);
 
   const preSelectedSongs = useMemo(() =>
     songData.filter(song => ['7', '8', '13'].includes(song.id))
@@ -78,6 +79,7 @@ export default function Home() {
   }, []);
 
   const handleRandomComplete = useCallback((song: Song) => {
+    setIsRandomAnimating(false);
     if (randomRound < 2) {
       setRandomResults(prev => [...prev, song]);
       setSelectedSong(song);
@@ -91,7 +93,7 @@ export default function Home() {
 
     if (randomRound + 1 >= 2) {
       setTimeout(() => {
-        const allSongs = [...preSelectedSongs, ...randomResults];
+        const allSongs = [...randomResults, ...preSelectedSongs];
         setBanPickSongs(allSongs);
         setShowBanPick(true);
       }, 500);
@@ -164,18 +166,21 @@ export default function Home() {
     });
   };
 
-  // Spacebar keybind
+  // Spacebar keybind + Enter to close popup
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       if (e.code === 'Space' && showBanPick) {
         e.preventDefault();
         handleReset();
+      } else if (e.key === 'Enter' && showRandomPopup) {
+        e.preventDefault();
+        handlePopupContinue();
       }
     };
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [showBanPick, handleReset]);
+  }, [showBanPick, showRandomPopup, handleReset, handlePopupContinue]);
 
   // Create multiple images for the moving row
   const images = Array.from({ length: 20 }, (_, i) => i);
@@ -198,8 +203,9 @@ export default function Home() {
               options={OPTIONS}
               onSlideChange={handleSlideChange}
               onRandomComplete={handleRandomComplete}
-              disabled={randomRound >= 2}
-              isIdleEnabled={!showRandomPopup && randomRound < 2}
+              onRandomStart={() => setIsRandomAnimating(true)}
+              disabled={randomRound >= 2 || isRandomAnimating}
+              isIdleEnabled={!showRandomPopup && randomRound < 2 && !isRandomAnimating}
               showPopup={showRandomPopup}
             />
           </div>
@@ -329,14 +335,25 @@ export default function Home() {
       )}
 
       {showRandomPopup && selectedSong && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/70">
-          <div className="bg-white rounded-lg shadow-2xl max-w-md relative p-8 pt-12">
+        <div
+          className="fixed inset-0 flex items-center justify-center z-50 bg-black/70"
+          onClick={handlePopupContinue}
+        >
+          <div
+            className="bg-white rounded-lg shadow-2xl max-w-md relative p-8 pt-12"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
               onClick={handlePopupContinue}
               className="absolute top-3 right-3 w-10 h-10 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-full text-3xl font-bold transition-colors"
             >
               ✕
             </button>
+            <div className="text-center mb-4">
+              <span className="inline-block text-black font-bold text-2xl">
+                Track #{randomRound + 1}
+              </span>
+            </div>
             <Image
               src={selectedSong.imgUrl}
               alt={selectedSong.title}
@@ -437,12 +454,6 @@ export default function Home() {
               onComplete={() => setShowFinalOnly(true)}
               showFinalOnly={showFinalOnly}
             />
-
-            {showFinalOnly && (
-              <div className="mt-8 text-center">
-                <p className="text-sm text-gray-500 mb-4">Press Spacebar to start new random</p>
-              </div>
-            )}
 
             {!showFinalOnly && finalSongs.length === 0 && bannedSongs.length === 0 && (
               <div className="mt-6 text-center">

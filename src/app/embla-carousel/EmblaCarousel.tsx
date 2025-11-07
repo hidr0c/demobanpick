@@ -14,6 +14,7 @@ type PropType = {
   options?: EmblaOptionsType;
   onSlideChange?: (index: number) => void;
   onRandomComplete?: (song: Song) => void;
+  onRandomStart?: () => void;
   disabled?: boolean;
   isIdleEnabled?: boolean;
   showPopup?: boolean;
@@ -21,7 +22,7 @@ type PropType = {
 
 
 const EmblaCarousel: React.FC<PropType> = (props) => {
-  const { slides, options, onSlideChange, onRandomComplete, disabled, isIdleEnabled = false, showPopup = false } = props;
+  const { slides, options, onSlideChange, onRandomComplete, onRandomStart, disabled, isIdleEnabled = false, showPopup = false } = props;
   const [emblaRef, emblaApi] = useEmblaCarousel(options);
   const [isUserInteracting, setIsUserInteracting] = React.useState(false);
   const idleIntervalRef = React.useRef<NodeJS.Timeout | null>(null);
@@ -35,7 +36,7 @@ const EmblaCarousel: React.FC<PropType> = (props) => {
     if (onRandomComplete && song) {
       setTimeout(() => onRandomComplete(song), 500);
     }
-  });
+  }, onRandomStart);
 
   // Track slide changes and notify parent
   React.useEffect(() => {
@@ -87,6 +88,11 @@ const EmblaCarousel: React.FC<PropType> = (props) => {
   }, [emblaApi, isIdleEnabled]);
 
   const onRandomButtonClick = () => {
+    // Stop idle animation immediately when random starts
+    if (idleIntervalRef.current) {
+      clearInterval(idleIntervalRef.current);
+      idleIntervalRef.current = null;
+    }
     onRandomButtonClickWithAnimation();
   }
 
@@ -119,6 +125,7 @@ const EmblaCarousel: React.FC<PropType> = (props) => {
   }, [emblaApi]);
   return (
     <section className="embla">
+      <div className="embla__center-frame"></div>
       <div className="embla__viewport" ref={emblaRef}>
         <div className="embla__container">
           {slides.map((song) => {
@@ -137,15 +144,25 @@ const EmblaCarousel: React.FC<PropType> = (props) => {
 
             return (
               <div className="embla__slide" key={song.id}>
-                <img
-                  className="embla__slide__number"
-                  src={song.imgUrl}
-                  alt={song.id}
-                  style={{
-                    border: `2px solid ${getBorderColor(song.diff)}`,
-                    boxShadow: `0 0 8px ${getBorderColor(song.diff)}40`
-                  }}
-                />
+                <div className="flex flex-col items-center">
+                  <img
+                    className="embla__slide__number"
+                    src={song.imgUrl}
+                    alt={song.id}
+                    style={{
+                      border: `2px solid ${getBorderColor(song.diff)}`,
+                      boxShadow: `0 0 8px ${getBorderColor(song.diff)}40`,
+                      borderRadius: '0.5rem'
+                    }}
+                  />
+                  <div className="text-center mt-2 px-2">
+                    <p className="font-bold text-xs truncate" style={{ maxWidth: '190px' }}>{song.title}</p>
+                    <p className="text-xs text-gray-600 truncate" style={{ maxWidth: '190px' }}>{song.artist}</p>
+                    <p className="text-xs font-bold" style={{ color: getBorderColor(song.diff) }}>
+                      {song.diff} {song.lv}
+                    </p>
+                  </div>
+                </div>
               </div>
             );
           })}
