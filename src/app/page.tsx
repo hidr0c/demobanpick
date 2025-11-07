@@ -29,6 +29,7 @@ export default function Home() {
   const popupRef = useRef<HTMLDivElement>(null);
   const [isCarouselReady, setIsCarouselReady] = useState(false);
 
+  const [roundIndex, setRoundIndex] = useState(0); // 0 is newbie semi, 1 is newbie final, 2 is pro top 8, 3 is pro semi, 4 is pro final
   const [randomRound, setRandomRound] = useState(0);
   const [randomResults, setRandomResults] = useState<Song[]>([]);
   const [showRandomPopup, setShowRandomPopup] = useState(false);
@@ -80,7 +81,7 @@ export default function Home() {
 
   const handleRandomComplete = useCallback((song: Song) => {
     setIsRandomAnimating(false);
-    if (randomRound < 2) {
+    if (randomRound < banPickSettings[roundIndex].random) {
       setRandomResults(prev => [...prev, song]);
       setSelectedSong(song);
       setShowRandomPopup(true);
@@ -91,7 +92,7 @@ export default function Home() {
     setShowRandomPopup(false);
     setRandomRound(prev => prev + 1);
 
-    if (randomRound + 1 >= 2) {
+    if (randomRound + 1 >= banPickSettings[roundIndex].random) {
       setTimeout(() => {
         const allSongs = [...randomResults, ...preSelectedSongs];
         setBanPickSongs(allSongs);
@@ -190,9 +191,9 @@ export default function Home() {
       {!showResult && !showBanPick && (
         <div className="w-full flex flex-col items-center justify-center" style={{ minHeight: '110vh' }}>
 
-          {randomRound < 2 && (
+          {randomRound < banPickSettings[roundIndex].random && (
             <div className="mb-4 text-center">
-              <h2 className="text-2xl font-bold">Random Round {randomRound + 1} / 2</h2>
+              <h2 className="text-2xl font-bold">Random Round {randomRound + 1} / {banPickSettings[roundIndex].random} </h2>
               <p className="text-gray-600">Spin to select a song</p>
             </div>
           )}
@@ -204,8 +205,8 @@ export default function Home() {
               onSlideChange={handleSlideChange}
               onRandomComplete={handleRandomComplete}
               onRandomStart={() => setIsRandomAnimating(true)}
-              disabled={randomRound >= 2 || isRandomAnimating}
-              isIdleEnabled={!showRandomPopup && randomRound < 2 && !isRandomAnimating}
+              disabled={randomRound >= banPickSettings[roundIndex].random || isRandomAnimating}
+              isIdleEnabled={!showRandomPopup && randomRound < banPickSettings[roundIndex].random && !isRandomAnimating}
               showPopup={showRandomPopup}
             />
           </div>
