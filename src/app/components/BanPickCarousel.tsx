@@ -46,6 +46,8 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
     const isPicked = (song: Song) => pickedSongs.some(s => s.id === song.id);
     const isProcessed = (song: Song) => isBanned(song) || isPicked(song);
     const isCompleted = remainingBans === 0 && remainingPicks === 0;
+    const isBanPhase = remainingBans > 0;
+    const isPickPhase = remainingBans === 0 && remainingPicks > 0;
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -92,7 +94,7 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
 
     return (
         <div className="ban-pick-container py-8">
-            <div className="flex justify-center items-end gap-8 px-8">
+            <div className="flex justify-center items-center gap-12 px-4" style={{ minHeight: '350px', paddingBottom: '40px', width: '100%', maxWidth: '100vw' }}>
                 {displaySongs.map((song, index) => {
                     const originalIndex = songs.findIndex(s => s.id === song.id);
                     const isSelected = !showFinalOnly && originalIndex === selectedIndex;
@@ -109,9 +111,10 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
                             key={song.id}
                             className="relative"
                             style={{
+                                flexShrink: 0,
                                 transform: `
-                  scale(${showFinalOnly ? 1 : picked ? 1.15 : banned || notChosen ? 0.8 : 1})
-                  translateY(${showFinalOnly ? '0px' : picked ? '-25px' : banned || notChosen ? '10px' : '0px'})
+                  scale(${showFinalOnly ? 1.1 : (picked && isPickPhase) ? 1.08 : banned || notChosen ? 0.8 : 1})
+                  translateY(${showFinalOnly ? '-10px' : (picked && isPickPhase) ? '-15px' : banned || notChosen ? '10px' : '0px'})
                 `,
                                 opacity: banned ? 1 : notChosen ? 0.5 : 1,
                                 filter: banned || notChosen ? 'grayscale(100%)' : 'none',
@@ -141,12 +144,9 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
                                         : isSelected && !processed && !showFinalOnly
                                             ? `5px solid ${getDifficultyColor(song.diff)}`
                                             : '2px solid transparent',
+
                                     borderRadius: '12px',
-                                    boxShadow: showFinalOnly && picked
-                                        ? `0 0 40px ${getDifficultyColor(song.diff)}, 0 0 80px ${getDifficultyColor(song.diff)}80, 0 20px 50px rgba(0,0,0,0.3)`
-                                        : isSelected && !processed && !showFinalOnly
-                                            ? `0 0 30px ${getDifficultyColor(song.diff)}`
-                                            : 'none',
+                                    boxShadow: 'none',
                                     transition: 'all 0.8s cubic-bezier(0.25, 0.8, 0.25, 1)',
                                     overflow: 'hidden',
                                     animation: showFinalOnly && picked ? 'jacketReveal 1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards' : 'none'

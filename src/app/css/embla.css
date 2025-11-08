@@ -9,6 +9,8 @@
   --slide-spacing-lg: 1rem;
   --slide-size-lg: calc(100% / 9);
   position: relative;
+  padding: 30px 0;
+  min-height: 280px;
 }
 
 .embla__center-frame {
@@ -26,7 +28,7 @@
 }
 
 .embla__viewport {
-  overflow: hidden;
+  overflow: visible;
 }
 .embla__container {
   backface-visibility: hidden;

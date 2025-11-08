@@ -26,6 +26,7 @@ const EmblaCarousel: React.FC<PropType> = (props) => {
   const [emblaRef, emblaApi] = useEmblaCarousel(options);
   const [isUserInteracting, setIsUserInteracting] = React.useState(false);
   const idleIntervalRef = React.useRef<NodeJS.Timeout | null>(null);
+  const [selectedIndex, setSelectedIndex] = React.useState(0);
 
   const {
     onPrevButtonClick,
@@ -44,6 +45,7 @@ const EmblaCarousel: React.FC<PropType> = (props) => {
 
     const onSelect = () => {
       const index = emblaApi.selectedScrollSnap();
+      setSelectedIndex(index);
       if (onSlideChange) {
         onSlideChange(index);
       }
@@ -124,9 +126,25 @@ const EmblaCarousel: React.FC<PropType> = (props) => {
     });
   }, [emblaApi]);
   return (
-    <section className="embla">
-      <div className="embla__center-frame"></div>
-      <div className="embla__viewport" ref={emblaRef}>
+    <section className="embla" style={{ position: 'relative', paddingTop: '20px', paddingBottom: '20px' }}>
+      <div className="embla__purple-frame">
+        <img
+          src="/assets/PurpleLayout.png"
+          alt="Frame"
+          style={{
+            position: 'absolute',
+            top: '45%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '3000px',
+            height: 'auto',
+            pointerEvents: 'none',
+            zIndex: 10,
+            opacity: 0.95
+          }}
+        />
+      </div>
+      <div className="embla__viewport" ref={emblaRef} style={{ overflow: 'visible' }}>
         <div className="embla__container">
           {slides.map((song) => {
             const getBorderColor = (diff: string) => {
@@ -152,7 +170,9 @@ const EmblaCarousel: React.FC<PropType> = (props) => {
                     style={{
                       border: `2px solid ${getBorderColor(song.diff)}`,
                       boxShadow: `0 0 8px ${getBorderColor(song.diff)}40`,
-                      borderRadius: '0.5rem'
+                      borderRadius: '0.5rem',
+                      transform: slides.indexOf(song) === selectedIndex ? 'scale(1.15) translateY(-12px)' : 'scale(1)',
+                      transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)'
                     }}
                   />
                   <div className="text-center mt-2 px-2">

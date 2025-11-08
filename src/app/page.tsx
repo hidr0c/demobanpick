@@ -194,9 +194,9 @@ export default function Home() {
         <div className="w-full flex flex-col items-center justify-center" style={{ minHeight: '110vh' }}>
 
           {randomRound < banPickSetting.random && (
-            <div className="mb-4 text-center">
-              <h2 className="text-2xl font-bold">Random Round {randomRound + 1} / {banPickSetting.random} </h2>
-              <p className="text-gray-600">Spin to select a song</p>
+            <div className="mb-12 text-center" style={{ marginTop: '-120px' }}>
+              <h2 className="text-3xl font-bold mb-2">Random Round {randomRound + 1} / {banPickSetting.random} </h2>
+              <p className="text-gray-600 text-lg">Spin to select a song</p>
             </div>
           )}
 
@@ -441,7 +441,7 @@ export default function Home() {
 
       {showBanPick && (
         <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-2xl w-full max-w-7xl mx-4 p-8">
+          <div className="w-full max-w-[95vw] mx-auto">
             <BanPickCarousel
               songs={banPickSongs}
               onBan={(song) => {
