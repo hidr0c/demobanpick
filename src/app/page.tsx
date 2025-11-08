@@ -90,19 +90,6 @@ export default function Home() {
     }
   }, [randomRound]);
 
-  const handlePopupContinue = useCallback(() => {
-    setShowRandomPopup(false);
-    setRandomRound(prev => prev + 1);
-
-    if (randomRound + 1 >= banPickSetting.random) {
-      setTimeout(() => {
-        const allSongs = [...randomResults, ...preSelectedSongs];
-        setBanPickSongs(allSongs);
-        setShowBanPick(true);
-      }, 500);
-    }
-  }, [randomRound, randomResults, preSelectedSongs]);
-
   const handleBanPick = useCallback((song: Song) => {
     const remainingBans = banPickSetting.ban - bannedSongs.length;
 
@@ -149,26 +136,63 @@ export default function Home() {
       const newArr = prev.filter((_, i) => i !== index);
       localStorage.setItem('randomHistory', JSON.stringify(newArr));
 
-      // Also remove from banPickSongs / finalSongs if present (match by title+diff)
+      // Remove from ban/pick lists if present
       if (removed) {
         setBanPickSongs(bp => bp.filter(s => !(s.title === removed.title && s.diff === removed.diff)));
         setFinalSongs(f => f.filter(s => !(s.title === removed.title && s.diff === removed.diff)));
-        // If history is now below required, hide ban/pick modal
-        if (newArr.length < banPickSetting.totalBanPick) {
+
+        // If the removed song was currently shown in popup, close it
+        if (selectedSong && selectedSong.title === removed.title && selectedSong.diff === removed.diff) {
+          setShowRandomPopup(false);
+          setSelectedSong(null);
+        }
+
+        // If history drop below required total, hide ban/pick modal
+        if (newArr.length < (banPickSetting.totalBanPick ?? 0)) {
           setShowBanPick(false);
         }
-        // If the removed song was currently selected in popup, close it
-        if (selectedSong && selectedSong.title === removed.title && selectedSong.diff === removed.diff) {
-          setSelectedSong(null);
-          setShowResult(false);
-          setShowStars(false);
-        }
       }
+
+      // Make randomRound reflect actual selections (clamped)
+      setRandomRound(Math.max(0, Math.min(newArr.length, banPickSetting.random)));
 
       return newArr;
     });
   };
 
+  useEffect(() => {
+    const h = localStorage.getItem('randomHistory');
+    if (h) setRandomHistory(JSON.parse(h));
+  }, []);
+
+  // persist history whenever it changes
+  useEffect(() => {
+    localStorage.setItem('randomHistory', JSON.stringify(randomHistory));
+  }, [randomHistory]);
+// ...existing code...
+
+  const handlePopupContinue = useCallback(() => {
+    // add selectedSong to history (avoid duplicates by title+diff)
+    if (selectedSong) {
+      setRandomHistory(prev => {
+        const exists = prev.some(s => s.title === selectedSong.title && s.diff === selectedSong.diff && s.lv === selectedSong.lv);
+        const newArr = exists ? prev : [...prev, selectedSong];
+        localStorage.setItem('randomHistory', JSON.stringify(newArr));
+        return newArr;
+      });
+    }
+
+    setShowRandomPopup(false);
+    setRandomRound(prev => prev + 1);
+
+    if (randomRound + 1 >= banPickSetting.random) {
+      setTimeout(() => {
+        const allSongs = [...randomResults, ...preSelectedSongs];
+        setBanPickSongs(allSongs);
+        setShowBanPick(true);
+      }, 500);
+    }
+  }, [randomRound, randomResults, preSelectedSongs, selectedSong, banPickSetting.random]);
   // Spacebar keybind + Enter to close popup
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -208,7 +232,7 @@ export default function Home() {
               onRandomComplete={handleRandomComplete}
               onRandomStart={() => setIsRandomAnimating(true)}
               disabled={randomRound >= banPickSetting.random || isRandomAnimating}
-              isIdleEnabled={!showRandomPopup && randomRound < banPickSetting.random && !isRandomAnimating}
+              isIdleEnabled={false}
               showPopup={showRandomPopup}
             />
           </div>
@@ -283,7 +307,7 @@ export default function Home() {
 
           {randomHistory.length > 0 && (
             <p className="text-gray-600 mt-4">
-              Random History: {randomHistory.length} / {banPickSetting.totalBanPick} songs selected
+              Songs selected: {randomHistory.length} 
             </p>
           )}
           <div className="mt-4 flex gap-4 justify-center">
