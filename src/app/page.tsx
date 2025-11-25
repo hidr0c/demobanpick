@@ -11,7 +11,8 @@ import EmblaCarousel from './embla-carousel/EmblaCarousel';
 import BanPickCarousel from './components/BanPickCarousel';
 import './css/embla.css'
 
-import songData from '../../public/pools/newbieSemi.json';
+import songData from '../../public/pools/test.json';
+
 export default function Home() {
   const [roundIndex, setRoundIndex] = useState(0); // 0 is newbie semi, 1 is newbie final, 2 is pro top 8, 3 is pro semi, 4 is pro final
   const preSelectedSongs = useMemo(() =>
@@ -35,13 +36,14 @@ export default function Home() {
   const [isCarouselReady, setIsCarouselReady] = useState(false);
 
   const [randomRound, setRandomRound] = useState(0);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [randomResults, setRandomResults] = useState<Song[]>([]);
   const [showRandomPopup, setShowRandomPopup] = useState(false);
   const [bannedSongs, setBannedSongs] = useState<Song[]>([]);
   const [showFinalOnly, setShowFinalOnly] = useState(false);
   const [isRandomAnimating, setIsRandomAnimating] = useState(false);
-
-
+  const hasRestoredRef = useRef(false);
+  const [showBanPickButton, setShowBanPickButton] = useState(false);
 
   // 3D Carousel state
   const carouselRef = useRef<HTMLDivElement>(null);
@@ -102,11 +104,15 @@ export default function Home() {
 
   const handleReset = useCallback(() => {
     localStorage.removeItem('randomHistory');
+    localStorage.removeItem('randomRound');
+    hasRestoredRef.current = false;
+    setIsInitialLoad(true);
     setRandomHistory([]);
     setSelectedSong(null);
     setShowResult(false);
     setShowStars(false);
     setShowBanPick(false);
+    setShowBanPickButton(false);
     setBanPickSongs([]);
     setFinalSongs([]);
     setBannedSongs([]);
@@ -117,7 +123,11 @@ export default function Home() {
     setRandomRound(0);
     setRandomResults([]);
     setShowRandomPopup(false);
-  }, []);
+    setTimeout(() => {
+      hasRestoredRef.current = true;
+      setIsInitialLoad(false);
+    }, 0);
+  }, []);  
 
   const handleOutsideClick = (event: React.MouseEvent) => {
     if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
@@ -152,9 +162,8 @@ export default function Home() {
           setShowBanPick(false);
         }
       }
-
-      // Make randomRound reflect actual selections (clamped)
-      setRandomRound(Math.max(0, Math.min(newArr.length, banPickSetting.random)));
+      
+      setRandomRound(prev => Math.max(0, prev - 1));
 
       return newArr;
     });
@@ -162,15 +171,37 @@ export default function Home() {
 
   useEffect(() => {
     const h = localStorage.getItem('randomHistory');
-    if (h) setRandomHistory(JSON.parse(h));
+    const storedRound = localStorage.getItem('randomRound');
+    
+    if (h) {
+      const parsed = JSON.parse(h);
+      setRandomHistory(parsed);
+    }
+    if (storedRound) {
+      const parsedRound = parseInt(storedRound, 10);
+      if (!isNaN(parsedRound)) {
+        setRandomRound(parsedRound);
+      }
+   }
+    hasRestoredRef.current = true;
+    setTimeout(() => setIsInitialLoad(false), 0);
   }, []);
 
   // persist history whenever it changes
   useEffect(() => {
-    localStorage.setItem('randomHistory', JSON.stringify(randomHistory));
+    if (!isInitialLoad) {
+      localStorage.setItem('randomHistory', JSON.stringify(randomHistory));
+    }
   }, [randomHistory]);
-// ...existing code...
 
+  // persist randomRound separately (only after first restore)
+  useEffect(() => {
+    if (!isInitialLoad && hasRestoredRef.current) {
+      localStorage.setItem('randomRound', randomRound.toString());
+    }
+  }, [randomRound, isInitialLoad]);
+// ...existing code...
+ 
   const handlePopupContinue = useCallback(() => {
     // add selectedSong to history (avoid duplicates by title+diff)
     if (selectedSong) {
@@ -186,11 +217,14 @@ export default function Home() {
     setRandomRound(prev => prev + 1);
 
     if (randomRound + 1 >= banPickSetting.random) {
-      setTimeout(() => {
-        const allSongs = [...randomResults, ...preSelectedSongs];
-        setBanPickSongs(allSongs);
-        setShowBanPick(true);
-      }, 500);
+        setShowBanPickButton(true);
+      // Only include randomly selected songs (exclude preSelectedSongs)
+      const allSongs = [...randomResults, selectedSong]
+        .filter((s): s is Song => s !== null && s !== undefined)
+        .filter((s, i, arr) => 
+          arr.findIndex(x => x.title === s.title && x.diff === s.diff && x.isDx === s.isDx) === i
+        );
+      setBanPickSongs(allSongs);
     }
   }, [randomRound, randomResults, preSelectedSongs, selectedSong, banPickSetting.random]);
   // Spacebar keybind + Enter to close popup
@@ -213,7 +247,7 @@ export default function Home() {
   const images = Array.from({ length: 20 }, (_, i) => i);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center text-black">
+    <div className="min-h-screen flex flex-col items-center justify-center text-black" >
       {!showResult && !showBanPick && (
         <div className="w-full flex flex-col items-center justify-center" style={{ minHeight: '110vh' }}>
 
@@ -311,6 +345,16 @@ export default function Home() {
             </p>
           )}
           <div className="mt-4 flex gap-4 justify-center">
+            {showBanPickButton && (
+              <Button
+                onPress={() => setShowBanPick(true)}
+                color="primary"
+                size="lg"
+                className="font-bold"
+              >
+                Start Ban/Pick
+              </Button>
+           )}
             <Button
               onPress={() => setShowHistoryDetails(!showHistoryDetails)}
               variant="bordered"
@@ -341,13 +385,7 @@ export default function Home() {
                     >
                       ✖
                     </button>
-                    <Image
-                      src={song.imgUrl}
-                      alt={song.title}
-                      width={100}
-                      height={100}
-                      className="mx-auto rounded-xl"
-                    />
+
                     <h4 className="font-bold text-sm mt-2">{song.title}</h4>
                     <p className="text-gray-600 text-xs">{song.artist}</p>
                     <p className="text-xs" style={{ color: getDifficultyColor(song.diff) }}>
@@ -381,17 +419,20 @@ export default function Home() {
                 Track #{randomRound + 1}
               </span>
             </div>
-            <Image
+
+            <img
               src={selectedSong.imgUrl}
               alt={selectedSong.title}
-              width={280}
-              height={280}
               className="mx-auto mb-4 rounded-lg"
               style={{
+                width: 280,
+                height: 280,
+                objectFit: 'cover',
                 border: `5px solid ${getDifficultyColor(selectedSong.diff)}`,
                 boxShadow: `0 0 20px ${getDifficultyColor(selectedSong.diff)}aa`
               }}
             />
+
             <h3 className="text-xl font-bold text-center mb-2">{selectedSong.title}</h3>
             <p className="text-gray-600 text-center mb-2">{selectedSong.artist}</p>
             <p

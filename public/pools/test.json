@@ -1,0 +1,155 @@
+[
+    {
+        "id": "0",
+        "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/06de80a42ae3a27a7525bf765cd21715b0a76a1db6c99ccd0219a0dda0542a06.png",
+        "artist": "D-Cee",
+        "title": "Tidal Wave",
+        "lv": "13+",
+        "diff": "MASTER",
+        "isDx": "True"
+    },
+    {
+        "id": "1",
+        "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/f8d6864f29345942bdecc58cfbf065647e9caf6292d9390881edbd437f288d86.png",
+        "artist": "kamome sano",
+        "title": "crazy (about you)",
+        "lv": "13+",
+        "diff": "MASTER",
+        "isDx": "True"
+    },
+    {
+        "id": "2",
+        "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/0e1d403a77ae281717e38a943763d5d770eec74b7152c0d7b58dcef7487257e7.png",
+        "artist": "鬱P feat.000",
+        "title": "JIGOKU STATION CENTRAL GATE",
+        "lv": "13+",
+        "diff": "MASTER",
+        "isDx": "True"
+    },
+    {
+        "id": "3",
+        "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/802e292413d17600cdfd93cb448b14da2403fd17d704d38589eed6085aaf12df.png",
+        "artist": "社築 × sasakure.UK",
+        "title": "BlackFlagBreaker!!",
+        "lv": "13+",
+        "diff": "MASTER",
+        "isDx": "True"
+    },
+    {
+        "id": "4",
+        "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/4bc8243a82de1100a3bd2dc1a077d0735a084fbd9c9ea6ef9f064ca788fdcfaa.png",
+        "artist": "SLAVE.V-V-R feat.Sor△",
+        "title": "Unfinished Epic",
+        "lv": "13+",
+        "diff": "MASTER",
+        "isDx": "True"
+    },
+    {
+        "id": "5",
+        "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/da7fc29cf52c4f6b70cba978ed232d1710a0b578050036158b5626cdd1df6b88.png",
+        "artist": "Cosmograph",
+        "title": "DATAERR0R",
+        "lv": "14",
+        "diff": "MASTER",
+        "isDx": "True"
+    },
+    {
+        "id": "6",
+        "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/35f7753bd0fd0f35e5209f4f7cd6e4aece12473f33001419fb894f1aee69c62b.png",
+        "artist": "Luna Fozer (BilliumMoto, 黒皇帝, Sobrem feat. vally.exe)",
+        "title": "Overjoy ★ OVERDOSE!!",
+        "lv": "14",
+        "diff": "MASTER",
+        "isDx": "True"
+    },
+    {
+        "id": "7",
+        "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/acd6fac4b9d6cfd302cd300492403c202fbf153208638ba115c4eb9731702dc3.png",
+        "artist": "弌誠「ゲーム『ゼンレスゾーンゼロ』エレン・ジョー 同人イメージソング」",
+        "title": "モエチャッカファイア",
+        "lv": "13+",
+        "diff": "MASTER",
+        "isDx": "True"
+    },
+    {
+        "id": "8",
+        "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/f7a4ccd98b2f0fa921fd081d6d43cfa09038274c3452e99ed51b070d14409d72.png",
+        "artist": "tn-shi",
+        "title": "Synthesis.",
+        "lv": "14",
+        "diff": "MASTER",
+        "isDx": "True"
+    },
+    {
+        "id": "9",
+        "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/44c55b94a4f2b8c101ebf8c96f906c1cc5cc8b273012306793676d8b9a3e37b8.png",
+        "artist": "サツキ feat.初音ミク・重音テト",
+        "title": "メズマライザー",
+        "lv": "13+",
+        "diff": "Re:MASTER",
+        "isDx": "True"
+    },
+    {
+        "id": "10",
+        "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/414efc22ecc4eb1f83f98c99a39afc090da7da914874716064247caadb44a320.png",
+        "artist": "HiTECH NINJA",
+        "title": "Technicians High",
+        "lv": "13+",
+        "diff": "MASTER",
+        "isDx": "False"
+    },
+    {
+        "id": "12",
+        "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/da8fdad1868d1dbb0c2f6c4aa8ed9c11d6103af0db4829c5637af56d6ab9c371.png",
+        "artist": "まふまふ",
+        "title": "立ち入り禁止",
+        "lv": "13+",
+        "diff": "Re:MASTER",
+        "isDx": "False"
+    },
+    {
+        "id": "11",
+        "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/61dbda9e3bcd41e335fea2f6cc9e7b3a005a0ba452be2e9d9adb4fd72b03238b.png",
+        "artist": "Umiai",
+        "title": "華の集落、秋のお届け",
+        "lv": "13+",
+        "diff": "MASTER",
+        "isDx": "False"
+    },
+    {
+        "id": "13",
+        "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/2b9ee0b6ea8fef773725b8ae8832cd6a8c1676669408f689b0698939d89ad81b.png",
+        "artist": "kanone feat. せんざい",
+        "title": "花と、雪と、ドラムンベース。",
+        "lv": "13+",
+        "diff": "Re:MASTER",
+        "isDx": "False"
+    },
+    {
+        "id": "14",
+        "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/3319046005c6aa1d1073bd714d19a8f341716ba6b4f63aa4c05faa8f6d294abc.png",
+        "artist": "冥堂院・アレクサンドル・ヴィクトリア・リヒテンシュタイン・聖斗 feat.TINOP",
+        "title": "エナドリおいしいソング",
+        "lv": "12+",
+        "diff": "EXPERT",
+        "isDx": "True"
+    },
+    {
+        "id": "15",
+        "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/2b1920f465b6732e3b6bc08e709e032ca330f06dfb6d1642a931dde271954067.png",
+        "artist": "Lime",
+        "title": "VIIIbit Explorer",
+        "lv": "13",
+        "diff": "EXPERT",
+        "isDx": "True"
+    },
+    {
+        "id": "16",
+        "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/2b1920f465b6732e3b6bc08e709e032ca330f06dfb6d1642a931dde271954067.png",
+        "artist": "Lime",
+        "title": "VIIIbit Explorer",
+        "lv": "12+",
+        "diff": "EXPERT",
+        "isDx": "False"
+    }
+]

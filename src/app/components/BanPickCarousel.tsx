@@ -108,7 +108,7 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
 
                     return (
                         <div
-                            key={song.id}
+                            key={`${song.id}-${song.title}-${song.diff}`}
                             className="relative"
                             style={{
                                 flexShrink: 0,

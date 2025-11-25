@@ -1,16 +1,23 @@
+body {
+  transform: scale(0.92);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
 .embla {
   max-width: 100%;
   margin: auto;
   --slide-height: 19rem;
   --slide-spacing: 0.5rem;
   --slide-size: calc(100% / 3);
-  --slide-spacing-sm: 1rem;
+  --slide-spacing-sm: 0.8rem;
   --slide-size-sm: calc(100% / 5);
-  --slide-spacing-lg: 1rem;
+  --slide-spacing-lg: 0.4rem;
   --slide-size-lg: calc(100% / 9);
   position: relative;
   padding: 30px 0;
   min-height: 280px;
+  overflow: visible;
 }
 
 .embla__center-frame {
@@ -110,4 +117,20 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+.embla__slide {
+  position: relative;
+  overflow: visible; /* allow frame to overflow if bigger than image */
+}
+
+/* make jacket image sit below the frame */
+.embla__slide img,
+.embla__slide picture,
+.embla__slide .embla__slide__inner img {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
 }

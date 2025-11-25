@@ -125,9 +125,18 @@ const EmblaCarousel: React.FC<PropType> = (props) => {
       skipSnaps: false
     });
   }, [emblaApi]);
+
+  const FRAME_W = 135;          // jacket width (smaller)
+  const FRAME_H = 135;          // jacket height (smaller)
+  
+  const FRAME_OVERLAY_W = 200;  // frame PNG width (bigger)
+  const FRAME_OVERLAY_H = 260;  // frame PNG height (bigger)
+  const FRAME_IMG = '/assets/expert-dx.png';
+
   return (
-    <section className="embla" style={{ position: 'relative', paddingTop: '20px', paddingBottom: '20px' }}>
-      <div className="embla__purple-frame">
+    <section className="embla" style={{ position: 'relative', paddingTop: '20px', paddingBottom: '20px'}}>
+      
+      {/*<div className="embla__purple-frame">
         <img
           src="/assets/PurpleLayout.png"
           alt="Frame"
@@ -143,10 +152,11 @@ const EmblaCarousel: React.FC<PropType> = (props) => {
             opacity: 0.95
           }}
         />
-      </div>
+      </div>*/}
+
       <div className="embla__viewport" ref={emblaRef} style={{ overflow: 'visible' }}>
-        <div className="embla__container">
-          {slides.map((song) => {
+       <div className="embla__container" >
+          {slides.map((song, index) => {
             const getBorderColor = (diff: string) => {
               switch (diff) {
                 case 'EXPERT':
@@ -160,27 +170,111 @@ const EmblaCarousel: React.FC<PropType> = (props) => {
               }
             };
 
+            const getFrameImage = (diff: string, isDx: string) => {
+              const type = isDx === 'True' ? 'DX' : 'STD';
+              switch (diff) {
+                case 'EXPERT':
+                  return `/assets/expert-${type.toLowerCase()}.png`;
+                case 'MASTER':
+                  return `/assets/master-${type.toLowerCase()}.png`;
+                case 'Re:MASTER':
+                  return `/assets/re-${type.toLowerCase()}.png`;
+                default:
+                  return `/assets/master-${type.toLowerCase()}.png`;
+              }
+            };
+
+            const isSelected = index === selectedIndex;
+            const scale = isSelected ? 1.2 : 1;
+            const translateY = isSelected ? -12 : 0;
+            const frameScale = isSelected ? 1.15 : 1; 
+
             return (
-              <div className="embla__slide" key={song.id}>
-                <div className="flex flex-col items-center">
+              <div
+                className="embla__slide"
+                key={song.id}
+                style={{ position: 'relative', flex: '0 0 auto', minWidth: 0,  display: 'flex', justifyContent: 'center' }}
+              >
+                {/* slide content wrapper sized to jacket area */}
+                <div style={{ position: 'relative', width: FRAME_OVERLAY_W, height: FRAME_OVERLAY_H, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {/* jacket image (under the frame) */}
                   <img
-                    className="embla__slide__number"
                     src={song.imgUrl}
-                    alt={song.id}
+                    alt={song.title}
                     style={{
+                      width: FRAME_W,
+                      height: FRAME_H,
+                      objectFit: 'cover',
+                      borderRadius: '8px',
                       border: `2px solid ${getBorderColor(song.diff)}`,
                       boxShadow: `0 0 8px ${getBorderColor(song.diff)}40`,
-                      borderRadius: '0.5rem',
-                      transform: slides.indexOf(song) === selectedIndex ? 'scale(1.15) translateY(-12px)' : 'scale(1)',
-                      transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)'
+                      transform: `scale(${scale}) translateY(${translateY - 20}px)`, 
+                      transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                      position: 'relative',
+                      zIndex: 1
                     }}
                   />
-                  <div className="text-center mt-2 px-2">
-                    <p className="font-bold text-xs truncate" style={{ maxWidth: '190px' }}>{song.title}</p>
-                    <p className="text-xs text-gray-600 truncate" style={{ maxWidth: '190px' }}>{song.artist}</p>
-                    <p className="text-xs font-bold" style={{ color: getBorderColor(song.diff) }}>
+
+                  {/* frame overlay centered on the jacket */}
+                  <img
+                    src={getFrameImage(song.diff, song.isDx)}                    alt="frame"
+                    style={{
+                      position: 'absolute',
+                      left: '50%',
+                      top: '50%',
+                      transform: `translate(-50%, -50%) scale(${frameScale}) translateY(${translateY}px)`,
+                      width: FRAME_OVERLAY_W,
+                      height: FRAME_OVERLAY_H,
+                      pointerEvents: 'none',
+                      zIndex: 3
+                    }}
+                  />
+
+                  {/* title + artist placed on/under the frame */}
+                  <div
+                    aria-hidden="true"
+                    style={{
+                      position: 'absolute',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      width: FRAME_OVERLAY_W * 0.8,
+                      textAlign: 'center',
+                      zIndex: 4,
+                      pointerEvents: 'none',
+                      // position slightly below center to sit on the label area of the frame
+                      top: FRAME_OVERLAY_H * 0.62,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 4,
+                      alignItems: 'center'
+                    }}
+                  >
+                    <div style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      color: getBorderColor(song.diff),
+                      marginTop: 6,
+                      textShadow: '0 0 4px rgba(255,255,255,0.9), 0 0 8px rgba(255,255,255,0.7)'
+                    }}>
                       {song.diff} {song.lv}
-                    </p>
+                    </div>
+
+                    <div style={{
+                      fontWeight: 700,
+                      fontSize: 12,
+                      color: '#111',
+                      textShadow: '0 0 4px rgba(255,255,255,0.8), 0 0 8px rgba(255,255,255,0.6)'
+                    }}>
+                      {song.title}
+                    </div>
+
+                    <div style={{
+                      fontSize: 11,
+                      color: '#444',
+                      textShadow: '0 0 4px rgba(255,255,255,0.8), 0 0 8px rgba(255,255,255,0.6)'
+                    }}>
+                      {song.artist}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -189,7 +283,7 @@ const EmblaCarousel: React.FC<PropType> = (props) => {
         </div>
       </div>
     </section>
-  )
+  );
 }
 
-export default EmblaCarousel
+export default EmblaCarousel;
