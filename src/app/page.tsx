@@ -85,12 +85,12 @@ export default function Home() {
 
   const handleRandomComplete = useCallback((song: Song) => {
     setIsRandomAnimating(false);
-    if (randomRound < banPickSetting.random) {
+    if (randomHistory.length < banPickSetting.random) {
       setRandomResults(prev => [...prev, song]);
       setSelectedSong(song);
       setShowRandomPopup(true);
     }
-  }, [randomRound]);
+  }, [randomHistory.length]);
 
   const handleBanPick = useCallback((song: Song) => {
     const remainingBans = banPickSetting.ban - bannedSongs.length;
@@ -216,7 +216,7 @@ export default function Home() {
     setShowRandomPopup(false);
     setRandomRound(prev => prev + 1);
 
-    if (randomRound + 1 >= banPickSetting.random) {
+    if (randomHistory.length + 1 >= banPickSetting.random) {
         setShowBanPickButton(true);
       // Only include randomly selected songs (exclude preSelectedSongs)
       const allSongs = [...randomResults, selectedSong]
@@ -226,7 +226,7 @@ export default function Home() {
         );
       setBanPickSongs(allSongs);
     }
-  }, [randomRound, randomResults, preSelectedSongs, selectedSong, banPickSetting.random]);
+  }, [randomHistory.length, randomResults, preSelectedSongs, selectedSong, banPickSetting.random]);
   // Spacebar keybind + Enter to close popup
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -251,9 +251,9 @@ export default function Home() {
       {!showResult && !showBanPick && (
         <div className="w-full flex flex-col items-center justify-center" style={{ minHeight: '110vh' }}>
 
-          {randomRound < banPickSetting.random && (
+          {randomHistory.length < banPickSetting.random && (
             <div className="mb-12 text-center" style={{ marginTop: '-120px' }}>
-              <h2 className="text-3xl font-bold mb-2">Random Round {randomRound + 1} / {banPickSetting.random} </h2>
+              <h2 className="text-3xl font-bold mb-2">Random Round {randomHistory.length + 1} / {banPickSetting.random} </h2>
               <p className="text-gray-600 text-lg">Spin to select a song</p>
             </div>
           )}
@@ -265,7 +265,7 @@ export default function Home() {
               onSlideChange={handleSlideChange}
               onRandomComplete={handleRandomComplete}
               onRandomStart={() => setIsRandomAnimating(true)}
-              disabled={randomRound >= banPickSetting.random || isRandomAnimating}
+              disabled={randomHistory.length >= banPickSetting.random || isRandomAnimating}
               isIdleEnabled={false}
               showPopup={showRandomPopup}
             />
@@ -416,7 +416,7 @@ export default function Home() {
             </button>
             <div className="text-center mb-4">
               <span className="inline-block text-black font-bold text-2xl">
-                Track #{randomRound + 1}
+                Track #{randomHistory.length + 1}
               </span>
             </div>
 
