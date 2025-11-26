@@ -128,14 +128,14 @@ const EmblaCarousel: React.FC<PropType> = (props) => {
 
   const FRAME_W = 135;          // jacket width (smaller)
   const FRAME_H = 135;          // jacket height (smaller)
-  
+
   const FRAME_OVERLAY_W = 200;  // frame PNG width (bigger)
   const FRAME_OVERLAY_H = 260;  // frame PNG height (bigger)
   const FRAME_IMG = '/assets/expert-dx.png';
 
   return (
-    <section className="embla" style={{ position: 'relative', paddingTop: '20px', paddingBottom: '20px'}}>
-      
+    <section className="embla" style={{ position: 'relative', paddingTop: '20px', paddingBottom: '80px' }}>
+
       {/*<div className="embla__purple-frame">
         <img
           src="/assets/PurpleLayout.png"
@@ -155,7 +155,7 @@ const EmblaCarousel: React.FC<PropType> = (props) => {
       </div>*/}
 
       <div className="embla__viewport" ref={emblaRef} style={{ overflow: 'visible' }}>
-       <div className="embla__container" >
+        <div className="embla__container" >
           {slides.map((song, index) => {
             const getBorderColor = (diff: string) => {
               switch (diff) {
@@ -187,13 +187,13 @@ const EmblaCarousel: React.FC<PropType> = (props) => {
             const isSelected = index === selectedIndex;
             const scale = isSelected ? 1.2 : 1;
             const translateY = isSelected ? -12 : 0;
-            const frameScale = isSelected ? 1.15 : 1; 
+            const frameScale = isSelected ? 1.15 : 1;
 
             return (
               <div
                 className="embla__slide"
                 key={song.id}
-                style={{ position: 'relative', flex: '0 0 auto', minWidth: 0,  display: 'flex', justifyContent: 'center' }}
+                style={{ position: 'relative', flex: '0 0 auto', minWidth: 0, display: 'flex', justifyContent: 'center' }}
               >
                 {/* slide content wrapper sized to jacket area */}
                 <div style={{ position: 'relative', width: FRAME_OVERLAY_W, height: FRAME_OVERLAY_H, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -208,7 +208,7 @@ const EmblaCarousel: React.FC<PropType> = (props) => {
                       borderRadius: '8px',
                       border: `2px solid ${getBorderColor(song.diff)}`,
                       boxShadow: `0 0 8px ${getBorderColor(song.diff)}40`,
-                      transform: `scale(${scale}) translateY(${translateY - 20}px)`, 
+                      transform: `scale(${scale}) translateY(${translateY - 20}px)`,
                       transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
                       position: 'relative',
                       zIndex: 1
@@ -217,7 +217,7 @@ const EmblaCarousel: React.FC<PropType> = (props) => {
 
                   {/* frame overlay centered on the jacket */}
                   <img
-                    src={getFrameImage(song.diff, song.isDx)}                    alt="frame"
+                    src={getFrameImage(song.diff, song.isDx)} alt="frame"
                     style={{
                       position: 'absolute',
                       left: '50%',
@@ -230,48 +230,85 @@ const EmblaCarousel: React.FC<PropType> = (props) => {
                     }}
                   />
 
-                  {/* title + artist placed on/under the frame */}
+                  {/* Diff + Lv - positioned at bottom purple bar of frame */}
                   <div
                     aria-hidden="true"
                     style={{
                       position: 'absolute',
                       left: '50%',
                       transform: 'translateX(-50%)',
-                      width: FRAME_OVERLAY_W * 0.8,
+                      bottom: FRAME_OVERLAY_H * 0.175,
+                      zIndex: 4,
+                      pointerEvents: 'none',
+                      fontSize: 11,
+                      fontWeight: 800,
+                      color: '#000',
+                      textShadow: '0 0 4px rgba(255,255,255,0.9)',
+                      letterSpacing: '0.3px',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    {song.diff} + {song.lv}
+                  </div>
+
+                  {/* Title - positioned at middle blue-purple bar */}
+                  <div
+                    aria-hidden="true"
+                    style={{
+                      position: 'absolute',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      bottom: FRAME_OVERLAY_H * 0.105,
+                      width: FRAME_OVERLAY_W * 0.85,
                       textAlign: 'center',
                       zIndex: 4,
                       pointerEvents: 'none',
-                      // position slightly below center to sit on the label area of the frame
-                      top: FRAME_OVERLAY_H * 0.62,
+                      overflow: 'hidden',
+                      height: '16px',
                       display: 'flex',
-                      flexDirection: 'column',
-                      gap: 4,
-                      alignItems: 'center'
+                      alignItems: 'center',
+                      justifyContent: 'center'
                     }}
                   >
                     <div style={{
+                      fontWeight: 600,
                       fontSize: 11,
-                      fontWeight: 700,
-                      color: getBorderColor(song.diff),
-                      marginTop: 6,
-                      textShadow: '0 0 4px rgba(255,255,255,0.9), 0 0 8px rgba(255,255,255,0.7)'
-                    }}>
-                      {song.diff} {song.lv}
-                    </div>
-
-                    <div style={{
-                      fontWeight: 700,
-                      fontSize: 12,
-                      color: '#111',
-                      textShadow: '0 0 4px rgba(255,255,255,0.8), 0 0 8px rgba(255,255,255,0.6)'
+                      color: '#000',
+                      textShadow: '0 0 4px rgba(255,255,255,0.9)',
+                      whiteSpace: 'nowrap',
+                      animation: song.title.length > 15 ? 'marquee 15s linear infinite' : 'none',
+                      paddingRight: song.title.length > 15 ? '100%' : '0'
                     }}>
                       {song.title}
                     </div>
+                  </div>
 
+                  {/* Artist - positioned at bottom gray-purple bar */}
+                  <div
+                    aria-hidden="true"
+                    style={{
+                      position: 'absolute',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      bottom: FRAME_OVERLAY_H * 0.04,
+                      width: FRAME_OVERLAY_W * 0.85,
+                      textAlign: 'center',
+                      zIndex: 4,
+                      pointerEvents: 'none',
+                      overflow: 'hidden',
+                      height: '14px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
                     <div style={{
-                      fontSize: 11,
-                      color: '#444',
-                      textShadow: '0 0 4px rgba(255,255,255,0.8), 0 0 8px rgba(255,255,255,0.6)'
+                      fontSize: 9,
+                      color: '#000',
+                      textShadow: '0 0 4px rgba(255,255,255,0.9)',
+                      whiteSpace: 'nowrap',
+                      animation: song.artist.length > 20 ? 'marquee 18s linear infinite' : 'none',
+                      paddingRight: song.artist.length > 20 ? '100%' : '0'
                     }}>
                       {song.artist}
                     </div>
