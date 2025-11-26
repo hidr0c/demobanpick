@@ -255,7 +255,7 @@ const EmblaCarousel: React.FC<PropType> = (props) => {
                   >
                     {/* This one is for difficulty title */}
                     <div style={{
-                      fontSize: 24,
+                      fontSize: 24 * scale,
                       fontWeight: 700,
                       color: getBorderColor(song.diff),
                       textShadow: '0 0 4px rgba(255,255,255,0.9), 0 0 8px rgba(255,255,255,0.7)'
@@ -267,11 +267,11 @@ const EmblaCarousel: React.FC<PropType> = (props) => {
                     <div style={{
                       paddingTop: FRAME_OVERLAY_H * 0.0175,
                       fontWeight: 700,
-                      fontSize: 24,
+                      fontSize: 24 * scale,
                       fontFamily: "Arial, Helvetica, sans-serif",
                       color: '#111',
                       textShadow: '0 0 4px rgba(255,255,255,0.8), 0 0 8px rgba(255,255,255,0.6)',
-                      animation: song.title.length > 20 ? 'marquee 15s linear infinite' : 'none',
+                      animation: song.title.length > 20 ? `marquee ${song.title.length / 4}s linear infinite` : 'none',
                     }}>
                       {song.title}
                     </div>
@@ -279,10 +279,10 @@ const EmblaCarousel: React.FC<PropType> = (props) => {
                     {/* This one is for song artist */}
                     <div style={{
                       paddingTop: FRAME_OVERLAY_H * 0.025,
-                      fontSize: 14,
+                      fontSize: 14 * scale,
                       color: '#444',
                       textShadow: '0 0 4px rgba(255,255,255,0.8), 0 0 8px rgba(255,255,255,0.6)',
-                      animation: song.artist.length > 30 ? 'marquee 15s linear infinite' : 'none',
+                      animation: song.artist.length > 30 ? `marquee ${song.artist.length / 4}s linear infinite` : 'none',
                     }}>
                       {song.artist}
                     </div>
