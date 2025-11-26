@@ -134,3 +134,13 @@ body {
   height: auto;
   object-fit: cover;
 }
+
+/* The animation code */
+@keyframes myAnimation {
+  from {
+    transform: translate(0, 0);
+  }
+  to {
+    transform: translate(-100%, 0);
+  }
+}
