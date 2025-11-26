@@ -135,12 +135,25 @@ body {
   object-fit: cover;
 }
 
-/* The animation code */
-@keyframes myAnimation {
-  from {
-    transform: translate(0, 0);
+@keyframes marquee {
+  0% {
+    opacity: 0;
+    transform: translateX(50%);
   }
-  to {
-    transform: translate(-100%, 0);
+  10% {
+    opacity: 1;
+    transform: translateX(50%);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(0%);
+  }
+  90% {
+    opacity: 1;
+    transform: translateX(-50%);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%);
   }
 }
