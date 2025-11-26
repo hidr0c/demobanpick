@@ -126,14 +126,15 @@ const EmblaCarousel: React.FC<PropType> = (props) => {
     });
   }, [emblaApi]);
 
-  const FRAME_W = 240;          // jacket width (smaller)
-  const FRAME_H = 270;          // jacket height (smaller)
+  const FRAME_W = 135;          // jacket width (smaller)
+  const FRAME_H = 135;          // jacket height (smaller)
 
-  const FRAME_OVERLAY_W = 390;  // frame PNG width (bigger)
-  const FRAME_OVERLAY_H = 477;  // frame PNG height (bigger)
+  const FRAME_OVERLAY_W = 200;  // frame PNG width (bigger)
+  const FRAME_OVERLAY_H = 260;  // frame PNG height (bigger)
+  const FRAME_IMG = '/assets/expert-dx.png';
 
   return (
-    <section className="embla" style={{ position: 'relative', paddingTop: '20px', paddingBottom: '20px' }}>
+    <section className="embla" style={{ position: 'relative', paddingTop: '20px', paddingBottom: '80px' }}>
 
       {/*<div className="embla__purple-frame">
         <img
@@ -204,10 +205,9 @@ const EmblaCarousel: React.FC<PropType> = (props) => {
                       width: FRAME_W,
                       height: FRAME_H,
                       objectFit: 'cover',
-                      padding: '0 0 35px 0',
-                      borderRadius: '0px',
-                      border: `0px solid ${getBorderColor(song.diff)}`,
-                      boxShadow: `0 0 0px ${getBorderColor(song.diff)}40`,
+                      borderRadius: '8px',
+                      border: `2px solid ${getBorderColor(song.diff)}`,
+                      boxShadow: `0 0 8px ${getBorderColor(song.diff)}40`,
                       transform: `scale(${scale}) translateY(${translateY - 20}px)`,
                       transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
                       position: 'relative',
@@ -237,52 +237,79 @@ const EmblaCarousel: React.FC<PropType> = (props) => {
                       position: 'absolute',
                       left: '50%',
                       transform: 'translateX(-50%)',
-                      width: FRAME_OVERLAY_W * 0.7,
+                      bottom: FRAME_OVERLAY_H * 0.175,
+                      zIndex: 4,
+                      pointerEvents: 'none',
+                      fontSize: 11,
+                      fontWeight: 800,
+                      color: '#000',
+                      textShadow: '0 0 4px rgba(255,255,255,0.9)',
+                      letterSpacing: '0.3px',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    {song.diff} + {song.lv}
+                  </div>
+
+                  {/* Title - positioned at middle blue-purple bar */}
+                  <div
+                    aria-hidden="true"
+                    style={{
+                      position: 'absolute',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      bottom: FRAME_OVERLAY_H * 0.105,
+                      width: FRAME_OVERLAY_W * 0.85,
                       textAlign: 'center',
                       zIndex: 4,
                       pointerEvents: 'none',
-                      // position slightly below center to sit on the label area of the frame
-                      top: FRAME_OVERLAY_H * 0.69,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 4,
-                      alignItems: 'center',
-
-                      textWrap: 'nowrap',
                       overflow: 'hidden',
-                      textOverflow: 'clip',
+                      height: '16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
                     }}
                   >
                     {/* This one is for difficulty title */}
                     <div style={{
-                      fontSize: 24 * scale,
-                      fontWeight: 700,
-                      color: getBorderColor(song.diff),
-                      textShadow: '0 0 4px rgba(255,255,255,0.9), 0 0 8px rgba(255,255,255,0.7)'
-                    }}>
-                      {song.diff} {song.lv}
-                    </div>
-
-                    {/* This one is for song title */}
-                    <div style={{
-                      paddingTop: FRAME_OVERLAY_H * 0.0175,
-                      fontWeight: 700,
-                      fontSize: 24 * scale,
-                      fontFamily: "Arial, Helvetica, sans-serif",
-                      color: '#111',
-                      textShadow: '0 0 4px rgba(255,255,255,0.8), 0 0 8px rgba(255,255,255,0.6)',
-                      animation: song.title.length > 20 ? `marquee ${song.title.length / 4}s linear infinite` : 'none',
+                      fontWeight: 600,
+                      fontSize: 11,
+                      color: '#000',
+                      textShadow: '0 0 4px rgba(255,255,255,0.9)',
+                      whiteSpace: 'nowrap',
+                      animation: song.title.length > 15 ? 'marquee 15s linear infinite' : 'none',
+                      paddingRight: song.title.length > 15 ? '100%' : '0'
                     }}>
                       {song.title}
                     </div>
-                    
-                    {/* This one is for song artist */}
+                  </div>
+
+                  {/* Artist - positioned at bottom gray-purple bar */}
+                  <div
+                    aria-hidden="true"
+                    style={{
+                      position: 'absolute',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      bottom: FRAME_OVERLAY_H * 0.04,
+                      width: FRAME_OVERLAY_W * 0.85,
+                      textAlign: 'center',
+                      zIndex: 4,
+                      pointerEvents: 'none',
+                      overflow: 'hidden',
+                      height: '14px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
                     <div style={{
-                      paddingTop: FRAME_OVERLAY_H * 0.025,
-                      fontSize: 14 * scale,
-                      color: '#444',
-                      textShadow: '0 0 4px rgba(255,255,255,0.8), 0 0 8px rgba(255,255,255,0.6)',
-                      animation: song.artist.length > 30 ? `marquee ${song.artist.length / 4}s linear infinite` : 'none',
+                      fontSize: 9,
+                      color: '#000',
+                      textShadow: '0 0 4px rgba(255,255,255,0.9)',
+                      whiteSpace: 'nowrap',
+                      animation: song.artist.length > 20 ? 'marquee 18s linear infinite' : 'none',
+                      paddingRight: song.artist.length > 20 ? '100%' : '0'
                     }}>
                       {song.artist}
                     </div>
