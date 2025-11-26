@@ -126,16 +126,15 @@ const EmblaCarousel: React.FC<PropType> = (props) => {
     });
   }, [emblaApi]);
 
-  const FRAME_W = 135;          // jacket width (smaller)
-  const FRAME_H = 135;          // jacket height (smaller)
-  
-  const FRAME_OVERLAY_W = 200;  // frame PNG width (bigger)
-  const FRAME_OVERLAY_H = 260;  // frame PNG height (bigger)
-  const FRAME_IMG = '/assets/expert-dx.png';
+  const FRAME_W = 165;          // jacket width (smaller)
+  const FRAME_H = 165;          // jacket height (smaller)
+
+  const FRAME_OVERLAY_W = 260;  // frame PNG width (bigger)
+  const FRAME_OVERLAY_H = 318;  // frame PNG height (bigger)
 
   return (
-    <section className="embla" style={{ position: 'relative', paddingTop: '20px', paddingBottom: '20px'}}>
-      
+    <section className="embla" style={{ position: 'relative', paddingTop: '20px', paddingBottom: '20px' }}>
+
       {/*<div className="embla__purple-frame">
         <img
           src="/assets/PurpleLayout.png"
@@ -155,7 +154,7 @@ const EmblaCarousel: React.FC<PropType> = (props) => {
       </div>*/}
 
       <div className="embla__viewport" ref={emblaRef} style={{ overflow: 'visible' }}>
-       <div className="embla__container" >
+        <div className="embla__container" >
           {slides.map((song, index) => {
             const getBorderColor = (diff: string) => {
               switch (diff) {
@@ -187,13 +186,13 @@ const EmblaCarousel: React.FC<PropType> = (props) => {
             const isSelected = index === selectedIndex;
             const scale = isSelected ? 1.2 : 1;
             const translateY = isSelected ? -12 : 0;
-            const frameScale = isSelected ? 1.15 : 1; 
+            const frameScale = isSelected ? 1.15 : 1;
 
             return (
               <div
                 className="embla__slide"
                 key={song.id}
-                style={{ position: 'relative', flex: '0 0 auto', minWidth: 0,  display: 'flex', justifyContent: 'center' }}
+                style={{ position: 'relative', flex: '0 0 auto', minWidth: 0, display: 'flex', justifyContent: 'center' }}
               >
                 {/* slide content wrapper sized to jacket area */}
                 <div style={{ position: 'relative', width: FRAME_OVERLAY_W, height: FRAME_OVERLAY_H, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -205,10 +204,11 @@ const EmblaCarousel: React.FC<PropType> = (props) => {
                       width: FRAME_W,
                       height: FRAME_H,
                       objectFit: 'cover',
-                      borderRadius: '8px',
-                      border: `2px solid ${getBorderColor(song.diff)}`,
-                      boxShadow: `0 0 8px ${getBorderColor(song.diff)}40`,
-                      transform: `scale(${scale}) translateY(${translateY - 20}px)`, 
+                      padding: '0 0 5px 0',
+                      borderRadius: '0px',
+                      border: `0px solid ${getBorderColor(song.diff)}`,
+                      boxShadow: `0 0 0px ${getBorderColor(song.diff)}40`,
+                      transform: `scale(${scale}) translateY(${translateY - 20}px)`,
                       transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
                       position: 'relative',
                       zIndex: 1
@@ -217,7 +217,7 @@ const EmblaCarousel: React.FC<PropType> = (props) => {
 
                   {/* frame overlay centered on the jacket */}
                   <img
-                    src={getFrameImage(song.diff, song.isDx)}                    alt="frame"
+                    src={getFrameImage(song.diff, song.isDx)} alt="frame"
                     style={{
                       position: 'absolute',
                       left: '50%',
@@ -237,7 +237,7 @@ const EmblaCarousel: React.FC<PropType> = (props) => {
                       position: 'absolute',
                       left: '50%',
                       transform: 'translateX(-50%)',
-                      width: FRAME_OVERLAY_W * 0.8,
+                      width: FRAME_OVERLAY_W * 0.7,
                       textAlign: 'center',
                       zIndex: 4,
                       pointerEvents: 'none',
@@ -246,9 +246,15 @@ const EmblaCarousel: React.FC<PropType> = (props) => {
                       display: 'flex',
                       flexDirection: 'column',
                       gap: 4,
-                      alignItems: 'center'
+                      alignItems: 'center',
+
+                      textWrap: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'clip',
+                      animationName: 'myAnimation',
                     }}
                   >
+                    {/* This one is for difficulty title */}
                     <div style={{
                       fontSize: 11,
                       fontWeight: 700,
@@ -259,15 +265,18 @@ const EmblaCarousel: React.FC<PropType> = (props) => {
                       {song.diff} {song.lv}
                     </div>
 
+                    {/* This one is for song title */}
                     <div style={{
                       fontWeight: 700,
-                      fontSize: 12,
+                      fontSize: 20,
+                      fontFamily: "Arial, Helvetica, sans-serif",
                       color: '#111',
-                      textShadow: '0 0 4px rgba(255,255,255,0.8), 0 0 8px rgba(255,255,255,0.6)'
+                      textShadow: '0 0 4px rgba(255,255,255,0.8), 0 0 8px rgba(255,255,255,0.6)',
                     }}>
                       {song.title}
                     </div>
-
+                    
+                    {/* This one is for song artist */}
                     <div style={{
                       fontSize: 11,
                       color: '#444',
