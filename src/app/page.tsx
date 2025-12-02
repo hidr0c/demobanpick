@@ -8,6 +8,7 @@ import { Song, RoundSetting } from './interface';
 import QuadRandomSlot from './components/QuadRandomSlot';
 import FixedSongSelector from './components/FixedSongSelector';
 import BanPickCarousel from './components/BanPickCarousel';
+import RandomCountSelector from './components/RandomCountSelector';
 
 import songData from '../../public/pools/newbieSemi.json';
 
@@ -19,13 +20,27 @@ export default function Home() {
   // Fixed songs selected by user
   const [fixedSongs, setFixedSongs] = useState<Song[]>([]);
 
-  // Random results (4 songs)
+  // Random count (default 4, can be adjusted)
+  const [randomCount, setRandomCount] = useState(4);
+
+  // Random results (4-6 songs)
   const [randomResults, setRandomResults] = useState<Song[]>([]);
 
   // Ban/Pick phase states
   const [showBanPick, setShowBanPick] = useState(false);
   const [bannedSongs, setBannedSongs] = useState<Song[]>([]);
   const [pickedSongs, setPickedSongs] = useState<Song[]>([]);
+
+  // Listen for R key to reset
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'r' || e.key === 'R') {
+        handleReset();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const handleRandomComplete = useCallback((results: Song[]) => {
     setRandomResults(results);
@@ -78,6 +93,7 @@ export default function Home() {
     setShowBanPick(false);
     setBannedSongs([]);
     setPickedSongs([]);
+    setRandomCount(4);
   };
 
   // Combined pool for ban/pick = random results + fixed songs
@@ -90,7 +106,18 @@ export default function Home() {
         Your browser does not support the video tag.
       </video>
 
-      {/* Fixed Song Selector (always visible in top right) */}
+      {/* Random Count Selector (top left) */}
+      {!showBanPick && (
+        <RandomCountSelector
+          randomCount={randomCount}
+          fixedCount={fixedSongs.length}
+          onRandomCountChange={setRandomCount}
+          maxTotal={6}
+          minTotal={4}
+        />
+      )}
+
+      {/* Fixed Song Selector (top right) */}
       {!showBanPick && (
         <FixedSongSelector
           pool={songData}
@@ -104,26 +131,12 @@ export default function Home() {
         <QuadRandomSlot
           pool={songData}
           fixedSongs={fixedSongs}
+          randomCount={randomCount}
           onRandomComplete={handleRandomComplete}
         />
       ) : (
         /* Ban/Pick Phase */
         <div className="min-h-screen flex flex-col items-center justify-center p-4">
-          <div className="mb-4 text-center">
-            <h2 className="text-2xl font-bold mb-2">
-              {bannedSongs.length < banPickSetting.ban
-                ? `Ban Phase (${bannedSongs.length}/${banPickSetting.ban})`
-                : `Pick Phase (${pickedSongs.length}/${banPickSetting.pick})`
-              }
-            </h2>
-            <button
-              onClick={handleReset}
-              className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg"
-            >
-              Reset
-            </button>
-          </div>
-
           <BanPickCarousel
             songs={banPickPool}
             onBan={handleBan}
@@ -136,37 +149,6 @@ export default function Home() {
               // Complete callback if needed
             }}
           />
-
-          {/* Display banned and picked songs */}
-          <div className="mt-8 flex gap-8">
-            <div>
-              <h3 className="font-bold text-red-500 mb-2">Banned ({bannedSongs.length})</h3>
-              <div className="flex gap-2 flex-wrap max-w-md">
-                {bannedSongs.map((song, i) => (
-                  <img
-                    key={i}
-                    src={song.imgUrl}
-                    alt={song.title}
-                    className="w-16 h-16 rounded object-cover opacity-50"
-                  />
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <h3 className="font-bold text-green-500 mb-2">Picked ({pickedSongs.length})</h3>
-              <div className="flex gap-2 flex-wrap max-w-md">
-                {pickedSongs.map((song, i) => (
-                  <img
-                    key={i}
-                    src={song.imgUrl}
-                    alt={song.title}
-                    className="w-16 h-16 rounded object-cover"
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
         </div>
       )}
     </main>

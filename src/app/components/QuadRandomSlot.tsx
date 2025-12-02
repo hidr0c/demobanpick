@@ -8,13 +8,15 @@ type QuadRandomSlotProps = {
     onRandomComplete?: (results: Song[]) => void;
     disabled?: boolean;
     fixedSongs?: Song[];
+    randomCount?: number;
 };
 
 const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
     pool,
     onRandomComplete,
     disabled = false,
-    fixedSongs = []
+    fixedSongs = [],
+    randomCount = 4
 }) => {
     const [slots, setSlots] = useState<Song[]>([]);
     const [isAnimating, setIsAnimating] = useState(false);
@@ -23,14 +25,14 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
 
     // Initialize with random songs
     useEffect(() => {
-        if (pool.length >= 4) {
+        if (pool.length >= randomCount) {
             const availablePool = pool.filter(
                 song => !fixedSongs.find(f => f.id === song.id)
             );
-            const initial = getRandomUniqueSongs(availablePool, 4);
+            const initial = getRandomUniqueSongs(availablePool, randomCount);
             setSlots(initial);
         }
-    }, [pool, fixedSongs]);
+    }, [pool, fixedSongs, randomCount]);
 
     const getRandomUniqueSongs = (availablePool: Song[], count: number): Song[] => {
         const shuffled = [...availablePool].sort(() => Math.random() - 0.5);
@@ -97,12 +99,12 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
 
             if (elapsed < duration) {
                 // Fast random cycling
-                const tempSlots = getRandomUniqueSongs(availablePool, 4);
+                const tempSlots = getRandomUniqueSongs(availablePool, randomCount);
                 setSlots(tempSlots);
                 animationFrameRef.current = requestAnimationFrame(animate);
             } else {
                 // Final result
-                const finalResults = getRandomUniqueSongs(availablePool, 4);
+                const finalResults = getRandomUniqueSongs(availablePool, randomCount);
                 setSlots(finalResults);
                 setIsAnimating(false);
 
@@ -125,7 +127,7 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
 
         window.addEventListener('keydown', handleKeyPress);
         return () => window.removeEventListener('keydown', handleKeyPress);
-    }, [disabled, isAnimating, pool, fixedSongs]);
+    }, [disabled, isAnimating, randomCount]);
 
     // Cleanup animation on unmount
     useEffect(() => {

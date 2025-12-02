@@ -117,7 +117,15 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
 
     return (
         <div className="ban-pick-container py-8">
-            <div className="flex justify-center items-center gap-12 px-4" style={{ minHeight: '350px', paddingBottom: '40px', width: '100%', maxWidth: '100vw'}}>
+            <div 
+                className="grid gap-6 px-4" 
+                style={{ 
+                    gridTemplateColumns: 'repeat(4, 1fr)',
+                    gridTemplateRows: 'repeat(auto-fill, 1fr)',
+                    maxWidth: '1400px',
+                    margin: '0 auto'
+                }}
+            >
                 {displaySongs.map((song, index) => {
                     const originalIndex = songs.findIndex(s => s.id === song.id);
                     const isSelected = !showFinalOnly && originalIndex === selectedIndex;
@@ -132,20 +140,19 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
                     return (
                         <div
                             key={`${song.id}-${song.title}-${song.diff}`}
-                            className="relative"
+                            className="relative transition-all duration-300 ease-out"
                             style={{
                                 width: FRAME_OVERLAY_W,
                                 height: FRAME_OVERLAY_H,
                                 flexShrink: 0,
-                                transform: `
-                                    scale(${showFinalOnly ? 1.1 : (picked && isPickPhase) ? 1.08 : banned || notChosen ? 0.8 : 1})
-                                    translateY(${showFinalOnly ? '-10px' : (picked && isPickPhase) ? '-15px' : banned || notChosen ? '10px' : '0px'})
-                                    `,
-                                opacity: banned ? 1 : notChosen ? 0.5 : 1,
+                                transform: picked 
+                                    ? 'scale(1.05) translateY(-10px)' 
+                                    : banned || notChosen 
+                                        ? 'scale(0.9) translateY(10px)' 
+                                        : 'scale(1)',
+                                opacity: banned || notChosen ? 0.6 : 1,
                                 filter: banned || notChosen ? 'grayscale(100%)' : 'none',
-                                transition: showFinalOnly
-                                    ? 'all 1s cubic-bezier(0.34, 1.56, 0.64, 1)'
-                                    : 'all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                                zIndex: picked ? 10 : banned || notChosen ? 1 : 5,
                             }}
                         >
 
@@ -307,54 +314,44 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
                                 </div>
                             </div>
 
-                            {showFinalOnly && picked && (
-                                <div
-                                    className="absolute -top-8 left-1/2 z-10"
+                            {/* Selection Overlay with Glow */}
+                            {isSelected && !processed && !showFinalOnly && (
+                                <div 
+                                    className="absolute inset-0 rounded-lg pointer-events-none z-50"
                                     style={{
-                                        transform: 'translateX(-50%)',
-                                        animation: 'fadeInDown 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'
+                                        boxShadow: `0 0 0 4px ${getDiffColor(song.diff)}, 0 0 20px ${getDiffColor(song.diff)}80, 0 0 40px ${getDiffColor(song.diff)}40`,
+                                        animation: 'pulse 1.5s ease-in-out infinite'
                                     }}
+                                />
+                            )}
+
+                            {/* Border for picked songs */}
+                            {showFinalOnly && picked && (
+                                <div 
+                                    className="absolute inset-0 rounded-lg pointer-events-none z-50"
+                                    style={{
+                                        border: `4px solid ${getDiffColor(song.diff)}`
+                                    }}
+                                />
+                            )}
+
+                            {/* Banned Overlay */}
+                            {banned && !showFinalOnly && (
+                                <div
+                                    className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-lg z-50"
                                 >
-                                    <span className="text-black font-bold text-xl">
-                                        Track #{index + 1}
-                                    </span>
+                                    <div className="text-gray-400 text-8xl font-bold">
+                                        ✕
+                                    </div>
                                 </div>
                             )}
 
-                            {/* Border */}
-                            <div
-                                className="relative"
-                                style={{
-                                    border: showFinalOnly && picked
-                                        ? `4px solid ${getDiffColor(song.diff)}`
-                                        : isSelected && !processed && !showFinalOnly
-                                            ? `5px solid ${getDiffColor(song.diff)}`
-                                            : '2px solid transparent',
-
-                                    borderRadius: '12px',
-                                    boxShadow: 'none',
-                                    transition: 'all 0.8s cubic-bezier(0.25, 0.8, 0.25, 1)',
-                                    overflow: 'hidden',
-                                    animation: showFinalOnly && picked ? 'jacketReveal 1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards' : 'none'
-                                }}
-                            >
-
-                                {banned && !showFinalOnly && (
-                                    <div
-                                        className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-lg"
-                                        style={{
-                                            animation: 'fadeIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)'
-                                        }}
-                                    >
-                                        <div
-                                            className="text-red-500 text-8xl font-bold"
-                                            style={{
-                                                animation: 'scaleIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)'
-                                            }}
-                                        >✕</div>
-                                    </div>
-                                )}
-                            </div>
+                            {/* Not Chosen Overlay */}
+                            {notChosen && !showFinalOnly && (
+                                <div
+                                    className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-lg z-50"
+                                />
+                            )}
 
                             {/* <div className="text-center mt-3">
                                 <p className="font-bold text-sm truncate max-w-[200px]">{song.title}</p>
