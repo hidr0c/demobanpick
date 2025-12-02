@@ -269,7 +269,7 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
                                 justifyContent: 'center'
                             }}
                         >
-                            <div 
+                            <div
                                 style={{
                                     fontWeight: 700,
                                     fontSize: `${TITLE_FONT_SIZE}`,
@@ -278,7 +278,7 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
                                     animation: song.title.length > 20 ? 'marquee 15s linear infinite' : 'none',
                                     display: 'inline-block'
                                 }}
-                                
+
                             >
                                 {song.title}
                             </div>

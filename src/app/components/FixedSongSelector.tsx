@@ -47,7 +47,7 @@ const FixedSongSelector: React.FC<FixedSongSelectorProps> = ({
             song.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
             song.artist.toLowerCase().includes(searchQuery.toLowerCase())
         );
-        
+
         // Sort selected songs to top
         return filtered.sort((a, b) => {
             const aSelected = selectedSongs.some(s => s.id === a.id);

@@ -18,7 +18,7 @@ const RandomCountSelector: React.FC<RandomCountSelectorProps> = ({
     minTotal = 4
 }) => {
     const [isOpen, setIsOpen] = React.useState(false);
-    
+
     const totalSongs = randomCount + fixedCount;
     const maxRandom = maxTotal - fixedCount;
     const minRandom = Math.max(0, minTotal - fixedCount);
@@ -50,7 +50,7 @@ const RandomCountSelector: React.FC<RandomCountSelectorProps> = ({
                     <div className="p-4">
                         {/* Header */}
                         <h3 className="font-bold text-lg text-white mb-4">Song Count Settings</h3>
-                        
+
                         {/* Random Count */}
                         <div className="mb-4">
                             <label className="text-gray-400 text-sm block mb-2">Random Songs</label>
@@ -85,11 +85,10 @@ const RandomCountSelector: React.FC<RandomCountSelectorProps> = ({
                         <div className="pt-4 border-t border-gray-700">
                             <div className="flex justify-between items-center">
                                 <span className="text-gray-400">Total:</span>
-                                <span className={`text-xl font-bold ${
-                                    totalSongs >= minTotal && totalSongs <= maxTotal 
-                                        ? 'text-green-400' 
+                                <span className={`text-xl font-bold ${totalSongs >= minTotal && totalSongs <= maxTotal
+                                        ? 'text-green-400'
                                         : 'text-red-400'
-                                }`}>
+                                    }`}>
                                     {totalSongs} / {maxTotal}
                                 </span>
                             </div>

@@ -117,9 +117,9 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
 
     return (
         <div className="ban-pick-container py-8">
-            <div 
-                className="grid gap-6 px-4" 
-                style={{ 
+            <div
+                className="grid gap-6 px-4"
+                style={{
                     gridTemplateColumns: 'repeat(4, 1fr)',
                     gridTemplateRows: 'repeat(auto-fill, 1fr)',
                     maxWidth: '1400px',
@@ -145,10 +145,10 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
                                 width: FRAME_OVERLAY_W,
                                 height: FRAME_OVERLAY_H,
                                 flexShrink: 0,
-                                transform: picked 
-                                    ? 'scale(1.05) translateY(-10px)' 
-                                    : banned || notChosen 
-                                        ? 'scale(0.9) translateY(10px)' 
+                                transform: picked
+                                    ? 'scale(1.05) translateY(-10px)'
+                                    : banned || notChosen
+                                        ? 'scale(0.9) translateY(10px)'
                                         : 'scale(1)',
                                 opacity: banned || notChosen ? 0.6 : 1,
                                 filter: banned || notChosen ? 'grayscale(100%)' : 'none',
@@ -316,7 +316,7 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
 
                             {/* Selection Overlay with Glow */}
                             {isSelected && !processed && !showFinalOnly && (
-                                <div 
+                                <div
                                     className="absolute inset-0 rounded-lg pointer-events-none z-50"
                                     style={{
                                         boxShadow: `0 0 0 4px ${getDiffColor(song.diff)}, 0 0 20px ${getDiffColor(song.diff)}80, 0 0 40px ${getDiffColor(song.diff)}40`,
@@ -327,7 +327,7 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
 
                             {/* Border for picked songs */}
                             {showFinalOnly && picked && (
-                                <div 
+                                <div
                                     className="absolute inset-0 rounded-lg pointer-events-none z-50"
                                     style={{
                                         border: `4px solid ${getDiffColor(song.diff)}`

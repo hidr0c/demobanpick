@@ -55,7 +55,8 @@ body {
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -324,8 +325,7 @@ body {
   }
 }
 
-#background-video
-{
+#background-video {
   object-fit: cover;
   position: fixed;
   width: 100%;
