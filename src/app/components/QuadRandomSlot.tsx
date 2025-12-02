@@ -59,7 +59,7 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
                 return '#a352de';
             case 'RE:MASTER':
             case 'Re:MASTER':
-                return '#e5d0f5';
+                return '#ca97ca';
             default:
                 return '#a352de';
         }
@@ -136,10 +136,11 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
         };
     }, []);
 
-    const FRAME_W = 180;
-    const FRAME_H = 180;
     const FRAME_OVERLAY_W = 300;
     const FRAME_OVERLAY_H = 390;
+    const FRAME_W = FRAME_OVERLAY_W * 0.61;
+    const FRAME_H = FRAME_OVERLAY_H * 0.5;
+    const TITLE_FONT_SIZE = 20;
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen gap-8 p-4">
@@ -164,12 +165,12 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
                                 width: FRAME_W,
                                 height: FRAME_H,
                                 objectFit: 'cover',
-                                borderRadius: '8px',
-                                border: `2px solid ${getBorderColor(song.diff)}`,
-                                boxShadow: `0 0 8px ${getBorderColor(song.diff)}40`,
+                                // borderRadius: '8px',
+                                // border: `2px solid ${getBorderColor(song.diff)}`,
+                                // boxShadow: `0 0 8px ${getBorderColor(song.diff)}40`,
                                 left: '50%',
                                 top: '50%',
-                                transform: 'translate(-50%, -50%) translateY(-20px)',
+                                transform: `translate(-50%, -50%) translateY(-${FRAME_OVERLAY_H / 13}px)`,
                                 zIndex: 1
                             }}
                         />
@@ -196,7 +197,7 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
                             style={{
                                 left: '50%',
                                 transform: 'translateX(-50%)',
-                                bottom: FRAME_OVERLAY_H * 0.215,
+                                bottom: FRAME_OVERLAY_H * 0.23,
                                 zIndex: 4,
                                 pointerEvents: 'none',
                                 display: 'flex',
@@ -207,19 +208,39 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
                         >
                             <div
                                 style={{
-                                    fontSize: 16,
+                                    fontSize: 20,
                                     fontWeight: 800,
-                                    color: getDiffColor(song.diff),
-                                    letterSpacing: '0.5px'
+                                    color: '#f1f1f1',
+                                    textShadow: `
+                                        -2px -2px 0 ${getDiffColor(song.diff)}, 
+                                        2px -2px 0 ${getDiffColor(song.diff)},
+                                        -2px 2px 0 ${getDiffColor(song.diff)},
+                                        2px 2px 0 ${getDiffColor(song.diff)},
+                                        -3px 0px 0 ${getDiffColor(song.diff)},
+                                        3px 0px 0 ${getDiffColor(song.diff)},
+                                        0px -3px 0 ${getDiffColor(song.diff)},
+                                        0px 3px 0 ${getDiffColor(song.diff)}
+                                        `,
+                                    letterSpacing: '1px'
                                 }}
                             >
                                 {song.diff}
                             </div>
                             <div
                                 style={{
-                                    fontSize: 16,
+                                    fontSize: 20,
                                     fontWeight: 800,
-                                    color: getDiffColor(song.diff),
+                                    color: '#f1f1f1',
+                                    textShadow: `
+                                        -2px -2px 0 ${getDiffColor(song.diff)}, 
+                                        2px -2px 0 ${getDiffColor(song.diff)},
+                                        -2px 2px 0 ${getDiffColor(song.diff)},
+                                        2px 2px 0 ${getDiffColor(song.diff)},
+                                        -3px 0px 0 ${getDiffColor(song.diff)},
+                                        3px 0px 0 ${getDiffColor(song.diff)},
+                                        0px -3px 0 ${getDiffColor(song.diff)},
+                                        0px 3px 0 ${getDiffColor(song.diff)}
+                                        `,
                                     letterSpacing: '0.5px'
                                 }}
                             >
@@ -233,8 +254,8 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
                             style={{
                                 left: '50%',
                                 transform: 'translateX(-50%)',
-                                bottom: FRAME_OVERLAY_H * 0.12,
-                                width: FRAME_OVERLAY_W * 0.75,
+                                bottom: FRAME_OVERLAY_H * 0.14,
+                                width: FRAME_OVERLAY_W * 0.72,
                                 textAlign: 'center',
                                 zIndex: 4,
                                 pointerEvents: 'none',
@@ -249,10 +270,10 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
                             <div
                                 style={{
                                     fontWeight: 700,
-                                    fontSize: 14,
+                                    fontSize: `${TITLE_FONT_SIZE}`,
                                     color: '#000',
                                     whiteSpace: 'nowrap',
-                                    animation: song.title.length > 15 ? 'marquee 15s linear infinite' : 'none',
+                                    animation: song.title.length > 20 ? 'marquee 15s linear infinite' : 'none',
                                     display: 'inline-block'
                                 }}
                             >
@@ -266,14 +287,14 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
                             style={{
                                 left: '50%',
                                 transform: 'translateX(-50%)',
-                                bottom: FRAME_OVERLAY_H * 0.045,
+                                bottom: FRAME_OVERLAY_H * 0.05,
                                 width: FRAME_OVERLAY_W * 0.75,
                                 textAlign: 'center',
                                 zIndex: 4,
                                 pointerEvents: 'none',
                                 overflow: 'hidden',
                                 clipPath: 'inset(0)',
-                                height: '16px',
+                                height: `${TITLE_FONT_SIZE}px`,
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center'

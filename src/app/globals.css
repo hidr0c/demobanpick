@@ -283,9 +283,23 @@ body {
 
 @keyframes marquee {
   0% {
+    opacity: 0;
+    transform: translateX(50%);
+  }
+  10% {
+    opacity: 1;
+    transform: translateX(50%);
+  }
+  50% {
+    opacity: 1;
     transform: translateX(0%);
   }
+  90% {
+    opacity: 1;
+    transform: translateX(-50%);
+  }
   100% {
+    opacity: 0;
     transform: translateX(-50%);
   }
 }
