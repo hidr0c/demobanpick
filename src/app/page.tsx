@@ -9,19 +9,19 @@ import QuadRandomSlot from './components/QuadRandomSlot';
 import FixedSongSelector from './components/FixedSongSelector';
 import BanPickCarousel from './components/BanPickCarousel';
 
-import songData from '../../public/pools/test.json';
+import songData from '../../public/pools/newbieSemi.json';
 
 export default function Home() {
   const router = useRouter();
   const [roundIndex, setRoundIndex] = useState(0);
   const [banPickSetting] = useState<RoundSetting>(banPickSettings[roundIndex]);
-  
+
   // Fixed songs selected by user
   const [fixedSongs, setFixedSongs] = useState<Song[]>([]);
-  
+
   // Random results (4 songs)
   const [randomResults, setRandomResults] = useState<Song[]>([]);
-  
+
   // Ban/Pick phase states
   const [showBanPick, setShowBanPick] = useState(false);
   const [bannedSongs, setBannedSongs] = useState<Song[]>([]);
@@ -44,7 +44,7 @@ export default function Home() {
     } else if (pickedSongs.length < banPickSetting.pick) {
       // Pick phase
       setPickedSongs(prev => [...prev, song]);
-      
+
       // When all picks are done, go to match display
       if (pickedSongs.length + 1 >= banPickSetting.pick) {
         setTimeout(() => {
@@ -62,7 +62,7 @@ export default function Home() {
 
   const handlePick = useCallback((song: Song) => {
     setPickedSongs(prev => [...prev, song]);
-    
+
     // When all picks are done, go to match display
     if (pickedSongs.length + 1 >= banPickSetting.pick) {
       setTimeout(() => {
@@ -85,6 +85,11 @@ export default function Home() {
 
   return (
     <main className="min-h-screen relative">
+      <video id="background-video" loop autoPlay muted>
+        <source src={'/assets/backgroundVideo.mp4'} type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+
       {/* Fixed Song Selector (always visible in top right) */}
       {!showBanPick && (
         <FixedSongSelector

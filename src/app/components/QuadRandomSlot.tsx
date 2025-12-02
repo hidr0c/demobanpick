@@ -197,7 +197,7 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
                             style={{
                                 left: '50%',
                                 transform: 'translateX(-50%)',
-                                bottom: FRAME_OVERLAY_H * 0.23,
+                                bottom: FRAME_OVERLAY_H * 0.235,
                                 zIndex: 4,
                                 pointerEvents: 'none',
                                 display: 'flex',
@@ -267,7 +267,7 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
                                 justifyContent: 'center'
                             }}
                         >
-                            <div
+                            <div 
                                 style={{
                                     fontWeight: 700,
                                     fontSize: `${TITLE_FONT_SIZE}`,
@@ -276,6 +276,7 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
                                     animation: song.title.length > 20 ? 'marquee 15s linear infinite' : 'none',
                                     display: 'inline-block'
                                 }}
+                                
                             >
                                 {song.title}
                             </div>
@@ -285,10 +286,10 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
                         <div
                             className="absolute"
                             style={{
-                                left: '50%',
+                                left: '51%',
                                 transform: 'translateX(-50%)',
                                 bottom: FRAME_OVERLAY_H * 0.05,
-                                width: FRAME_OVERLAY_W * 0.75,
+                                width: FRAME_OVERLAY_W * 0.73,
                                 textAlign: 'center',
                                 zIndex: 4,
                                 pointerEvents: 'none',
