@@ -12,7 +12,7 @@ export default function MatchDisplay() {
     useEffect(() => {
         const stored = localStorage.getItem('matchSongs');
         const lockedTracksStored = localStorage.getItem('lockedTracks');
-        
+
         if (stored) {
             const parsed = JSON.parse(stored);
             let finalSongs = parsed;

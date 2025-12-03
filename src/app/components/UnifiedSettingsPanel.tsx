@@ -45,7 +45,7 @@ const UnifiedSettingsPanel: React.FC<UnifiedSettingsPanelProps> = ({
                 setShowTrack4Dropdown(false);
             }
         };
-        
+
         if (showTrack3Dropdown || showTrack4Dropdown) {
             // Use setTimeout to avoid immediate trigger
             setTimeout(() => {
@@ -97,8 +97,8 @@ const UnifiedSettingsPanel: React.FC<UnifiedSettingsPanelProps> = ({
 
     // Filter out locked tracks from available pool
     const availablePool = React.useMemo(() => {
-        return pool.filter(song => 
-            song.id !== lockedTracks.track3?.id && 
+        return pool.filter(song =>
+            song.id !== lockedTracks.track3?.id &&
             song.id !== lockedTracks.track4?.id
         );
     }, [pool, lockedTracks]);
@@ -107,7 +107,7 @@ const UnifiedSettingsPanel: React.FC<UnifiedSettingsPanelProps> = ({
     const track3Options = React.useMemo(() => {
         return pool
             .filter(s => s.id !== lockedTracks.track4?.id)
-            .filter(s => 
+            .filter(s =>
                 s.title.toLowerCase().includes(track3Search.toLowerCase()) ||
                 s.artist.toLowerCase().includes(track3Search.toLowerCase()) ||
                 s.diff.toLowerCase().includes(track3Search.toLowerCase())
@@ -117,7 +117,7 @@ const UnifiedSettingsPanel: React.FC<UnifiedSettingsPanelProps> = ({
     const track4Options = React.useMemo(() => {
         return pool
             .filter(s => s.id !== lockedTracks.track3?.id)
-            .filter(s => 
+            .filter(s =>
                 s.title.toLowerCase().includes(track4Search.toLowerCase()) ||
                 s.artist.toLowerCase().includes(track4Search.toLowerCase()) ||
                 s.diff.toLowerCase().includes(track4Search.toLowerCase())
@@ -193,7 +193,7 @@ const UnifiedSettingsPanel: React.FC<UnifiedSettingsPanelProps> = ({
                         {/* Locked Tracks Section */}
                         <div className="p-4 border-b border-gray-700 bg-gray-800">
                             <h3 className="font-bold text-white mb-3">Locked Tracks</h3>
-                            
+
                             {/* Track 3 Combobox */}
                             <div className="mb-3 relative track3-container">
                                 <label className="text-gray-400 text-xs block mb-1">Track 3</label>
@@ -218,7 +218,7 @@ const UnifiedSettingsPanel: React.FC<UnifiedSettingsPanelProps> = ({
                                         </button>
                                     )}
                                 </div>
-                                
+
                                 {showTrack3Dropdown && (
                                     <div className="absolute z-50 w-full mt-1 bg-gray-700 border border-purple-500 rounded max-h-48 overflow-y-auto shadow-lg">
                                         {track3Options.length === 0 ? (
@@ -272,7 +272,7 @@ const UnifiedSettingsPanel: React.FC<UnifiedSettingsPanelProps> = ({
                                         </button>
                                     )}
                                 </div>
-                                
+
                                 {showTrack4Dropdown && (
                                     <div className="absolute z-50 w-full mt-1 bg-gray-700 border border-purple-500 rounded max-h-48 overflow-y-auto shadow-lg">
                                         {track4Options.length === 0 ? (
