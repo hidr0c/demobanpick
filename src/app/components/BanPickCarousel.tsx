@@ -212,8 +212,8 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
                                         fontSize: 20,
                                         fontWeight: 800,
                                         color: banned ? '#d1d5db' : '#f1f1f1',
-                                        textShadow: banned 
-                                            ? '0 2px 4px rgba(0,0,0,0.8), 0 0 8px rgba(0,0,0,0.6)' 
+                                        textShadow: banned
+                                            ? '0 2px 4px rgba(0,0,0,0.8), 0 0 8px rgba(0,0,0,0.6)'
                                             : `
                                         -2px -2px 0 ${getDiffColor(song.diff)}, 
                                         2px -2px 0 ${getDiffColor(song.diff)},
@@ -234,8 +234,8 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
                                         fontSize: 20,
                                         fontWeight: 800,
                                         color: banned ? '#d1d5db' : '#f1f1f1',
-                                        textShadow: banned 
-                                            ? '0 2px 4px rgba(0,0,0,0.8), 0 0 8px rgba(0,0,0,0.6)' 
+                                        textShadow: banned
+                                            ? '0 2px 4px rgba(0,0,0,0.8), 0 0 8px rgba(0,0,0,0.6)'
                                             : `
                                         -2px -2px 0 ${getDiffColor(song.diff)}, 
                                         2px -2px 0 ${getDiffColor(song.diff)},
