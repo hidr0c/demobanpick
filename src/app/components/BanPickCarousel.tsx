@@ -150,8 +150,8 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
                                     : banned || notChosen
                                         ? 'scale(0.9) translateY(10px)'
                                         : 'scale(1)',
-                                opacity: banned || notChosen ? 0.6 : 1,
-                                filter: banned || notChosen ? 'grayscale(100%)' : 'none',
+                                opacity: notChosen ? 0.6 : 1,
+                                filter: notChosen ? 'grayscale(100%)' : 'none',
                                 zIndex: picked ? 10 : banned || notChosen ? 1 : 5,
                             }}
                         >
@@ -187,7 +187,8 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
                                     top: '50%',
                                     transform: 'translate(-50%, -50%)',
                                     pointerEvents: 'none',
-                                    zIndex: 3
+                                    zIndex: 3,
+                                    filter: banned ? 'grayscale(100%) brightness(0.7)' : 'none'
                                 }}
                             />
 
@@ -210,8 +211,10 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
                                     style={{
                                         fontSize: 20,
                                         fontWeight: 800,
-                                        color: '#f1f1f1',
-                                        textShadow: `
+                                        color: banned ? '#d1d5db' : '#f1f1f1',
+                                        textShadow: banned 
+                                            ? '0 2px 4px rgba(0,0,0,0.8), 0 0 8px rgba(0,0,0,0.6)' 
+                                            : `
                                         -2px -2px 0 ${getDiffColor(song.diff)}, 
                                         2px -2px 0 ${getDiffColor(song.diff)},
                                         -2px 2px 0 ${getDiffColor(song.diff)},
@@ -230,8 +233,10 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
                                     style={{
                                         fontSize: 20,
                                         fontWeight: 800,
-                                        color: '#f1f1f1',
-                                        textShadow: `
+                                        color: banned ? '#d1d5db' : '#f1f1f1',
+                                        textShadow: banned 
+                                            ? '0 2px 4px rgba(0,0,0,0.8), 0 0 8px rgba(0,0,0,0.6)' 
+                                            : `
                                         -2px -2px 0 ${getDiffColor(song.diff)}, 
                                         2px -2px 0 ${getDiffColor(song.diff)},
                                         -2px 2px 0 ${getDiffColor(song.diff)},
@@ -315,7 +320,7 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
                             </div>
 
                             {/* Selection Overlay with Glow */}
-                            {isSelected && !processed && !showFinalOnly && (
+                            {isSelected && !processed && !showFinalOnly && !banned && (
                                 <div
                                     className="absolute inset-0 rounded-lg pointer-events-none z-50"
                                     style={{
@@ -338,7 +343,7 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
                             {/* Banned Overlay */}
                             {banned && !showFinalOnly && (
                                 <div
-                                    className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-lg z-50"
+                                    className="absolute inset-0 flex items-center justify-center rounded-lg z-50"
                                 >
                                     <div className="text-gray-400 text-8xl font-bold">
                                         ✕
