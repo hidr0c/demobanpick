@@ -6,9 +6,8 @@ import banPickSettings from '../../public/roundBanPickSettings.json';
 import { Song, RoundSetting } from './interface';
 
 import QuadRandomSlot from './components/QuadRandomSlot';
-import FixedSongSelector from './components/FixedSongSelector';
 import BanPickCarousel from './components/BanPickCarousel';
-import RandomCountSelector from './components/RandomCountSelector';
+import UnifiedSettingsPanel from './components/UnifiedSettingsPanel';
 
 import songData from '../../public/pools/newbieSemi.json';
 
@@ -22,6 +21,9 @@ export default function Home() {
 
   // Random count (default 4, can be adjusted)
   const [randomCount, setRandomCount] = useState(4);
+
+  // Locked tracks (predetermined tracks 3 & 4)
+  const [lockedTracks, setLockedTracks] = useState<{ track3?: Song; track4?: Song }>({});
 
   // Random results (4-6 songs)
   const [randomResults, setRandomResults] = useState<Song[]>([]);
@@ -64,7 +66,9 @@ export default function Home() {
       if (pickedSongs.length + 1 >= banPickSetting.pick) {
         setTimeout(() => {
           // Save picked songs to localStorage for match-display page
-          localStorage.setItem('matchSongs', JSON.stringify([...pickedSongs, song]));
+          const finalPicked = [...pickedSongs, song];
+          localStorage.setItem('matchSongs', JSON.stringify(finalPicked));
+          localStorage.setItem('lockedTracks', JSON.stringify(lockedTracks));
           router.push('/match-display');
         }, 500);
       }
@@ -81,7 +85,9 @@ export default function Home() {
     // When all picks are done, go to match display
     if (pickedSongs.length + 1 >= banPickSetting.pick) {
       setTimeout(() => {
-        localStorage.setItem('matchSongs', JSON.stringify([...pickedSongs, song]));
+        const finalPicked = [...pickedSongs, song];
+        localStorage.setItem('matchSongs', JSON.stringify(finalPicked));
+        localStorage.setItem('lockedTracks', JSON.stringify(lockedTracks));
         router.push('/match-display');
       }, 500);
     }
@@ -94,42 +100,48 @@ export default function Home() {
     setBannedSongs([]);
     setPickedSongs([]);
     setRandomCount(4);
+    setLockedTracks({});
   };
 
-  // Combined pool for ban/pick = random results + fixed songs
+  // Filter out locked tracks from available pool
+  const availablePool = songData.filter(
+    (song) => song.id !== lockedTracks.track3?.id && song.id !== lockedTracks.track4?.id
+  );
+
+  // Combined pool for ban/pick = random results + fixed songs (excluding locked)
   const banPickPool = [...randomResults, ...fixedSongs];
 
   return (
     <main className="min-h-screen relative">
-      <video id="background-video" loop autoPlay muted>
-        <source src={'/assets/backgroundVideo.mp4'} type="video/mp4" />
-        Your browser does not support the video tag.
-      </video>
+      <iframe
+        src="/assets/prism+.html"
+        className="fixed inset-0 w-full h-full border-0"
+        style={{
+          zIndex: -1,
+          pointerEvents: 'none'
+        }}
+        title="background"
+      />
 
-      {/* Random Count Selector (top left) */}
+      {/* Unified Settings Panel (top left) */}
       {!showBanPick && (
-        <RandomCountSelector
+        <UnifiedSettingsPanel
+          pool={songData}
           randomCount={randomCount}
-          fixedCount={fixedSongs.length}
+          fixedSongs={fixedSongs}
+          lockedTracks={lockedTracks}
           onRandomCountChange={setRandomCount}
+          onFixedSongsChange={setFixedSongs}
+          onLockedTracksChange={setLockedTracks}
           maxTotal={6}
           minTotal={4}
-        />
-      )}
-
-      {/* Fixed Song Selector (top right) */}
-      {!showBanPick && (
-        <FixedSongSelector
-          pool={songData}
-          selectedSongs={fixedSongs}
-          onChange={setFixedSongs}
         />
       )}
 
       {!showBanPick ? (
         /* Random Phase */
         <QuadRandomSlot
-          pool={songData}
+          pool={availablePool}
           fixedSongs={fixedSongs}
           randomCount={randomCount}
           onRandomComplete={handleRandomComplete}

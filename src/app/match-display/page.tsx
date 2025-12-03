@@ -11,9 +11,28 @@ export default function MatchDisplay() {
 
     useEffect(() => {
         const stored = localStorage.getItem('matchSongs');
+        const lockedTracksStored = localStorage.getItem('lockedTracks');
+        
         if (stored) {
             const parsed = JSON.parse(stored);
-            setSongs(parsed);
+            let finalSongs = parsed;
+
+            // Inject locked tracks at positions 3 & 4 if they exist
+            if (lockedTracksStored) {
+                const locked = JSON.parse(lockedTracksStored);
+                const firstTwo = parsed.slice(0, 2);
+                const remaining = parsed.slice(2);
+
+                // Build final array: [track1, track2, locked3?, locked4?, ...rest]
+                finalSongs = [
+                    ...firstTwo,
+                    ...(locked.track3 ? [locked.track3] : []),
+                    ...(locked.track4 ? [locked.track4] : []),
+                    ...remaining
+                ];
+            }
+
+            setSongs(finalSongs);
         } else {
             // No songs, redirect back
             router.push('/');
