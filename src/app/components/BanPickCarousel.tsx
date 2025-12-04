@@ -123,7 +123,7 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
         if (count <= 3) return count;
         if (count % 3 === 0) return 3; // 6, 9, 12...
         if (count % 2 === 0) return count / 2; // Even numbers
-        return 4; // Default
+        return 5; // Default
     };
 
     const gridColumns = getGridColumns();

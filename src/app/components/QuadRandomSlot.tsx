@@ -155,6 +155,18 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
         };
     }, []);
 
+    // Determine grid columns based on random count
+    const getGridColumns = () => {
+        const count = randomCount;
+        if (count === 6) return 3;
+        if (count === 4) return 4;
+        if (count <= 3) return count;
+        if (count % 3 === 0) return 3; // 6, 9, 12...
+        if (count % 2 === 0) return count / 2; // Even numbers
+        return 5; // Default
+    };
+    const gridColumns = getGridColumns();
+
     const FRAME_OVERLAY_W = 300;
     const FRAME_OVERLAY_H = 390;
     const FRAME_W = FRAME_OVERLAY_W * 0.61;
@@ -164,7 +176,15 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
     return (
         <div className="flex flex-col items-center justify-center min-h-screen gap-8 p-4">
             {/* 4 vertical slots */}
-            <div className="flex flex-row gap-8 justify-center items-center flex-wrap">
+            <div 
+                className="flex flex-row gap-8 justify-center items-center flex-wrap"
+                style={{
+                    gridTemplateColumns: `repeat(${gridColumns}, 1fr)`,
+                    gridTemplateRows: 'repeat(auto-fill, 1fr)',
+                    maxWidth: gridColumns >= 4 ? '1400px' : '1100px',
+                    margin: '0 auto'
+                }}
+                >
                 {slots.map((song, index) => (
                     <div
                         key={`slot-${index}`}

@@ -58,9 +58,9 @@ const UnifiedSettingsPanel: React.FC<UnifiedSettingsPanelProps> = ({
     const fixedCount = fixedSongs.length;
     const totalSongs = randomCount + fixedCount;
 
-    // Random songs: min 4, max 6 (independent of fixed)
+    // Random songs: min 2, max 6 (independent of fixed)
     const maxRandom = 6;
-    const minRandom = 4;
+    const minRandom = 2;
 
     const handleIncrement = () => {
         if (randomCount < maxRandom) {
@@ -172,7 +172,7 @@ const UnifiedSettingsPanel: React.FC<UnifiedSettingsPanelProps> = ({
 
                             {/* Random Count */}
                             <div className="mb-3">
-                                <label className="text-gray-400 text-sm block mb-2">Random Songs (4-6)</label>
+                                <label className="text-gray-400 text-sm block mb-2">Random Songs (2-6)</label>
                                 <div className="flex items-center gap-3">
                                     <button
                                         onClick={handleDecrement}
