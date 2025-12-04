@@ -158,12 +158,12 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
     // Determine grid columns based on random count
     const getGridColumns = () => {
         const count = randomCount;
-        if (count === 6) return 3;
+        if (count === 5) return 3;
         if (count === 4) return 4;
         if (count <= 3) return count;
         if (count % 3 === 0) return 3; // 6, 9, 12...
         if (count % 2 === 0) return count / 2; // Even numbers
-        return 5; // Default
+        return 4; // Default
     };
     const gridColumns = getGridColumns();
 
@@ -175,7 +175,7 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen gap-8 p-4">
-            {/* 4 vertical slots */}
+            {/* Random slots display */}
             <div 
                 className="flex flex-row gap-8 justify-center items-center flex-wrap"
                 style={{
