@@ -118,12 +118,12 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
     // Determine grid columns based on song count
     const getGridColumns = () => {
         const count = displaySongs.length;
-        if (count === 6) return 3;
+        if (count === 5) return 3;
         if (count === 4) return 4;
         if (count <= 3) return count;
         if (count % 3 === 0) return 3; // 6, 9, 12...
         if (count % 2 === 0) return count / 2; // Even numbers
-        return 5; // Default
+        return 4; // Default
     };
 
     const gridColumns = getGridColumns();
@@ -131,7 +131,7 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
     return (
         <div className="ban-pick-container py-8">
             <div
-                className="grid gap-6 px-4"
+                className="flex flex-row gap-8 justify-center items-center flex-wrap"
                 style={{
                     gridTemplateColumns: `repeat(${gridColumns}, 1fr)`,
                     gridTemplateRows: 'repeat(auto-fill, 1fr)',
