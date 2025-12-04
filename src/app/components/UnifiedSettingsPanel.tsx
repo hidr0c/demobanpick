@@ -24,7 +24,7 @@ const UnifiedSettingsPanel: React.FC<UnifiedSettingsPanelProps> = ({
     onFixedSongsChange,
     onLockedTracksChange,
     maxTotal = 6,
-    minTotal = 4
+    minTotal = 2
 }) => {
     const [isOpen, setIsOpen] = React.useState(false);
     const [searchQuery, setSearchQuery] = React.useState('');

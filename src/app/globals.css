@@ -332,3 +332,21 @@ body {
   height: 100%;
   z-index: -1;
 }
+
+.header {
+  width: 100%;
+  margin: 0 auto;
+  height: 2.6vh;
+  position: fixed;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.footer {
+  width: 100%;
+  margin-top: 97.4vh;
+  height: 2.6vh;
+  position: fixed;
+  z-index: 1;
+  overflow: hidden;
+}
