@@ -6,8 +6,8 @@ import banPickSettings from '../../public/roundBanPickSettings.json';
 import { Song, RoundSetting } from './interface';
 
 import QuadRandomSlot from './components/QuadRandomSlot';
-import FixedSongSelector from './components/FixedSongSelector';
 import BanPickCarousel from './components/BanPickCarousel';
+import UnifiedSettingsPanel from './components/UnifiedSettingsPanel';
 
 import songData from '../../public/pools/newbieSemi.json';
 
@@ -19,7 +19,13 @@ export default function Home() {
   // Fixed songs selected by user
   const [fixedSongs, setFixedSongs] = useState<Song[]>([]);
 
-  // Random results (4 songs)
+  // Random count (default 4, can be adjusted)
+  const [randomCount, setRandomCount] = useState(4);
+
+  // Locked tracks (predetermined tracks 3 & 4)
+  const [lockedTracks, setLockedTracks] = useState<{ track3?: Song; track4?: Song }>({});
+
+  // Random results (4-6 songs)
   const [randomResults, setRandomResults] = useState<Song[]>([]);
 
   // Ban/Pick phase states
@@ -27,12 +33,23 @@ export default function Home() {
   const [bannedSongs, setBannedSongs] = useState<Song[]>([]);
   const [pickedSongs, setPickedSongs] = useState<Song[]>([]);
 
+  // Listen for R key to reset
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'r' || e.key === 'R') {
+        handleReset();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const handleRandomComplete = useCallback((results: Song[]) => {
     setRandomResults(results);
-    // Auto transition to ban/pick after 1 second
+    // Auto transition to ban/pick after showing result
     setTimeout(() => {
       setShowBanPick(true);
-    }, 1000);
+    }, 800);
   }, []);
 
   const handleBanPick = useCallback((song: Song) => {
@@ -49,7 +66,9 @@ export default function Home() {
       if (pickedSongs.length + 1 >= banPickSetting.pick) {
         setTimeout(() => {
           // Save picked songs to localStorage for match-display page
-          localStorage.setItem('matchSongs', JSON.stringify([...pickedSongs, song]));
+          const finalPicked = [...pickedSongs, song];
+          localStorage.setItem('matchSongs', JSON.stringify(finalPicked));
+          localStorage.setItem('lockedTracks', JSON.stringify(lockedTracks));
           router.push('/match-display');
         }, 500);
       }
@@ -66,7 +85,9 @@ export default function Home() {
     // When all picks are done, go to match display
     if (pickedSongs.length + 1 >= banPickSetting.pick) {
       setTimeout(() => {
-        localStorage.setItem('matchSongs', JSON.stringify([...pickedSongs, song]));
+        const finalPicked = [...pickedSongs, song];
+        localStorage.setItem('matchSongs', JSON.stringify(finalPicked));
+        localStorage.setItem('lockedTracks', JSON.stringify(lockedTracks));
         router.push('/match-display');
       }, 500);
     }
@@ -78,52 +99,56 @@ export default function Home() {
     setShowBanPick(false);
     setBannedSongs([]);
     setPickedSongs([]);
+    setRandomCount(4);
+    setLockedTracks({});
   };
 
-  // Combined pool for ban/pick = random results + fixed songs
+  // Filter out locked tracks from available pool
+  const availablePool = songData.filter(
+    (song) => song.id !== lockedTracks.track3?.id && song.id !== lockedTracks.track4?.id
+  );
+
+  // Combined pool for ban/pick = random results + fixed songs (excluding locked)
   const banPickPool = [...randomResults, ...fixedSongs];
 
   return (
     <main className="min-h-screen relative">
-      <video id="background-video" loop autoPlay muted>
-        <source src={'/assets/backgroundVideo.mp4'} type="video/mp4" />
-        Your browser does not support the video tag.
-      </video>
+      <iframe
+        src="/assets/prism+.html"
+        className="fixed inset-0 w-full h-full border-0"
+        style={{
+          zIndex: -1,
+          pointerEvents: 'none'
+        }}
+        title="background"
+      />
 
-      {/* Fixed Song Selector (always visible in top right) */}
+      {/* Unified Settings Panel (top left) */}
       {!showBanPick && (
-        <FixedSongSelector
+        <UnifiedSettingsPanel
           pool={songData}
-          selectedSongs={fixedSongs}
-          onChange={setFixedSongs}
+          randomCount={randomCount}
+          fixedSongs={fixedSongs}
+          lockedTracks={lockedTracks}
+          onRandomCountChange={setRandomCount}
+          onFixedSongsChange={setFixedSongs}
+          onLockedTracksChange={setLockedTracks}
+          maxTotal={6}
+          minTotal={4}
         />
       )}
 
       {!showBanPick ? (
         /* Random Phase */
         <QuadRandomSlot
-          pool={songData}
+          pool={availablePool}
           fixedSongs={fixedSongs}
+          randomCount={randomCount}
           onRandomComplete={handleRandomComplete}
         />
       ) : (
         /* Ban/Pick Phase */
         <div className="min-h-screen flex flex-col items-center justify-center p-4">
-          <div className="mb-4 text-center">
-            <h2 className="text-2xl font-bold mb-2">
-              {bannedSongs.length < banPickSetting.ban
-                ? `Ban Phase (${bannedSongs.length}/${banPickSetting.ban})`
-                : `Pick Phase (${pickedSongs.length}/${banPickSetting.pick})`
-              }
-            </h2>
-            <button
-              onClick={handleReset}
-              className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg"
-            >
-              Reset
-            </button>
-          </div>
-
           <BanPickCarousel
             songs={banPickPool}
             onBan={handleBan}
@@ -136,37 +161,6 @@ export default function Home() {
               // Complete callback if needed
             }}
           />
-
-          {/* Display banned and picked songs */}
-          <div className="mt-8 flex gap-8">
-            <div>
-              <h3 className="font-bold text-red-500 mb-2">Banned ({bannedSongs.length})</h3>
-              <div className="flex gap-2 flex-wrap max-w-md">
-                {bannedSongs.map((song, i) => (
-                  <img
-                    key={i}
-                    src={song.imgUrl}
-                    alt={song.title}
-                    className="w-16 h-16 rounded object-cover opacity-50"
-                  />
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <h3 className="font-bold text-green-500 mb-2">Picked ({pickedSongs.length})</h3>
-              <div className="flex gap-2 flex-wrap max-w-md">
-                {pickedSongs.map((song, i) => (
-                  <img
-                    key={i}
-                    src={song.imgUrl}
-                    alt={song.title}
-                    className="w-16 h-16 rounded object-cover"
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
         </div>
       )}
     </main>

@@ -11,9 +11,28 @@ export default function MatchDisplay() {
 
     useEffect(() => {
         const stored = localStorage.getItem('matchSongs');
+        const lockedTracksStored = localStorage.getItem('lockedTracks');
+
         if (stored) {
             const parsed = JSON.parse(stored);
-            setSongs(parsed);
+            let finalSongs = parsed;
+
+            // Inject locked tracks at positions 3 & 4 if they exist
+            if (lockedTracksStored) {
+                const locked = JSON.parse(lockedTracksStored);
+                const firstTwo = parsed.slice(0, 2);
+                const remaining = parsed.slice(2);
+
+                // Build final array: [track1, track2, locked3?, locked4?, ...rest]
+                finalSongs = [
+                    ...firstTwo,
+                    ...(locked.track3 ? [locked.track3] : []),
+                    ...(locked.track4 ? [locked.track4] : []),
+                    ...remaining
+                ];
+            }
+
+            setSongs(finalSongs);
         } else {
             // No songs, redirect back
             router.push('/');
@@ -83,13 +102,13 @@ export default function MatchDisplay() {
         }
 
         return `/assets/${diffName}-${type}.png`;
-    }; const FRAME_W = 300;
-    const FRAME_H = 300;
-    const FRAME_OVERLAY_W = 450;
-    const FRAME_OVERLAY_H = 585;
+    }; const FRAME_W = 140;
+    const FRAME_H = 140;
+    const FRAME_OVERLAY_W = 200;
+    const FRAME_OVERLAY_H = 260;
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center p-8">
+        <div className="min-h-screen flex flex-col items-center justify-start pt-8 p-8 pb-16">
             {/* Track counter */}
             <div className="mb-8 text-white text-2xl font-bold">
                 Track {currentIndex + 1} / {songs.length}
@@ -100,7 +119,8 @@ export default function MatchDisplay() {
                 className="relative transition-all duration-300"
                 style={{
                     width: FRAME_OVERLAY_W,
-                    height: FRAME_OVERLAY_H
+                    height: FRAME_OVERLAY_H,
+                    paddingBottom: '8px'
                 }}
             >
                 {/* Jacket */}
@@ -117,7 +137,7 @@ export default function MatchDisplay() {
                         boxShadow: `0 0 20px ${getBorderColor(currentSong.diff)}80`,
                         left: '50%',
                         top: '50%',
-                        transform: 'translate(-50%, -50%) translateY(-30px)',
+                        transform: 'translate(-50%, -50%) translateY(-20px)',
                         zIndex: 1
                     }}
                 />
@@ -138,39 +158,37 @@ export default function MatchDisplay() {
                     }}
                 />
 
-                {/* Diff + Lv - side by side layout */}
+                {/* Diff + Lv - centered with gap */}
                 <div
                     className="absolute"
                     style={{
-                        left: 0,
-                        right: 0,
-                        bottom: FRAME_OVERLAY_H * 0.175,
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        bottom: FRAME_OVERLAY_H * 0.215,
                         zIndex: 4,
                         pointerEvents: 'none',
                         display: 'flex',
-                        justifyContent: 'space-between',
-                        paddingLeft: FRAME_OVERLAY_W * 0.1,
-                        paddingRight: FRAME_OVERLAY_W * 0.1
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        gap: '4px'
                     }}
                 >
                     <div
                         style={{
-                            fontSize: 24,
+                            fontSize: 16,
                             fontWeight: 800,
                             color: getDiffColor(currentSong.diff),
-                            textShadow: '0 0 8px rgba(0,0,0,0.8)',
-                            letterSpacing: '1px'
+                            letterSpacing: '0.5px'
                         }}
                     >
                         {currentSong.diff}
                     </div>
                     <div
                         style={{
-                            fontSize: 24,
+                            fontSize: 16,
                             fontWeight: 800,
                             color: getDiffColor(currentSong.diff),
-                            textShadow: '0 0 8px rgba(0,0,0,0.8)',
-                            letterSpacing: '1px'
+                            letterSpacing: '0.5px'
                         }}
                     >
                         {currentSong.lv}
@@ -183,20 +201,63 @@ export default function MatchDisplay() {
                     style={{
                         left: '50%',
                         transform: 'translateX(-50%)',
-                        bottom: FRAME_OVERLAY_H * 0.105,
-                        width: FRAME_OVERLAY_W * 0.85,
+                        bottom: FRAME_OVERLAY_H * 0.12,
+                        width: FRAME_OVERLAY_W * 0.75,
                         textAlign: 'center',
                         zIndex: 4,
-                        fontSize: 20,
-                        fontWeight: 700,
-                        color: '#ff0000',
-                        textShadow: '0 0 8px rgba(0,0,0,0.8)',
-                        whiteSpace: 'nowrap',
                         overflow: 'hidden',
-                        textOverflow: 'ellipsis'
+                        clipPath: 'inset(0)',
+                        pointerEvents: 'none',
+                        height: '18px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
                     }}
                 >
-                    {currentSong.title}
+                    <div
+                        style={{
+                            fontSize: 14,
+                            fontWeight: 700,
+                            color: '#000',
+                            whiteSpace: 'nowrap',
+                            animation: currentSong.title.length > 15 ? 'marquee 15s linear infinite' : 'none',
+                            display: 'inline-block'
+                        }}
+                    >
+                        {currentSong.title}
+                    </div>
+                </div>
+
+                {/* Artist */}
+                <div
+                    className="absolute"
+                    style={{
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        bottom: FRAME_OVERLAY_H * 0.045,
+                        width: FRAME_OVERLAY_W * 0.75,
+                        textAlign: 'center',
+                        zIndex: 4,
+                        overflow: 'hidden',
+                        clipPath: 'inset(0)',
+                        pointerEvents: 'none',
+                        height: '16px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}
+                >
+                    <div
+                        style={{
+                            fontSize: 12,
+                            color: '#000',
+                            whiteSpace: 'nowrap',
+                            animation: currentSong.artist.length > 20 ? 'marquee 18s linear infinite' : 'none',
+                            display: 'inline-block'
+                        }}
+                    >
+                        {currentSong.artist}
+                    </div>
                 </div>
             </div>
 

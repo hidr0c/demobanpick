@@ -43,6 +43,27 @@ body {
   }
 }
 
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
 @keyframes move-fast-phase {
   0% {
     transform: translateX(-200%);
@@ -304,8 +325,7 @@ body {
   }
 }
 
-#background-video
-{
+#background-video {
   object-fit: cover;
   position: fixed;
   width: 100%;
