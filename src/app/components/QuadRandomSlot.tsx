@@ -22,17 +22,31 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
     const [isAnimating, setIsAnimating] = useState(false);
     const animationFrameRef = useRef<number | undefined>(undefined);
     const animationStartTimeRef = useRef<number>(0);
+    const hasCompletedRef = useRef<boolean>(false);
+    const finalResultsRef = useRef<Song[]>([]);
+    const preloadedImagesRef = useRef<Set<string>>(new Set());
 
-    // Initialize with random songs
+    // Preload all images from pool on mount
     useEffect(() => {
-        if (pool.length >= randomCount) {
+        pool.forEach(song => {
+            if (!preloadedImagesRef.current.has(song.imgUrl)) {
+                const img = new Image();
+                img.src = song.imgUrl;
+                preloadedImagesRef.current.add(song.imgUrl);
+            }
+        });
+    }, [pool]);
+
+    // Initialize with random songs (only once, before any animation completes)
+    useEffect(() => {
+        if (pool.length >= randomCount && !hasCompletedRef.current && slots.length === 0) {
             const availablePool = pool.filter(
                 song => !fixedSongs.find(f => f.id === song.id)
             );
             const initial = getRandomUniqueSongs(availablePool, randomCount);
             setSlots(initial);
         }
-    }, [pool, fixedSongs, randomCount]);
+    }, [pool.length, randomCount]);
 
     const getRandomUniqueSongs = (availablePool: Song[], count: number): Song[] => {
         const shuffled = [...availablePool].sort(() => Math.random() - 0.5);
@@ -103,13 +117,16 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
                 setSlots(tempSlots);
                 animationFrameRef.current = requestAnimationFrame(animate);
             } else {
-                // Final result
+                // Final result - store in ref to prevent mismatch
                 const finalResults = getRandomUniqueSongs(availablePool, randomCount);
+                finalResultsRef.current = finalResults;
+                hasCompletedRef.current = true;
                 setSlots(finalResults);
                 setIsAnimating(false);
 
                 if (onRandomComplete) {
-                    setTimeout(() => onRandomComplete(finalResults), 500);
+                    // Use ref to ensure same results
+                    onRandomComplete(finalResultsRef.current);
                 }
             }
         };
@@ -150,12 +167,13 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
             <div className="flex flex-row gap-8 justify-center items-center flex-wrap">
                 {slots.map((song, index) => (
                     <div
-                        key={`${song.id}-${index}`}
-                        className={`relative transition-all duration-300 ${isAnimating ? 'scale-95 opacity-80' : 'scale-100 opacity-100'
-                            }`}
+                        key={`slot-${index}`}
+                        className="relative"
                         style={{
                             width: FRAME_OVERLAY_W,
-                            height: FRAME_OVERLAY_H
+                            height: FRAME_OVERLAY_H,
+                            transform: isAnimating ? 'scale(0.98)' : 'scale(1)',
+                            transition: 'transform 0.1s ease-out'
                         }}
                     >
                         {/* Jacket image */}
@@ -167,13 +185,12 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
                                 width: FRAME_W,
                                 height: FRAME_H,
                                 objectFit: 'cover',
-                                // borderRadius: '8px',
-                                // border: `2px solid ${getBorderColor(song.diff)}`,
-                                // boxShadow: `0 0 8px ${getBorderColor(song.diff)}40`,
                                 left: '50%',
                                 top: '50%',
                                 transform: `translate(-50%, -50%) translateY(-${FRAME_OVERLAY_H / 13}px)`,
-                                zIndex: 1
+                                zIndex: 1,
+                                backfaceVisibility: 'hidden',
+                                willChange: 'contents'
                             }}
                         />
 

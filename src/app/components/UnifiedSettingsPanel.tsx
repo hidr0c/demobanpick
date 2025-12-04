@@ -57,17 +57,19 @@ const UnifiedSettingsPanel: React.FC<UnifiedSettingsPanelProps> = ({
 
     const fixedCount = fixedSongs.length;
     const totalSongs = randomCount + fixedCount;
-    const maxRandom = maxTotal - fixedCount;
-    const minRandom = Math.max(0, minTotal - fixedCount);
+
+    // Random songs: min 4, max 6 (independent of fixed)
+    const maxRandom = 6;
+    const minRandom = 4;
 
     const handleIncrement = () => {
-        if (randomCount < maxRandom && totalSongs < maxTotal) {
+        if (randomCount < maxRandom) {
             onRandomCountChange(randomCount + 1);
         }
     };
 
     const handleDecrement = () => {
-        if (randomCount > minRandom && totalSongs > minTotal) {
+        if (randomCount > minRandom) {
             onRandomCountChange(randomCount - 1);
         }
     };
@@ -142,30 +144,39 @@ const UnifiedSettingsPanel: React.FC<UnifiedSettingsPanelProps> = ({
     }, [availablePool, searchQuery, fixedSongs]);
 
     return (
-        <div className="fixed top-8 left-0 z-50 flex items-start">
-            {/* Slide Panel */}
+        <div className="fixed top-8 left-0 z-50">
+            {/* Container for panel + button */}
             <div
-                className="bg-gray-900 rounded-r-lg shadow-2xl overflow-hidden flex flex-col"
+                className="flex items-start"
                 style={{
-                    width: isOpen ? '380px' : '0px',
-                    maxHeight: '90vh',
-                    opacity: isOpen ? 1 : 0,
-                    transition: 'width 0.3s ease-out, opacity 0.2s ease-out',
+                    transform: isOpen ? 'translateX(0)' : 'translateX(-380px)',
+                    transition: 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                    willChange: 'transform',
                 }}
             >
-                {isOpen && (
-                    <>
+                {/* Slide Panel */}
+                <div
+                    className="bg-gray-900 rounded-r-lg shadow-2xl overflow-hidden flex flex-col"
+                    style={{
+                        width: '380px',
+                        maxHeight: '90vh',
+                        opacity: isOpen ? 1 : 0,
+                        transition: 'opacity 0.2s ease-out',
+                    }}
+                >
+                    {/* Always render content, just hide visually when closed */}
+                    <div style={{ visibility: isOpen ? 'visible' : 'hidden' }}>
                         {/* Track Settings Section */}
                         <div className="p-4 border-b border-gray-700 bg-gray-800">
                             <h3 className="font-bold text-lg text-white mb-4">Track Settings</h3>
 
                             {/* Random Count */}
                             <div className="mb-3">
-                                <label className="text-gray-400 text-sm block mb-2">Random Songs</label>
+                                <label className="text-gray-400 text-sm block mb-2">Random Songs (4-6)</label>
                                 <div className="flex items-center gap-3">
                                     <button
                                         onClick={handleDecrement}
-                                        disabled={randomCount <= minRandom || totalSongs <= minTotal}
+                                        disabled={randomCount <= minRandom}
                                         className="w-10 h-10 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-700 disabled:text-gray-500 text-white rounded-lg font-bold text-xl"
                                     >
                                         -
@@ -175,7 +186,7 @@ const UnifiedSettingsPanel: React.FC<UnifiedSettingsPanelProps> = ({
                                     </span>
                                     <button
                                         onClick={handleIncrement}
-                                        disabled={randomCount >= maxRandom || totalSongs >= maxTotal}
+                                        disabled={randomCount >= maxRandom}
                                         className="w-10 h-10 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-700 disabled:text-gray-500 text-white rounded-lg font-bold text-xl"
                                     >
                                         +
@@ -186,7 +197,7 @@ const UnifiedSettingsPanel: React.FC<UnifiedSettingsPanelProps> = ({
                             {/* Fixed Count + Total */}
                             <div className="flex justify-between items-center text-sm">
                                 <span className="text-gray-400">Fixed: <span className="text-white font-bold">{fixedCount}</span></span>
-                                <span className="text-gray-400">Total: <span className={`font-bold ${totalSongs >= minTotal && totalSongs <= maxTotal ? 'text-green-400' : 'text-red-400'}`}>{totalSongs}/{maxTotal}</span></span>
+                                <span className="text-gray-400">Total: <span className="font-bold text-green-400">{totalSongs}</span></span>
                             </div>
                         </div>
 
@@ -383,27 +394,27 @@ const UnifiedSettingsPanel: React.FC<UnifiedSettingsPanelProps> = ({
                                 </div>
                             )}
                         </div>
-                    </>
-                )}
-            </div>
+                    </div>
+                </div>
 
-            {/* Toggle Arrow Button */}
-            <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="bg-white/20 backdrop-blur-sm p-3 rounded-r-lg transition-all hover:bg-white/30"
-                style={{
-                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-                }}
-            >
-                <svg
-                    className={`w-6 h-6 transition-transform duration-300 ${isOpen ? 'rotate-180' : 'rotate-0'}`}
-                    fill="none"
-                    stroke="rgba(255,255,255,0.8)"
-                    viewBox="0 0 24 24"
+                {/* Toggle Arrow Button - stays with panel */}
+                <button
+                    onClick={() => setIsOpen(!isOpen)}
+                    className="bg-white/20 backdrop-blur-sm p-3 rounded-r-lg transition-all hover:bg-white/30 flex-shrink-0"
+                    style={{
+                        boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                    }}
                 >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-            </button>
+                    <svg
+                        className={`w-6 h-6 transition-transform duration-300 ${isOpen ? 'rotate-180' : 'rotate-0'}`}
+                        fill="none"
+                        stroke="rgba(255,255,255,0.8)"
+                        viewBox="0 0 24 24"
+                    >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+            </div>
 
             {/* Overlay to close */}
             {isOpen && (

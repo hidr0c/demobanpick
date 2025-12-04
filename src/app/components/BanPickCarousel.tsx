@@ -115,14 +115,27 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
     const FRAME_H = FRAME_OVERLAY_H * 0.5;
     const TITLE_FONT_SIZE = 20;
 
+    // Determine grid columns based on song count
+    const getGridColumns = () => {
+        const count = displaySongs.length;
+        if (count === 6) return 3;
+        if (count === 4) return 4;
+        if (count <= 3) return count;
+        if (count % 3 === 0) return 3; // 6, 9, 12...
+        if (count % 2 === 0) return count / 2; // Even numbers
+        return 4; // Default
+    };
+
+    const gridColumns = getGridColumns();
+
     return (
         <div className="ban-pick-container py-8">
             <div
                 className="grid gap-6 px-4"
                 style={{
-                    gridTemplateColumns: 'repeat(4, 1fr)',
+                    gridTemplateColumns: `repeat(${gridColumns}, 1fr)`,
                     gridTemplateRows: 'repeat(auto-fill, 1fr)',
-                    maxWidth: '1400px',
+                    maxWidth: gridColumns >= 4 ? '1400px' : '1100px',
                     margin: '0 auto'
                 }}
             >
@@ -139,7 +152,7 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
 
                     return (
                         <div
-                            key={`${song.id}-${song.title}-${song.diff}`}
+                            key={`${song.id}-${song.title}-${song.diff}-${index}`}
                             className="relative transition-all duration-300 ease-out"
                             style={{
                                 width: FRAME_OVERLAY_W,
@@ -150,8 +163,7 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
                                     : banned || notChosen
                                         ? 'scale(0.9) translateY(10px)'
                                         : 'scale(1)',
-                                opacity: notChosen ? 0.6 : 1,
-                                filter: notChosen ? 'grayscale(100%)' : 'none',
+                                opacity: 1,
                                 zIndex: picked ? 10 : banned || notChosen ? 1 : 5,
                             }}
                         >
@@ -165,13 +177,11 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
                                     width: FRAME_W,
                                     height: FRAME_H,
                                     objectFit: 'cover',
-                                    // borderRadius: '8px',
-                                    // border: `2px solid ${getBorderColor(song.diff)}`,
-                                    // boxShadow: `0 0 8px ${getBorderColor(song.diff)}40`,
                                     left: '50%',
                                     top: '50%',
                                     transform: `translate(-50%, -50%) translateY(-${FRAME_OVERLAY_H / 13}px)`,
-                                    zIndex: 1
+                                    zIndex: 1,
+                                    filter: (banned || notChosen) ? 'grayscale(100%)' : 'none'
                                 }}
                             />
 
@@ -188,7 +198,7 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
                                     transform: 'translate(-50%, -50%)',
                                     pointerEvents: 'none',
                                     zIndex: 3,
-                                    filter: banned ? 'grayscale(100%) brightness(0.7)' : 'none'
+                                    filter: (banned || notChosen) ? 'grayscale(100%) brightness(0.7)' : 'none'
                                 }}
                             />
 
@@ -211,8 +221,8 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
                                     style={{
                                         fontSize: 20,
                                         fontWeight: 800,
-                                        color: banned ? '#d1d5db' : '#f1f1f1',
-                                        textShadow: banned
+                                        color: (banned || notChosen) ? '#d1d5db' : '#f1f1f1',
+                                        textShadow: (banned || notChosen)
                                             ? '0 2px 4px rgba(0,0,0,0.8), 0 0 8px rgba(0,0,0,0.6)'
                                             : `
                                         -2px -2px 0 ${getDiffColor(song.diff)}, 
@@ -233,8 +243,8 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
                                     style={{
                                         fontSize: 20,
                                         fontWeight: 800,
-                                        color: banned ? '#d1d5db' : '#f1f1f1',
-                                        textShadow: banned
+                                        color: (banned || notChosen) ? '#d1d5db' : '#f1f1f1',
+                                        textShadow: (banned || notChosen)
                                             ? '0 2px 4px rgba(0,0,0,0.8), 0 0 8px rgba(0,0,0,0.6)'
                                             : `
                                         -2px -2px 0 ${getDiffColor(song.diff)}, 
@@ -320,7 +330,7 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
                             </div>
 
                             {/* Selection Overlay with Glow */}
-                            {isSelected && !processed && !showFinalOnly && !banned && (
+                            {isSelected && !processed && !showFinalOnly && !banned && !notChosen && (
                                 <div
                                     className="absolute inset-0 rounded-lg pointer-events-none z-50"
                                     style={{
@@ -349,13 +359,6 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
                                         ✕
                                     </div>
                                 </div>
-                            )}
-
-                            {/* Not Chosen Overlay */}
-                            {notChosen && !showFinalOnly && (
-                                <div
-                                    className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-lg z-50"
-                                />
                             )}
 
                             {/* <div className="text-center mt-3">

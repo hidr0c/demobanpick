@@ -46,10 +46,10 @@ export default function Home() {
 
   const handleRandomComplete = useCallback((results: Song[]) => {
     setRandomResults(results);
-    // Auto transition to ban/pick after 1 second
+    // Auto transition to ban/pick after showing result
     setTimeout(() => {
       setShowBanPick(true);
-    }, 1000);
+    }, 800);
   }, []);
 
   const handleBanPick = useCallback((song: Song) => {
