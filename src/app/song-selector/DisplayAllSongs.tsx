@@ -8,13 +8,80 @@ type DisplayAllProps = {
     selectCount?: number;
 };
 
+type SearchTag = { type: 'diff' | 'level'; value: string };
+
+const DIFF_MAP: Record<string, string> = {
+    'ex': 'EXPERT', 'expert': 'EXPERT',
+    'mas': 'MASTER', 'master': 'MASTER',
+    're': 'RE:MASTER', 'remaster': 'RE:MASTER', 're:master': 'RE:MASTER'
+};
+
 const DisplayAll: React.FC<DisplayAllProps> = ({
     pool,
     selectCount = 4
 }) => {
     const [slots, setSlots] = useState<Song[]>(pool);
+    const [inputValue, setInputValue] = useState('');
+    const [tags, setTags] = useState<SearchTag[]>([]);
     const selectedSongsRef = useRef<Song[]>([]);
     const preloadedImagesRef = useRef<Set<string>>(new Set());
+
+    // Add tag function
+    const addTag = (type: 'diff' | 'level', value: string) => {
+        if (!tags.some(t => t.type === type && t.value === value)) {
+            setTags([...tags, { type, value }]);
+        }
+    };
+
+    // Remove tag function
+    const removeTag = (index: number) => {
+        setTags(tags.filter((_, i) => i !== index));
+    };
+
+    // Handle key down for tag detection
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === ' ' || e.key === 'Spacebar') {
+            const trimmed = inputValue.trim().toLowerCase();
+
+            // Check difficulty
+            if (DIFF_MAP[trimmed]) {
+                e.preventDefault();
+                addTag('diff', DIFF_MAP[trimmed]);
+                setInputValue('');
+                return;
+            }
+
+            // Check level (1-15, with optional +)
+            const levelMatch = trimmed.match(/^(1[0-5]|[1-9])(\+)?$/);
+            if (levelMatch) {
+                e.preventDefault();
+                addTag('level', trimmed.toUpperCase());
+                setInputValue('');
+                return;
+            }
+        }
+    };
+
+    // Filter songs based on search query and tags
+    const filteredSongs = slots.filter(song => {
+        // Check text search (title/artist)
+        const matchesText = !inputValue.trim() ||
+            song.title.toLowerCase().includes(inputValue.toLowerCase()) ||
+            song.artist.toLowerCase().includes(inputValue.toLowerCase());
+
+        // Check diff tags
+        const diffTags = tags.filter(t => t.type === 'diff');
+        const matchesDiff = diffTags.length === 0 ||
+            diffTags.some(t => song.diff.toUpperCase() === t.value ||
+                (t.value === 'RE:MASTER' && song.diff.toUpperCase() === 'RE:MASTER'));
+
+        // Check level tags
+        const levelTags = tags.filter(t => t.type === 'level');
+        const matchesLevel = levelTags.length === 0 ||
+            levelTags.some(t => song.lv === t.value);
+
+        return matchesText && matchesDiff && matchesLevel;
+    });
 
     // Preload all images from pool on mount
     useEffect(() => {
@@ -70,9 +137,9 @@ const DisplayAll: React.FC<DisplayAllProps> = ({
     }, [selectCount]);
 
     // Determine grid columns based on random count
-    const gridColumns = 8;
+    const gridColumns = 5;
 
-    const scale = 0.8;
+    const scale = 0.75;
     const FRAME_OVERLAY_W = 300;
     const FRAME_OVERLAY_H = 390;
     const FRAME_W = FRAME_OVERLAY_W * 0.61;
@@ -80,24 +147,57 @@ const DisplayAll: React.FC<DisplayAllProps> = ({
     const TITLE_FONT_SIZE = 20;
 
     return (
-        <div 
-            className="flex flex-col items-start justify-center min-h-screen gap-8 p-4"
-            style={{
-
-            }}
-        >
-            
-            {/* Random slots display */}
+        <div className="min-h-screen flex flex-col">
+            {/* Sticky Search Navbar */}
             <div
-                className="flex flex-row gap-8 justify-center items-center flex-wrap"
+                className="sticky top-0 z-50 px-6 pt-10 pb-4"
+            >
+                <div className="max-w-7xl mx-auto">
+                    <div className="flex flex-wrap items-center gap-2 bg-transparent border border-gray-600 rounded-lg px-3 py-2">
+                        {/* Tags */}
+                        {tags.map((tag, index) => (
+                            <span
+                                key={`${tag.type}-${tag.value}-${index}`}
+                                className="flex items-center gap-1 px-2 py-1 rounded text-sm text-white"
+                                style={{
+                                    backgroundColor: tag.type === 'diff'
+                                        ? getDiffColor(tag.value)
+                                        : '#2563eb'
+                                }}
+                            >
+                                {tag.value}
+                                <button
+                                    onClick={() => removeTag(index)}
+                                    className="ml-1 hover:text-red-300 font-bold"
+                                >
+                                    ×
+                                </button>
+                            </span>
+                        ))}
+                        {/* Search Input */}
+                        <input
+                            type="text"
+                            placeholder={tags.length > 0 ? "Add more filters..." : "Search by title, artist, or type 'ex', 'mas', 're', '13+' + Space..."}
+                            value={inputValue}
+                            onChange={(e) => setInputValue(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            className="flex-1 min-w-[200px] bg-transparent text-white focus:outline-none placeholder-gray-400"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            {/* Grid display - 6 columns */}
+            <div
+                className="grid gap-2 p-4 justify-items-center"
                 style={{
                     gridTemplateColumns: `repeat(${gridColumns}, 1fr)`,
-                    gridTemplateRows: 'repeat(auto-fill, 1fr)',
-                    maxWidth: gridColumns >= 4 ? '1400px' : '1100px',
-                    margin: '0 auto'
+                    maxWidth: '1600px',
+                    margin: '0 auto',
+                    width: '100%'
                 }}
             >
-                {slots.map((song, index) => (
+                {filteredSongs.map((song, index) => (
                     <div
                         key={`slot-${index}`}
                         className="relative"

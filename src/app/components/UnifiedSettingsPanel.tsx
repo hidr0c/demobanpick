@@ -3,14 +3,25 @@
 import React from 'react';
 import { Song } from '../interface';
 
+// Available pools
+const POOL_OPTIONS = [
+    { id: 'newbieSemi', name: 'Newbie Semi', file: 'newbieSemi.json' },
+    { id: 'qualTop', name: 'Qual Top', file: 'qualTop.json' },
+    { id: 'qualBottom', name: 'Qual Bottom', file: 'qualBottom.json' },
+    { id: 'semiFinals', name: 'Semi Finals', file: 'semiFinals.json' },
+    { id: 'finals', name: 'Finals', file: 'finals.json' },
+];
+
 type UnifiedSettingsPanelProps = {
     pool: Song[];
     randomCount: number;
     fixedSongs: Song[];
     lockedTracks: { track3?: Song; track4?: Song };
+    selectedPool: string;
     onRandomCountChange: (count: number) => void;
     onFixedSongsChange: (songs: Song[]) => void;
     onLockedTracksChange: (locked: { track3?: Song; track4?: Song }) => void;
+    onPoolChange: (poolId: string) => void;
     maxTotal?: number;
     minTotal?: number;
 };
@@ -20,14 +31,18 @@ const UnifiedSettingsPanel: React.FC<UnifiedSettingsPanelProps> = ({
     randomCount,
     fixedSongs,
     lockedTracks,
+    selectedPool,
     onRandomCountChange,
     onFixedSongsChange,
     onLockedTracksChange,
+    onPoolChange,
     maxTotal = 6,
     minTotal = 2
 }) => {
     const [isOpen, setIsOpen] = React.useState(false);
     const [searchQuery, setSearchQuery] = React.useState('');
+    const [poolSearch, setPoolSearch] = React.useState('');
+    const [showPoolDropdown, setShowPoolDropdown] = React.useState(false);
     const [track3Search, setTrack3Search] = React.useState('');
     const [track4Search, setTrack4Search] = React.useState('');
     const [showTrack3Dropdown, setShowTrack3Dropdown] = React.useState(false);
@@ -44,18 +59,19 @@ const UnifiedSettingsPanel: React.FC<UnifiedSettingsPanelProps> = ({
             if (!target.closest('.track4-container') && showTrack4Dropdown) {
                 setShowTrack4Dropdown(false);
             }
+            if (!target.closest('.pool-container') && showPoolDropdown) {
+                setShowPoolDropdown(false);
+            }
         };
 
-        if (showTrack3Dropdown || showTrack4Dropdown) {
+        if (showTrack3Dropdown || showTrack4Dropdown || showPoolDropdown) {
             // Use setTimeout to avoid immediate trigger
             setTimeout(() => {
                 document.addEventListener('mousedown', handleClickOutside);
             }, 0);
             return () => document.removeEventListener('mousedown', handleClickOutside);
         }
-    }, [showTrack3Dropdown, showTrack4Dropdown]);
-
-    const fixedCount = fixedSongs.length;
+    }, [showTrack3Dropdown, showTrack4Dropdown, showPoolDropdown]); const fixedCount = fixedSongs.length;
     const totalSongs = randomCount + fixedCount;
 
     // Random songs: min 2, max 6 (independent of fixed)
@@ -165,14 +181,61 @@ const UnifiedSettingsPanel: React.FC<UnifiedSettingsPanelProps> = ({
                     }}
                 >
                     {/* Always render content, just hide visually when closed */}
-                    <div style={{ visibility: isOpen ? 'visible' : 'hidden' }}>
+                    <div
+                        className="flex flex-col h-full"
+                        style={{
+                            visibility: isOpen ? 'visible' : 'hidden',
+                            maxHeight: '90vh'
+                        }}
+                    >
                         {/* Track Settings Section */}
-                        <div className="p-4 border-b border-gray-700 bg-gray-800">
+                        <div className="p-4 border-b border-gray-700 bg-gray-800 flex-shrink-0">
                             <h3 className="font-bold text-lg text-white mb-4">Track Settings</h3>
+
+                            {/* Pool Selector */}
+                            <div className="mb-4 relative pool-container">
+                                <label className="text-gray-400 text-sm block mb-2">Song Pool</label>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        placeholder={POOL_OPTIONS.find(p => p.id === selectedPool)?.name || "Select pool..."}
+                                        value={poolSearch}
+                                        onChange={(e) => setPoolSearch(e.target.value)}
+                                        onFocus={() => setShowPoolDropdown(true)}
+                                        className="w-full px-3 py-2 text-sm rounded-lg bg-gray-700 text-white border border-purple-500 outline-none placeholder-gray-300"
+                                    />
+                                </div>
+
+                                {showPoolDropdown && (
+                                    <div className="absolute z-50 w-full mt-1 bg-gray-700 border border-purple-500 rounded-lg max-h-48 overflow-y-auto shadow-lg">
+                                        {POOL_OPTIONS
+                                            .filter(p => p.name.toLowerCase().includes(poolSearch.toLowerCase()))
+                                            .map(pool => (
+                                                <div
+                                                    key={pool.id}
+                                                    onClick={() => {
+                                                        onPoolChange(pool.id);
+                                                        setPoolSearch('');
+                                                        setShowPoolDropdown(false);
+                                                    }}
+                                                    className={`p-3 cursor-pointer flex items-center justify-between ${selectedPool === pool.id
+                                                            ? 'bg-purple-600 text-white'
+                                                            : 'hover:bg-purple-600 text-white'
+                                                        }`}
+                                                >
+                                                    <span>{pool.name}</span>
+                                                    {selectedPool === pool.id && (
+                                                        <span className="text-green-400">✓</span>
+                                                    )}
+                                                </div>
+                                            ))}
+                                    </div>
+                                )}
+                            </div>
 
                             {/* Random Count */}
                             <div className="mb-3">
-                                <label className="text-gray-400 text-sm block mb-2">Random Songs (2-6)</label>
+                                <label className="text-gray-400 text-sm block mb-2">Random Songs (4-6)</label>
                                 <div className="flex items-center gap-3">
                                     <button
                                         onClick={handleDecrement}
@@ -202,7 +265,7 @@ const UnifiedSettingsPanel: React.FC<UnifiedSettingsPanelProps> = ({
                         </div>
 
                         {/* Locked Tracks Section */}
-                        <div className="p-4 border-b border-gray-700 bg-gray-800">
+                        <div className="p-4 border-b border-gray-700 bg-gray-800 flex-shrink-0">
                             <h3 className="font-bold text-white mb-3">Locked Tracks</h3>
 
                             {/* Track 3 Combobox */}
@@ -319,14 +382,14 @@ const UnifiedSettingsPanel: React.FC<UnifiedSettingsPanelProps> = ({
                         </div>
 
                         {/* Song Pool Section */}
-                        <div className="flex-1 flex flex-col min-h-0">
-                            <div className="p-4 bg-purple-600">
+                        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+                            <div className="p-4 bg-purple-600 flex-shrink-0">
                                 <h3 className="font-bold text-white">Fixed Song Pool</h3>
                                 <p className="text-sm text-white/90">Selected: {fixedSongs.length}</p>
                             </div>
 
                             {/* Search Box */}
-                            <div className="p-3 border-b border-gray-700 bg-gray-900">
+                            <div className="p-3 border-b border-gray-700 bg-gray-900 flex-shrink-0">
                                 <input
                                     type="text"
                                     placeholder="Search songs..."
@@ -337,7 +400,13 @@ const UnifiedSettingsPanel: React.FC<UnifiedSettingsPanelProps> = ({
                             </div>
 
                             {/* Song List */}
-                            <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-gray-900">
+                            <div
+                                className="flex-1 p-3 space-y-2 bg-gray-900"
+                                style={{
+                                    overflowY: 'auto',
+                                    minHeight: 0
+                                }}
+                            >
                                 {filteredPool.length === 0 ? (
                                     <div className="text-center text-gray-400 py-8">
                                         {searchQuery ? 'No songs found' : 'No songs available'}

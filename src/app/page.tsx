@@ -9,12 +9,38 @@ import QuadRandomSlot from './components/QuadRandomSlot';
 import BanPickCarousel from './components/BanPickCarousel';
 import UnifiedSettingsPanel from './components/UnifiedSettingsPanel';
 
-import songData from '../../public/pools/newbieSemi.json';
+// Import all pools
+import newbieSemiPool from '../../public/pools/newbieSemi.json';
+import qualTopPool from '../../public/pools/qualTop.json';
+import qualBottomPool from '../../public/pools/qualBottom.json';
+import semiFinalsPool from '../../public/pools/semiFinals.json';
+import finalsPool from '../../public/pools/finals.json';
+
+// Helper to ensure songs have id field
+const ensureIds = (songs: any[]): Song[] => {
+  return songs.map((song, index) => ({
+    ...song,
+    id: song.id || `${song.title}-${song.diff}-${index}`,
+    isDx: String(song.isDx) // Ensure isDx is string
+  }));
+};
+
+const POOLS: Record<string, Song[]> = {
+  newbieSemi: ensureIds(newbieSemiPool),
+  qualTop: ensureIds(qualTopPool),
+  qualBottom: ensureIds(qualBottomPool),
+  semiFinals: ensureIds(semiFinalsPool),
+  finals: ensureIds(finalsPool),
+};
 
 export default function Home() {
   const router = useRouter();
   const [roundIndex, setRoundIndex] = useState(0);
   const [banPickSetting] = useState<RoundSetting>(banPickSettings[roundIndex]);
+
+  // Selected pool (default: newbieSemi)
+  const [selectedPool, setSelectedPool] = useState('newbieSemi');
+  const songData = POOLS[selectedPool] || POOLS.newbieSemi;
 
   // Fixed songs selected by user
   const [fixedSongs, setFixedSongs] = useState<Song[]>([]);
@@ -103,6 +129,14 @@ export default function Home() {
     setLockedTracks({});
   };
 
+  const handlePoolChange = (poolId: string) => {
+    setSelectedPool(poolId);
+    // Reset selections when pool changes
+    setFixedSongs([]);
+    setLockedTracks({});
+    setRandomResults([]);
+  };
+
   // Filter out locked tracks from available pool
   const availablePool = songData.filter(
     (song) => song.id !== lockedTracks.track3?.id && song.id !== lockedTracks.track4?.id
@@ -130,9 +164,11 @@ export default function Home() {
           randomCount={randomCount}
           fixedSongs={fixedSongs}
           lockedTracks={lockedTracks}
+          selectedPool={selectedPool}
           onRandomCountChange={setRandomCount}
           onFixedSongsChange={setFixedSongs}
           onLockedTracksChange={setLockedTracks}
+          onPoolChange={handlePoolChange}
           maxTotal={6}
           minTotal={4}
         />
