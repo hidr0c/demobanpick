@@ -10,6 +10,7 @@ const POOL_OPTIONS = [
     { id: 'qualBottom', name: 'Qual Bottom', file: 'qualBottom.json' },
     { id: 'semiFinals', name: 'Semi Finals', file: 'semiFinals.json' },
     { id: 'finals', name: 'Finals', file: 'finals.json' },
+    { id: 'top32', name: 'Top 32 (Custom)', file: 'top32.json' },
 ];
 
 type UnifiedSettingsPanelProps = {

@@ -23,8 +23,50 @@ const DisplayAll: React.FC<DisplayAllProps> = ({
     const [slots, setSlots] = useState<Song[]>(pool);
     const [inputValue, setInputValue] = useState('');
     const [tags, setTags] = useState<SearchTag[]>([]);
+    const [selectedSongs, setSelectedSongs] = useState<Set<string>>(new Set());
+    const [isExporting, setIsExporting] = useState(false);
     const selectedSongsRef = useRef<Song[]>([]);
     const preloadedImagesRef = useRef<Set<string>>(new Set());
+
+    // Toggle song selection
+    const toggleSongSelection = (songId: string) => {
+        setSelectedSongs(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(songId)) {
+                newSet.delete(songId);
+            } else {
+                newSet.add(songId);
+            }
+            return newSet;
+        });
+    };
+
+    // Export selected songs to pool
+    const exportToPool = async () => {
+        if (selectedSongs.size === 0) return;
+        
+        setIsExporting(true);
+        try {
+            const songsToExport = slots.filter(song => selectedSongs.has(song.id));
+            
+            const response = await fetch('/api/export-pool', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ songs: songsToExport, filename: 'top32.json' })
+            });
+            
+            if (response.ok) {
+                alert(`Exported ${songsToExport.length} songs to pools/top32.json!`);
+            } else {
+                alert('Export failed!');
+            }
+        } catch (error) {
+            console.error('Export error:', error);
+            alert('Export failed!');
+        } finally {
+            setIsExporting(false);
+        }
+    };
 
     // Add tag function
     const addTag = (type: 'diff' | 'level', value: string) => {
@@ -183,6 +225,23 @@ const DisplayAll: React.FC<DisplayAllProps> = ({
                             onKeyDown={handleKeyDown}
                             className="flex-1 min-w-[200px] bg-transparent text-white focus:outline-none placeholder-gray-400"
                         />
+                        {/* Deselect All Button */}
+                        {selectedSongs.size > 0 && (
+                            <button
+                                onClick={() => setSelectedSongs(new Set())}
+                                className="px-3 py-1.5 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm font-medium whitespace-nowrap"
+                            >
+                                Deselect All
+                            </button>
+                        )}
+                        {/* Export Button */}
+                        <button
+                            onClick={exportToPool}
+                            disabled={selectedSongs.size === 0 || isExporting}
+                            className="px-4 py-1.5 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors text-sm font-medium whitespace-nowrap"
+                        >
+                            {isExporting ? 'Exporting...' : `Export (${selectedSongs.size})`}
+                        </button>
                     </div>
                 </div>
             </div>
@@ -197,17 +256,32 @@ const DisplayAll: React.FC<DisplayAllProps> = ({
                     width: '100%'
                 }}
             >
-                {filteredSongs.map((song, index) => (
+                {filteredSongs.map((song, index) => {
+                    const isSelected = selectedSongs.has(song.id);
+                    return (
                     <div
-                        key={`slot-${index}`}
-                        className="relative"
+                        key={`slot-${song.id}-${index}`}
+                        className="relative cursor-pointer"
+                        onClick={() => toggleSongSelection(song.id)}
                         style={{
                             width: FRAME_OVERLAY_W,
                             height: FRAME_OVERLAY_H,
-                            transform: `scale(${scale})`,
-                            transition: 'transform 0.1s ease-out'
+                            transform: `scale(${scale}) ${isSelected ? 'translateY(-15px)' : ''}`,
+                            transition: 'transform 0.2s ease-out'
                         }}
                     >
+                        {/* Selection highlight overlay */}
+                        {isSelected && (
+                            <div
+                                className="absolute inset-0 rounded-lg pointer-events-none"
+                                style={{
+                                    backgroundColor: 'rgba(147, 51, 234, 0.25)',
+                                    boxShadow: '0 0 25px rgba(147, 51, 234, 0.6), inset 0 0 15px rgba(147, 51, 234, 0.3)',
+                                    zIndex: 10,
+                                    border: '2px solid rgba(168, 85, 247, 0.8)'
+                                }}
+                            />
+                        )}
                         {/* Jacket image */}
                         <img
                             src={song.imgUrl}
@@ -365,7 +439,8 @@ const DisplayAll: React.FC<DisplayAllProps> = ({
                             </div>
                         </div>
                     </div>
-                ))}
+                    );
+                })}
             </div>
         </div>
     );
