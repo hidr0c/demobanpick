@@ -194,8 +194,11 @@ const DisplayAll: React.FC<DisplayAllProps> = ({
             <div
                 className="sticky top-0 z-50 px-6 pt-10 pb-4"
             >
-                <div className="max-w-7xl mx-auto">
-                    <div className="flex flex-wrap items-center gap-2 bg-transparent border border-gray-600 rounded-lg px-3 py-2">
+                <div className="max-w-8/10 mx-auto">
+                    <div 
+                        className="flex flex-wrap items-center gap-2 border border-gray-600 rounded-lg px-3 py-2"
+                        style={{backgroundColor: 'rgba(255, 255, 255, 0.9)'}}
+                        >
                         {/* Tags */}
                         {tags.map((tag, index) => (
                             <span
@@ -223,7 +226,7 @@ const DisplayAll: React.FC<DisplayAllProps> = ({
                             value={inputValue}
                             onChange={(e) => setInputValue(e.target.value)}
                             onKeyDown={handleKeyDown}
-                            className="flex-1 min-w-[200px] bg-transparent text-white focus:outline-none placeholder-gray-400"
+                            className="flex-1 min-w-[200px] bg-transparent text-black focus:outline-none placeholder-gray-400"
                         />
                         {/* Deselect All Button */}
                         {selectedSongs.size > 0 && (
