@@ -44,17 +44,17 @@ const DisplayAll: React.FC<DisplayAllProps> = ({
     // Export selected songs to pool
     const exportToPool = async () => {
         if (selectedSongs.size === 0) return;
-        
+
         setIsExporting(true);
         try {
             const songsToExport = slots.filter(song => selectedSongs.has(song.id));
-            
+
             const response = await fetch('/api/export-pool', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ songs: songsToExport, filename: 'top32.json' })
             });
-            
+
             if (response.ok) {
                 alert(`Exported ${songsToExport.length} songs to pools/top32.json!`);
             } else {
@@ -259,84 +259,84 @@ const DisplayAll: React.FC<DisplayAllProps> = ({
                 {filteredSongs.map((song, index) => {
                     const isSelected = selectedSongs.has(song.id);
                     return (
-                    <div
-                        key={`slot-${song.id}-${index}`}
-                        className="relative cursor-pointer"
-                        onClick={() => toggleSongSelection(song.id)}
-                        style={{
-                            width: FRAME_OVERLAY_W,
-                            height: FRAME_OVERLAY_H,
-                            transform: `scale(${scale}) ${isSelected ? 'translateY(-15px)' : ''}`,
-                            transition: 'transform 0.2s ease-out'
-                        }}
-                    >
-                        {/* Selection highlight overlay */}
-                        {isSelected && (
-                            <div
-                                className="absolute inset-0 rounded-lg pointer-events-none"
-                                style={{
-                                    backgroundColor: 'rgba(147, 51, 234, 0.25)',
-                                    boxShadow: '0 0 25px rgba(147, 51, 234, 0.6), inset 0 0 15px rgba(147, 51, 234, 0.3)',
-                                    zIndex: 10,
-                                    border: '2px solid rgba(168, 85, 247, 0.8)'
-                                }}
-                            />
-                        )}
-                        {/* Jacket image */}
-                        <img
-                            src={song.imgUrl}
-                            alt={song.title}
-                            className="absolute"
-                            style={{
-                                width: FRAME_W,
-                                height: FRAME_H,
-                                objectFit: 'cover',
-                                left: '50%',
-                                top: '50%',
-                                transform: `translate(-50%, -50%) translateY(-${FRAME_OVERLAY_H / 13}px)`,
-                                zIndex: 1,
-                                backfaceVisibility: 'hidden',
-                                willChange: 'contents'
-                            }}
-                        />
-
-                        {/* Frame overlay */}
-                        <img
-                            src={getFrameImage(song.diff, song.isDx)}
-                            alt="frame"
-                            className="absolute"
+                        <div
+                            key={`slot-${song.id}-${index}`}
+                            className="relative cursor-pointer"
+                            onClick={() => toggleSongSelection(song.id)}
                             style={{
                                 width: FRAME_OVERLAY_W,
                                 height: FRAME_OVERLAY_H,
-                                left: '50%',
-                                top: '50%',
-                                transform: 'translate(-50%, -50%)',
-                                pointerEvents: 'none',
-                                zIndex: 3
-                            }}
-                        />
-
-                        {/* Diff + Lv - centered with gap */}
-                        <div
-                            className="absolute"
-                            style={{
-                                left: '50%',
-                                transform: 'translateX(-50%)',
-                                bottom: FRAME_OVERLAY_H * 0.235,
-                                zIndex: 4,
-                                pointerEvents: 'none',
-                                display: 'flex',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                gap: '4px'
+                                transform: `scale(${scale}) ${isSelected ? 'translateY(-15px)' : ''}`,
+                                transition: 'transform 0.2s ease-out'
                             }}
                         >
-                            <div
+                            {/* Selection highlight overlay */}
+                            {isSelected && (
+                                <div
+                                    className="absolute inset-0 rounded-lg pointer-events-none"
+                                    style={{
+                                        backgroundColor: 'rgba(147, 51, 234, 0.25)',
+                                        boxShadow: '0 0 25px rgba(147, 51, 234, 0.6), inset 0 0 15px rgba(147, 51, 234, 0.3)',
+                                        zIndex: 10,
+                                        border: '2px solid rgba(168, 85, 247, 0.8)'
+                                    }}
+                                />
+                            )}
+                            {/* Jacket image */}
+                            <img
+                                src={song.imgUrl}
+                                alt={song.title}
+                                className="absolute"
                                 style={{
-                                    fontSize: 20,
-                                    fontWeight: 800,
-                                    color: '#f1f1f1',
-                                    textShadow: `
+                                    width: FRAME_W,
+                                    height: FRAME_H,
+                                    objectFit: 'cover',
+                                    left: '50%',
+                                    top: '50%',
+                                    transform: `translate(-50%, -50%) translateY(-${FRAME_OVERLAY_H / 13}px)`,
+                                    zIndex: 1,
+                                    backfaceVisibility: 'hidden',
+                                    willChange: 'contents'
+                                }}
+                            />
+
+                            {/* Frame overlay */}
+                            <img
+                                src={getFrameImage(song.diff, song.isDx)}
+                                alt="frame"
+                                className="absolute"
+                                style={{
+                                    width: FRAME_OVERLAY_W,
+                                    height: FRAME_OVERLAY_H,
+                                    left: '50%',
+                                    top: '50%',
+                                    transform: 'translate(-50%, -50%)',
+                                    pointerEvents: 'none',
+                                    zIndex: 3
+                                }}
+                            />
+
+                            {/* Diff + Lv - centered with gap */}
+                            <div
+                                className="absolute"
+                                style={{
+                                    left: '50%',
+                                    transform: 'translateX(-50%)',
+                                    bottom: FRAME_OVERLAY_H * 0.235,
+                                    zIndex: 4,
+                                    pointerEvents: 'none',
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    gap: '4px'
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        fontSize: 20,
+                                        fontWeight: 800,
+                                        color: '#f1f1f1',
+                                        textShadow: `
                                         -2px -2px 0 ${getDiffColor(song.diff)}, 
                                         2px -2px 0 ${getDiffColor(song.diff)},
                                         -2px 2px 0 ${getDiffColor(song.diff)},
@@ -346,17 +346,17 @@ const DisplayAll: React.FC<DisplayAllProps> = ({
                                         0px -3px 0 ${getDiffColor(song.diff)},
                                         0px 3px 0 ${getDiffColor(song.diff)}
                                         `,
-                                    letterSpacing: '1px'
-                                }}
-                            >
-                                {song.diff}
-                            </div>
-                            <div
-                                style={{
-                                    fontSize: 20,
-                                    fontWeight: 800,
-                                    color: '#f1f1f1',
-                                    textShadow: `
+                                        letterSpacing: '1px'
+                                    }}
+                                >
+                                    {song.diff}
+                                </div>
+                                <div
+                                    style={{
+                                        fontSize: 20,
+                                        fontWeight: 800,
+                                        color: '#f1f1f1',
+                                        textShadow: `
                                         -2px -2px 0 ${getDiffColor(song.diff)}, 
                                         2px -2px 0 ${getDiffColor(song.diff)},
                                         -2px 2px 0 ${getDiffColor(song.diff)},
@@ -366,79 +366,79 @@ const DisplayAll: React.FC<DisplayAllProps> = ({
                                         0px -3px 0 ${getDiffColor(song.diff)},
                                         0px 3px 0 ${getDiffColor(song.diff)}
                                         `,
-                                    letterSpacing: '0.5px'
-                                }}
-                            >
-                                {song.lv}
+                                        letterSpacing: '0.5px'
+                                    }}
+                                >
+                                    {song.lv}
+                                </div>
                             </div>
-                        </div>
 
-                        {/* Title */}
-                        <div
-                            className="absolute"
-                            style={{
-                                left: '50%',
-                                transform: 'translateX(-50%)',
-                                bottom: FRAME_OVERLAY_H * 0.14,
-                                width: FRAME_OVERLAY_W * 0.72,
-                                textAlign: 'center',
-                                zIndex: 4,
-                                pointerEvents: 'none',
-                                overflow: 'hidden',
-                                clipPath: 'inset(0)',
-                                height: '18px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                            }}
-                        >
+                            {/* Title */}
                             <div
+                                className="absolute"
                                 style={{
-                                    fontWeight: 700,
-                                    fontSize: `${TITLE_FONT_SIZE}`,
-                                    color: '#000',
-                                    whiteSpace: 'nowrap',
-                                    animation: song.title.length > 20 ? 'marquee 15s linear infinite' : 'none',
-                                    display: 'inline-block'
+                                    left: '50%',
+                                    transform: 'translateX(-50%)',
+                                    bottom: FRAME_OVERLAY_H * 0.14,
+                                    width: FRAME_OVERLAY_W * 0.72,
+                                    textAlign: 'center',
+                                    zIndex: 4,
+                                    pointerEvents: 'none',
+                                    overflow: 'hidden',
+                                    clipPath: 'inset(0)',
+                                    height: '18px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
                                 }}
-
                             >
-                                {song.title}
-                            </div>
-                        </div>
+                                <div
+                                    style={{
+                                        fontWeight: 700,
+                                        fontSize: `${TITLE_FONT_SIZE}`,
+                                        color: '#000',
+                                        whiteSpace: 'nowrap',
+                                        animation: song.title.length > 20 ? 'marquee 15s linear infinite' : 'none',
+                                        display: 'inline-block'
+                                    }}
 
-                        {/* Artist */}
-                        <div
-                            className="absolute"
-                            style={{
-                                left: '51%',
-                                transform: 'translateX(-50%)',
-                                bottom: FRAME_OVERLAY_H * 0.05,
-                                width: FRAME_OVERLAY_W * 0.73,
-                                textAlign: 'center',
-                                zIndex: 4,
-                                pointerEvents: 'none',
-                                overflow: 'hidden',
-                                clipPath: 'inset(0)',
-                                height: `${TITLE_FONT_SIZE}px`,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                            }}
-                        >
+                                >
+                                    {song.title}
+                                </div>
+                            </div>
+
+                            {/* Artist */}
                             <div
+                                className="absolute"
                                 style={{
-                                    fontSize: 12,
-                                    color: '#000',
-                                    whiteSpace: 'nowrap',
-                                    animation: song.artist.length > 20 ? 'marquee 18s linear infinite' : 'none',
-                                    display: 'inline-block'
+                                    left: '51%',
+                                    transform: 'translateX(-50%)',
+                                    bottom: FRAME_OVERLAY_H * 0.05,
+                                    width: FRAME_OVERLAY_W * 0.73,
+                                    textAlign: 'center',
+                                    zIndex: 4,
+                                    pointerEvents: 'none',
+                                    overflow: 'hidden',
+                                    clipPath: 'inset(0)',
+                                    height: `${TITLE_FONT_SIZE}px`,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
                                 }}
                             >
-                                {song.artist}
+                                <div
+                                    style={{
+                                        fontSize: 12,
+                                        color: '#000',
+                                        whiteSpace: 'nowrap',
+                                        animation: song.artist.length > 20 ? 'marquee 18s linear infinite' : 'none',
+                                        display: 'inline-block'
+                                    }}
+                                >
+                                    {song.artist}
+                                </div>
                             </div>
                         </div>
-                    </div>
                     );
                 })}
             </div>

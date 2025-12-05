@@ -39,40 +39,40 @@ export default function Home() {
   const [isLoadingPool, setIsLoadingPool] = useState(true);
   const [poolVersion, setPoolVersion] = useState(0); // Force re-render key
   const abortControllerRef = useRef<AbortController | null>(null);
-  
+
   // Load pool data when selected pool changes
   useEffect(() => {
     // Cancel previous request if exists
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
-    
+
     const abortController = new AbortController();
     abortControllerRef.current = abortController;
-    
+
     const loadPool = async () => {
       setIsLoadingPool(true);
       const poolFile = POOL_FILES[selectedPool];
-      
+
       if (!poolFile) {
         console.error('Unknown pool:', selectedPool);
         setSelectedPool('newbieSemi');
         return;
       }
-      
+
       try {
         // Add cache busting timestamp
         const res = await fetch(`${poolFile}?t=${Date.now()}`, {
           signal: abortController.signal,
           cache: 'no-store'
         });
-        
+
         if (!res.ok) {
           throw new Error(`Failed to load ${poolFile}`);
         }
-        
+
         const data = await res.json();
-        
+
         // Only update if not aborted
         if (!abortController.signal.aborted) {
           setSongData(ensureIds(data));
@@ -84,7 +84,7 @@ export default function Home() {
           console.log('Pool load aborted:', selectedPool);
           return;
         }
-        
+
         console.error('Error loading pool:', error);
         if (selectedPool === 'top32') {
           alert('top32.json not found. Please export songs from /song-selector first.');
@@ -99,9 +99,9 @@ export default function Home() {
         }
       }
     };
-    
+
     loadPool();
-    
+
     // Cleanup
     return () => {
       abortController.abort();
@@ -212,8 +212,8 @@ export default function Home() {
 
   // Filter out locked tracks AND fixed songs from available pool for random
   const availablePool = songData.filter(
-    (song) => 
-      song.id !== lockedTracks.track3?.id && 
+    (song) =>
+      song.id !== lockedTracks.track3?.id &&
       song.id !== lockedTracks.track4?.id &&
       !fixedSongs.find(f => f.id === song.id)
   );

@@ -220,8 +220,8 @@ const UnifiedSettingsPanel: React.FC<UnifiedSettingsPanelProps> = ({
                                                         setShowPoolDropdown(false);
                                                     }}
                                                     className={`p-3 cursor-pointer flex items-center justify-between ${selectedPool === pool.id
-                                                            ? 'bg-purple-600 text-white'
-                                                            : 'hover:bg-purple-600 text-white'
+                                                        ? 'bg-purple-600 text-white'
+                                                        : 'hover:bg-purple-600 text-white'
                                                         }`}
                                                 >
                                                     <span>{pool.name}</span>
