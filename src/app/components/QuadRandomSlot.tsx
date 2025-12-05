@@ -25,6 +25,7 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
     const hasCompletedRef = useRef<boolean>(false);
     const finalResultsRef = useRef<Song[]>([]);
     const preloadedImagesRef = useRef<Set<string>>(new Set());
+    const currentPoolRef = useRef<string>('');
 
     // Preload all images from pool on mount
     useEffect(() => {
@@ -37,7 +38,19 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
         });
     }, [pool]);
 
-    // Initialize with random songs (only once, before any animation completes)
+    // Reset when pool changes (detected by first song id change)
+    useEffect(() => {
+        const poolId = pool.length > 0 ? pool[0].id : '';
+        if (currentPoolRef.current && currentPoolRef.current !== poolId) {
+            // Pool changed - reset everything
+            hasCompletedRef.current = false;
+            finalResultsRef.current = [];
+            setSlots([]);
+        }
+        currentPoolRef.current = poolId;
+    }, [pool]);
+
+    // Initialize with random songs (only once per pool, before any animation completes)
     useEffect(() => {
         if (pool.length >= randomCount && !hasCompletedRef.current && slots.length === 0) {
             const availablePool = pool.filter(
@@ -46,7 +59,7 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
             const initial = getRandomUniqueSongs(availablePool, randomCount);
             setSlots(initial);
         }
-    }, [pool.length, randomCount]);
+    }, [pool, randomCount, slots.length]);
 
     const getRandomUniqueSongs = (availablePool: Song[], count: number): Song[] => {
         const shuffled = [...availablePool].sort(() => Math.random() - 0.5);
@@ -176,7 +189,7 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
     return (
         <div className="flex flex-col items-center justify-center min-h-screen gap-8 p-4">
             {/* Random slots display */}
-            <div 
+            <div
                 className="flex flex-row gap-8 justify-center items-center flex-wrap"
                 style={{
                     gridTemplateColumns: `repeat(${gridColumns}, 1fr)`,
@@ -184,7 +197,7 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
                     maxWidth: gridColumns >= 4 ? '1400px' : '1100px',
                     margin: '0 auto'
                 }}
-                >
+            >
                 {slots.map((song, index) => (
                     <div
                         key={`slot-${index}`}

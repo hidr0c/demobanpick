@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import banPickSettings from '../../public/roundBanPickSettings.json';
 import { Song, RoundSetting } from './interface';
@@ -9,12 +9,104 @@ import QuadRandomSlot from './components/QuadRandomSlot';
 import BanPickCarousel from './components/BanPickCarousel';
 import UnifiedSettingsPanel from './components/UnifiedSettingsPanel';
 
-import songData from '../../public/pools/newbieSemi.json';
+// Helper to ensure songs have id field
+const ensureIds = (songs: any[]): Song[] => {
+  return songs.map((song, index) => ({
+    ...song,
+    id: song.id || `${song.title}-${song.diff}-${index}`,
+    isDx: String(song.isDx) // Ensure isDx is string
+  }));
+};
+
+// Pool file mapping
+const POOL_FILES: Record<string, string> = {
+  newbieSemi: '/pools/newbieSemi.json',
+  qualTop: '/pools/qualTop.json',
+  qualBottom: '/pools/qualBottom.json',
+  semiFinals: '/pools/semiFinals.json',
+  finals: '/pools/finals.json',
+  top32: '/pools/top32.json',
+};
 
 export default function Home() {
   const router = useRouter();
   const [roundIndex, setRoundIndex] = useState(0);
   const [banPickSetting] = useState<RoundSetting>(banPickSettings[roundIndex]);
+
+  // Selected pool (default: newbieSemi)
+  const [selectedPool, setSelectedPool] = useState('newbieSemi');
+  const [songData, setSongData] = useState<Song[]>([]);
+  const [isLoadingPool, setIsLoadingPool] = useState(true);
+  const [poolVersion, setPoolVersion] = useState(0); // Force re-render key
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Load pool data when selected pool changes
+  useEffect(() => {
+    // Cancel previous request if exists
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
+    const loadPool = async () => {
+      setIsLoadingPool(true);
+      const poolFile = POOL_FILES[selectedPool];
+
+      if (!poolFile) {
+        console.error('Unknown pool:', selectedPool);
+        setSelectedPool('newbieSemi');
+        return;
+      }
+
+      try {
+        // Add cache busting timestamp
+        const res = await fetch(`${poolFile}?t=${Date.now()}`, {
+          signal: abortController.signal,
+          cache: 'no-store'
+        });
+
+        if (!res.ok) {
+          throw new Error(`Failed to load ${poolFile}`);
+        }
+
+        const data = await res.json();
+
+        // Only update if not aborted
+        if (!abortController.signal.aborted) {
+          setSongData(ensureIds(data));
+          setPoolVersion(prev => prev + 1); // Increment version to force re-render
+          console.log(`Pool loaded: ${selectedPool}, songs: ${data.length}`);
+        }
+      } catch (error: any) {
+        if (error.name === 'AbortError') {
+          console.log('Pool load aborted:', selectedPool);
+          return;
+        }
+
+        console.error('Error loading pool:', error);
+        if (selectedPool === 'top32') {
+          alert('top32.json not found. Please export songs from /song-selector first.');
+        }
+        // Fallback to newbieSemi
+        if (selectedPool !== 'newbieSemi') {
+          setSelectedPool('newbieSemi');
+        }
+      } finally {
+        if (!abortController.signal.aborted) {
+          setIsLoadingPool(false);
+        }
+      }
+    };
+
+    loadPool();
+
+    // Cleanup
+    return () => {
+      abortController.abort();
+    };
+  }, [selectedPool]);
 
   // Fixed songs selected by user
   const [fixedSongs, setFixedSongs] = useState<Song[]>([]);
@@ -103,9 +195,27 @@ export default function Home() {
     setLockedTracks({});
   };
 
-  // Filter out locked tracks from available pool
+  const handlePoolChange = (poolId: string) => {
+    if (poolId === selectedPool) {
+      // Force reload same pool
+      setPoolVersion(prev => prev + 1);
+    }
+    setSelectedPool(poolId);
+    // Reset all selections when pool changes
+    setFixedSongs([]);
+    setLockedTracks({});
+    setRandomResults([]);
+    setShowBanPick(false);
+    setBannedSongs([]);
+    setPickedSongs([]);
+  };
+
+  // Filter out locked tracks AND fixed songs from available pool for random
   const availablePool = songData.filter(
-    (song) => song.id !== lockedTracks.track3?.id && song.id !== lockedTracks.track4?.id
+    (song) =>
+      song.id !== lockedTracks.track3?.id &&
+      song.id !== lockedTracks.track4?.id &&
+      !fixedSongs.find(f => f.id === song.id)
   );
 
   // Combined pool for ban/pick = random results + fixed songs (excluding locked)
@@ -130,9 +240,11 @@ export default function Home() {
           randomCount={randomCount}
           fixedSongs={fixedSongs}
           lockedTracks={lockedTracks}
+          selectedPool={selectedPool}
           onRandomCountChange={setRandomCount}
           onFixedSongsChange={setFixedSongs}
           onLockedTracksChange={setLockedTracks}
+          onPoolChange={handlePoolChange}
           maxTotal={6}
           minTotal={4}
         />
@@ -141,6 +253,7 @@ export default function Home() {
       {!showBanPick ? (
         /* Random Phase */
         <QuadRandomSlot
+          key={`${selectedPool}-${poolVersion}-${fixedSongs.length}`}
           pool={availablePool}
           fixedSongs={fixedSongs}
           randomCount={randomCount}
