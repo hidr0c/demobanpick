@@ -164,20 +164,30 @@ export default function MatchDisplay() {
                     style={{
                         left: '50%',
                         transform: 'translateX(-50%)',
-                        bottom: FRAME_OVERLAY_H * 0.215,
+                        bottom: FRAME_OVERLAY_H * 0.23,
                         zIndex: 4,
                         pointerEvents: 'none',
                         display: 'flex',
                         justifyContent: 'center',
                         alignItems: 'center',
-                        gap: '4px'
+                        gap: '4px',
+                        color: 'white',
+                        textShadow: `
+                            -2px -2px 0 ${getDiffColor(currentSong.diff)}, 
+                            2px -2px 0 ${getDiffColor(currentSong.diff)},
+                            -2px 2px 0 ${getDiffColor(currentSong.diff)},
+                            2px 2px 0 ${getDiffColor(currentSong.diff)},
+                            -3px 0px 0 ${getDiffColor(currentSong.diff)},
+                            3px 0px 0 ${getDiffColor(currentSong.diff)},
+                            0px -3px 0 ${getDiffColor(currentSong.diff)},
+                            0px 3px 0 ${getDiffColor(currentSong.diff)}
+                            `,
                     }}
                 >
                     <div
                         style={{
                             fontSize: 16,
                             fontWeight: 800,
-                            color: getDiffColor(currentSong.diff),
                             letterSpacing: '0.5px'
                         }}
                     >
@@ -187,7 +197,6 @@ export default function MatchDisplay() {
                         style={{
                             fontSize: 16,
                             fontWeight: 800,
-                            color: getDiffColor(currentSong.diff),
                             letterSpacing: '0.5px'
                         }}
                     >
@@ -201,7 +210,7 @@ export default function MatchDisplay() {
                     style={{
                         left: '50%',
                         transform: 'translateX(-50%)',
-                        bottom: FRAME_OVERLAY_H * 0.12,
+                        bottom: FRAME_OVERLAY_H * 0.13,
                         width: FRAME_OVERLAY_W * 0.75,
                         textAlign: 'center',
                         zIndex: 4,
