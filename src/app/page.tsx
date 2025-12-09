@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import banPickSettings from '../../public/roundBanPickSettings.json';
 import { Song, RoundSetting } from './interface';
 
 import QuadRandomSlot from './components/QuadRandomSlot';
@@ -31,7 +30,6 @@ const POOL_FILES: Record<string, string> = {
 export default function Home() {
   const router = useRouter();
   const [roundIndex, setRoundIndex] = useState(0);
-  const [banPickSetting] = useState<RoundSetting>(banPickSettings[roundIndex]);
 
   // Selected pool (default: newbieSemi)
   const [selectedPool, setSelectedPool] = useState('newbieSemi');
@@ -111,8 +109,10 @@ export default function Home() {
   // Fixed songs selected by user
   const [fixedSongs, setFixedSongs] = useState<Song[]>([]);
 
-  // Random count (default 4, can be adjusted)
+  // Random, pick and ban count (default is stated in the use state)
   const [randomCount, setRandomCount] = useState(4);
+  const [pickCount, setPickCount] = useState(2);
+  const [banCount, setBanCount] = useState(0);
 
   // Locked tracks (predetermined tracks 3 & 4)
   const [lockedTracks, setLockedTracks] = useState<{ track3?: Song; track4?: Song }>({});
@@ -144,28 +144,28 @@ export default function Home() {
     }, 800);
   }, []);
 
-  const handleBanPick = useCallback((song: Song) => {
-    const remainingBans = banPickSetting.ban - bannedSongs.length;
+  // const handleBanPick = useCallback((song: Song) => {
+  //   const remainingBans = banPickSetting.ban - bannedSongs.length;
 
-    if (remainingBans > 0) {
-      // Ban phase
-      setBannedSongs(prev => [...prev, song]);
-    } else if (pickedSongs.length < banPickSetting.pick) {
-      // Pick phase
-      setPickedSongs(prev => [...prev, song]);
+  //   if (remainingBans > 0) {
+  //     // Ban phase
+  //     setBannedSongs(prev => [...prev, song]);
+  //   } else if (pickedSongs.length < banPickSetting.pick) {
+  //     // Pick phase
+  //     setPickedSongs(prev => [...prev, song]);
 
-      // When all picks are done, go to match display
-      if (pickedSongs.length + 1 >= banPickSetting.pick) {
-        setTimeout(() => {
-          // Save picked songs to localStorage for match-display page
-          const finalPicked = [...pickedSongs, song];
-          localStorage.setItem('matchSongs', JSON.stringify(finalPicked));
-          localStorage.setItem('lockedTracks', JSON.stringify(lockedTracks));
-          router.push('/match-display');
-        }, 500);
-      }
-    }
-  }, [bannedSongs.length, pickedSongs.length, banPickSetting, router, pickedSongs]);
+  //     // When all picks are done, go to match display
+  //     if (pickedSongs.length + 1 >= banPickSetting.pick) {
+  //       setTimeout(() => {
+  //         // Save picked songs to localStorage for match-display page
+  //         const finalPicked = [...pickedSongs, song];
+  //         localStorage.setItem('matchSongs', JSON.stringify(finalPicked));
+  //         localStorage.setItem('lockedTracks', JSON.stringify(lockedTracks));
+  //         router.push('/match-display');
+  //       }, 500);
+  //     }
+  //   }
+  // }, [bannedSongs.length, pickedSongs.length, banPickSetting, router, pickedSongs]);
 
   const handleBan = useCallback((song: Song) => {
     setBannedSongs(prev => [...prev, song]);
@@ -175,7 +175,7 @@ export default function Home() {
     setPickedSongs(prev => [...prev, song]);
 
     // When all picks are done, go to match display
-    if (pickedSongs.length + 1 >= banPickSetting.pick) {
+    if (pickedSongs.length + 1 >= pickCount) {
       setTimeout(() => {
         const finalPicked = [...pickedSongs, song];
         localStorage.setItem('matchSongs', JSON.stringify(finalPicked));
@@ -183,7 +183,7 @@ export default function Home() {
         router.push('/match-display');
       }, 500);
     }
-  }, [pickedSongs, banPickSetting, router]);
+  }, [pickedSongs, pickCount, router]);
 
   const handleReset = () => {
     setFixedSongs([]);
@@ -192,6 +192,8 @@ export default function Home() {
     setBannedSongs([]);
     setPickedSongs([]);
     setRandomCount(4);
+    setPickCount(2);
+    setBanCount(0);
     setLockedTracks({});
   };
 
@@ -238,10 +240,14 @@ export default function Home() {
         <UnifiedSettingsPanel
           pool={songData}
           randomCount={randomCount}
+          pickCount={pickCount}
+          banCount={banCount}
           fixedSongs={fixedSongs}
           lockedTracks={lockedTracks}
           selectedPool={selectedPool}
           onRandomCountChange={setRandomCount}
+          onBanCountChange={setBanCount}
+          onPickCountChange={setPickCount}
           onFixedSongsChange={setFixedSongs}
           onLockedTracksChange={setLockedTracks}
           onPoolChange={handlePoolChange}
@@ -268,8 +274,8 @@ export default function Home() {
             onPick={handlePick}
             bannedSongs={bannedSongs}
             pickedSongs={pickedSongs}
-            remainingBans={banPickSetting.ban - bannedSongs.length}
-            remainingPicks={banPickSetting.pick - pickedSongs.length}
+            remainingBans={banCount - bannedSongs.length}
+            remainingPicks={pickCount - pickedSongs.length}
             onComplete={() => {
               // Complete callback if needed
             }}

@@ -16,10 +16,14 @@ const POOL_OPTIONS = [
 type UnifiedSettingsPanelProps = {
     pool: Song[];
     randomCount: number;
+    pickCount: number;
+    banCount: number;
     fixedSongs: Song[];
     lockedTracks: { track3?: Song; track4?: Song };
     selectedPool: string;
     onRandomCountChange: (count: number) => void;
+    onPickCountChange: (count: number) => void;
+    onBanCountChange: (count: number) => void;
     onFixedSongsChange: (songs: Song[]) => void;
     onLockedTracksChange: (locked: { track3?: Song; track4?: Song }) => void;
     onPoolChange: (poolId: string) => void;
@@ -30,15 +34,19 @@ type UnifiedSettingsPanelProps = {
 const UnifiedSettingsPanel: React.FC<UnifiedSettingsPanelProps> = ({
     pool,
     randomCount,
+    pickCount,
+    banCount,
     fixedSongs,
     lockedTracks,
     selectedPool,
     onRandomCountChange,
+    onPickCountChange,
+    onBanCountChange,
     onFixedSongsChange,
     onLockedTracksChange,
     onPoolChange,
-    maxTotal = 6,
-    minTotal = 2
+    // maxTotal = 6,
+    // minTotal = 2
 }) => {
     const [isOpen, setIsOpen] = React.useState(false);
     const [searchQuery, setSearchQuery] = React.useState('');
@@ -78,16 +86,42 @@ const UnifiedSettingsPanel: React.FC<UnifiedSettingsPanelProps> = ({
     // Random songs: min 2, max 6 (independent of fixed)
     const maxRandom = 6;
     const minRandom = 2;
+    const maxPick = 4;
+    const minPick = 2;
 
-    const handleIncrement = () => {
+    const handleRandomIncrement = () => {
         if (randomCount < maxRandom) {
             onRandomCountChange(randomCount + 1);
         }
     };
 
-    const handleDecrement = () => {
+    const handleRandomDecrement = () => {
         if (randomCount > minRandom) {
             onRandomCountChange(randomCount - 1);
+        }
+    };
+
+    const handlePickIncrement = () => {
+        if (pickCount < maxPick && pickCount + banCount < totalSongs) {
+            onPickCountChange(pickCount + 1);
+        }
+    };
+
+    const handlePickDecrement = () => {
+        if (pickCount > minPick) {
+            onPickCountChange(pickCount - 1);
+        }
+    };
+
+    const handleBanIncrement = () => {
+        if (pickCount + banCount < totalSongs) {
+            onBanCountChange(banCount + 1);
+        }
+    };
+
+    const handleBanDecrement = () => {
+        if (banCount > 0) {
+            onBanCountChange(banCount - 1);
         }
     };
 
@@ -234,12 +268,12 @@ const UnifiedSettingsPanel: React.FC<UnifiedSettingsPanelProps> = ({
                                 )}
                             </div>
 
-                            {/* Random Count */}
+                            {/* Random, Pick and Ban Count */}
                             <div className="mb-3">
-                                <label className="text-gray-400 text-sm block mb-2">Random Songs (2-6)</label>
-                                <div className="flex items-center gap-3">
+                                <label className="text-gray-400 text-sm inline-block mb-2">Random / Ban / Pick #</label>
+                                <div className="flex items-center gap-0">
                                     <button
-                                        onClick={handleDecrement}
+                                        onClick={handleRandomDecrement}
                                         disabled={randomCount <= minRandom}
                                         className="w-10 h-10 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-700 disabled:text-gray-500 text-white rounded-lg font-bold text-xl"
                                     >
@@ -249,9 +283,43 @@ const UnifiedSettingsPanel: React.FC<UnifiedSettingsPanelProps> = ({
                                         {randomCount}
                                     </span>
                                     <button
-                                        onClick={handleIncrement}
+                                        onClick={handleRandomIncrement}
                                         disabled={randomCount >= maxRandom}
                                         className="w-10 h-10 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-700 disabled:text-gray-500 text-white rounded-lg font-bold text-xl"
+                                    >
+                                        +
+                                    </button>
+                                    <button
+                                        onClick={handleBanDecrement}
+                                        disabled={banCount <= 0}
+                                        className="w-10 h-10 bg-red-600 hover:bg-red-700 disabled:bg-gray-700 disabled:text-gray-500 text-white rounded-lg font-bold text-xl"
+                                    >
+                                        -
+                                    </button>
+                                    <span className="text-white text-2xl font-bold w-12 text-center">
+                                        {banCount}
+                                    </span>
+                                    <button
+                                        onClick={handleBanIncrement}
+                                        disabled={(banCount + pickCount) >= totalSongs}
+                                        className="w-10 h-10 bg-red-600 hover:bg-red-700 disabled:bg-gray-700 disabled:text-gray-500 text-white rounded-lg font-bold text-xl"
+                                    >
+                                        +
+                                    </button>
+                                    <button
+                                        onClick={handlePickDecrement}
+                                        disabled={pickCount <= minPick}
+                                        className="w-10 h-10 bg-green-600 hover:bg-green-700 disabled:bg-gray-700 disabled:text-gray-500 text-white rounded-lg font-bold text-xl"
+                                    >
+                                        -
+                                    </button>
+                                    <span className="text-white text-2xl font-bold w-12 text-center">
+                                        {pickCount}
+                                    </span>
+                                    <button
+                                        onClick={handlePickIncrement}
+                                        disabled={pickCount >= maxPick || (banCount + pickCount) >= totalSongs}
+                                        className="w-10 h-10 bg-green-600 hover:bg-green-700 disabled:bg-gray-700 disabled:text-gray-500 text-white rounded-lg font-bold text-xl"
                                     >
                                         +
                                     </button>
