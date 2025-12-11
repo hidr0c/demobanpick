@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import banPickSettings from '../../../public/roundBanPickSettings.json';
 import { Song, RoundSetting } from '../interface';
-import songData from '../../../public/pools/newbieQual.json';
+import songData from '../../../public/pools/N1 - newbieQual1.json';
 import DisplayAll from './DisplayAllSongs';
 
 export default function Home() {

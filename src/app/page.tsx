@@ -19,11 +19,14 @@ const ensureIds = (songs: any[]): Song[] => {
 
 // Pool file mapping
 const POOL_FILES: Record<string, string> = {
-  newbieSemi: '/pools/newbieSemi.json',
-  qualTop: '/pools/qualTop.json',
-  qualBottom: '/pools/qualBottom.json',
-  semiFinals: '/pools/semiFinals.json',
-  finals: '/pools/finals.json',
+  newbieQual1: '/pools/N1 - newbieQual1.json',
+  newbieQual2: '/pools/N2 - newbieQual2.json',
+  newbieSemi: '/pools/N3 - newbieSemi.json',
+  newbieFinals: '/pools/N4 - newbieFinals.json',
+  proQual: '/pools/P1 - proTop3216.json',
+  proTop8: '/pools/P2 - proTop8.json',
+  proSemi: '/pools/P3 - proSemi.json',
+  proFinals: '/pools/P4 - proFinals.json',
   top32: '/pools/top32.json',
 };
 

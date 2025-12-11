@@ -1,6 +1,42 @@
 [
     {
         "id": "0",
+        "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/9dacc0e909e896cf30d5037da8752ed5ec37ff04389c1f4122189f01ba6c6b89.png",
+        "artist": "削除",
+        "title": "AFTER PANDORA",
+        "lv": "14",
+        "diff": "MASTER",
+        "isDx": "False"
+    },
+    {
+        "id": "1",
+        "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/b7130ac980a8504595202603808b4c277b8d9f91e419eeb96dbbeb716a1d7ae1.png",
+        "artist": "qfeileadh feat.のあ",
+        "title": "IMBRUED:FLUX",
+        "lv": "14",
+        "diff": "MASTER",
+        "isDx": "True"
+    },
+    {
+        "id": "2",
+        "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/c472a0d48e94478e9c1b1ca5b4a98a99d1a400fa8780fe463c7961b1310971f2.png",
+        "artist": "打打だいず Vs. Tanchiky Vs. uma Vs. モリモリあつし",
+        "title": "MYTH Re：LEASE",
+        "lv": "14",
+        "diff": "MASTER",
+        "isDx": "True"
+    },
+    {
+        "id": "3",
+        "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/ac5252d5b23964f6ff0cc99edddb29c4951c4fe52ed5d135acc9e1c73e83d428.png",
+        "artist": "ビートまりお",
+        "title": "Destined Marionette",
+        "lv": "14",
+        "diff": "MASTER",
+        "isDx": "True"
+    },
+    {
+        "id": "4",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/2b0ebffa60a03d90bbde07e2b580ce23597b5ec4ff8eafb168936f4cf195a00b.png",
         "artist": "原口沙輔, 式部めぐり",
         "title": "忙シー日",
@@ -9,7 +45,7 @@
         "isDx": "True"
     },
     {
-        "id": "1",
+        "id": "5",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/35f7753bd0fd0f35e5209f4f7cd6e4aece12473f33001419fb894f1aee69c62b.png",
         "artist": "Luna Fozer (BilliumMoto, 黒皇帝, Sobrem feat. vally.exe)",
         "title": "Overjoy ★ OVERDOSE!!",
@@ -18,7 +54,7 @@
         "isDx": "True"
     },
     {
-        "id": "2",
+        "id": "6",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/f7a4ccd98b2f0fa921fd081d6d43cfa09038274c3452e99ed51b070d14409d72.png",
         "artist": "tn-shi",
         "title": "Synthesis.",
@@ -27,7 +63,7 @@
         "isDx": "True"
     },
     {
-        "id": "3",
+        "id": "7",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/0f9e0998c092ba2a68cd3fc221b2dae6022527ac68948f4afcf079b63bf6d88c.png",
         "artist": "Reku Mochizuki",
         "title": "Zitronectar",
@@ -36,7 +72,7 @@
         "isDx": "True"
     },
     {
-        "id": "4",
+        "id": "8",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/60485d04fe1ae4166db772b8ef6836668af9d390c746f1b34abbf7b6a4de175f.png",
         "artist": "Lite Show Magic",
         "title": "R'N'R Monsta",
@@ -45,7 +81,7 @@
         "isDx": "True"
     },
     {
-        "id": "5",
+        "id": "9",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/ad5bb7bbd4447e06cbab16471271489fd1c4a35891191ea8fa7d749b287f0401.png",
         "artist": "Ashrount vs. 打打だいず",
         "title": "Abstruse Dilemma",
@@ -54,7 +90,7 @@
         "isDx": "True"
     },
     {
-        "id": "6",
+        "id": "10",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/a70c124f528230613aee0e5963c0b1d2c214da5a0022d25cc9080fb01a048a43.png",
         "artist": "SIINCA",
         "title": "有明/Ariake",
@@ -63,7 +99,7 @@
         "isDx": "True"
     },
     {
-        "id": "7",
+        "id": "11",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/340ad836422a46ffe8450f6a4e9a3bf4bd02ef9b8e469e106f9f60754da11c41.png",
         "artist": "sky_delta vs KO3 vs Tanchiky",
         "title": "HYP3RTRIBE",
@@ -72,7 +108,7 @@
         "isDx": "True"
     },
     {
-        "id": "8",
+        "id": "12",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/850ad6477888162d5857434899a3453e625943a7f92e54eb8febc08af4dfbe75.png",
         "artist": "void (Mournfinale) feat. 古泉葉月",
         "title": "Deicide",
@@ -81,7 +117,7 @@
         "isDx": "True"
     },
     {
-        "id": "9",
+        "id": "13",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/be6e11e7e56d11720798287b3d4e7d5add7da656acd802174e1c9bd77032496b.png",
         "artist": "Lime",
         "title": "Chronomia",
@@ -90,7 +126,7 @@
         "isDx": "True"
     },
     {
-        "id": "10",
+        "id": "14",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/9efb2808b7f4a8d94cd588b739ca21bc5771e7488928befc46fd70aa058e5567.png",
         "artist": "かゆき",
         "title": "美夜月鏡",
@@ -99,7 +135,7 @@
         "isDx": "True"
     },
     {
-        "id": "11",
+        "id": "15",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/9d58639383e9231f86b9847dff6950f11e15f1db836e102d7a453043e95100b4.png",
         "artist": "Pizuya's Cell feat.中村さん",
         "title": "184億回のマルチトニック",
@@ -108,7 +144,7 @@
         "isDx": "True"
     },
     {
-        "id": "12",
+        "id": "16",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/cecb5261911395d9646d803345f477e3cfb483b03ef19f56fac3dc3260bf8571.png",
         "artist": "Morrigan feat.Lily and 結城碧",
         "title": "RondeauX of RagnaroQ",
@@ -117,7 +153,7 @@
         "isDx": "True"
     },
     {
-        "id": "13",
+        "id": "17",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/1ab93c49701ea96c9546a018f680bdcf48e79f31f82a062227121ca6e42fe8ac.png",
         "artist": "打打だいず Vs. Tanchiky Vs. からめる",
         "title": "QUATTUORUX",
@@ -126,7 +162,7 @@
         "isDx": "True"
     },
     {
-        "id": "14",
+        "id": "18",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/a74785a8a686d6e675f00bf2aaf5d6cd2b66796d76fd1db5d903bf159ad542bf.png",
         "artist": "DJ Genki",
         "title": "ミラクルポップ☆アドベンチャー!!!!!",
@@ -135,7 +171,7 @@
         "isDx": "True"
     },
     {
-        "id": "15",
+        "id": "19",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/b0da73f2716997cb4e994642c19bd3164755d888654a8b254a19615921fd7e57.png",
         "artist": "AJURIKA feat.SAK.",
         "title": "DEVOTION",
@@ -144,7 +180,7 @@
         "isDx": "True"
     },
     {
-        "id": "16",
+        "id": "20",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/12dc1af5558a87267fdb57387c884f8e84ff9e971dc74c3ea8991e8d390dd248.png",
         "artist": "Hommarju",
         "title": "Bloody Trail",
@@ -153,7 +189,7 @@
         "isDx": "True"
     },
     {
-        "id": "17",
+        "id": "21",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/6455d86ab7e1ff9ac193b79c6b793295c7179c1f41e4bd77480db291bd00345d.png",
         "artist": "siqlo",
         "title": "勦滅",
@@ -162,7 +198,7 @@
         "isDx": "True"
     },
     {
-        "id": "18",
+        "id": "22",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/56c3985a2419725fa81cc6464d8d66642c6d9af7539b951ef05643153feaef71.png",
         "artist": "Cranky VS MASAKI",
         "title": "ouroboros -twin stroke of the end-",
@@ -171,7 +207,7 @@
         "isDx": "True"
     },
     {
-        "id": "19",
+        "id": "23",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/96672e7b9b68fa8ca5adad28255d095b2632842040ed3b2283ad044b5216ffa9.png",
         "artist": "MisoilePunch♪",
         "title": "MarbleBlue.",
@@ -180,7 +216,7 @@
         "isDx": "True"
     },
     {
-        "id": "20",
+        "id": "24",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/b4e32dd9cb151865862e28ca3aed40ce01475534a27e03ad26d4b0e1f961bca1.png",
         "artist": "owl＊tree feat.nie＊tree",
         "title": "QuiQ",
@@ -189,7 +225,7 @@
         "isDx": "True"
     },
     {
-        "id": "21",
+        "id": "25",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/58263f6b1c1ab1d05fcda9fe153a2b1d8cf311497109d83b8fda079596056bf4.png",
         "artist": "ツミキ feat.月乃",
         "title": "インパアフェクシオン・ホワイトガアル",
@@ -198,7 +234,7 @@
         "isDx": "True"
     },
     {
-        "id": "22",
+        "id": "26",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/1cf8ab2e8f094a454cd5c69c9ff6d2ef7e99770b0be8148158b3982450401396.png",
         "artist": "山本真央樹",
         "title": "渦状銀河のシンフォニエッタ",
@@ -207,7 +243,7 @@
         "isDx": "False"
     },
     {
-        "id": "23",
+        "id": "27",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/01ce1f97b33ffd7b1e3e692cb0bb4893f60e52e046d03870978845deac268a2b.png",
         "artist": "REDALiCE & cosMo＠暴走P",
         "title": "天使光輪",
@@ -216,7 +252,7 @@
         "isDx": "True"
     },
     {
-        "id": "24",
+        "id": "28",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/30f00531c0c63e9d480d4e7264219a4e1e6b076cc9beeed717bd7f8af2f7871d.png",
         "artist": "Artifact vs. Dualcast",
         "title": "Energizing Flame",
@@ -225,7 +261,7 @@
         "isDx": "True"
     },
     {
-        "id": "25",
+        "id": "29",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/de53928e8405414348490adbe7a3a2a975c814036c0d72c04d348c5bb3d4a3aa.png",
         "artist": "山本真央樹",
         "title": "GEOMETRIC DANCE",
@@ -234,7 +270,7 @@
         "isDx": "True"
     },
     {
-        "id": "26",
+        "id": "30",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/93acdffee0e7cae26c689bff1b7d184e3a1839bd112449af6691f3434a18f99a.png",
         "artist": "Getty vs DJ DiA",
         "title": "SQUAD-Phvntom-",
@@ -243,7 +279,7 @@
         "isDx": "True"
     },
     {
-        "id": "27",
+        "id": "31",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/1088552807a82bf43dc346953569ec5d0a871099ee244000b78638b897535dd5.png",
         "artist": "Sound Artz",
         "title": "Party☆People☆Princess",
@@ -252,7 +288,7 @@
         "isDx": "True"
     },
     {
-        "id": "28",
+        "id": "32",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/86696efc4ff72afa3c9c1805b3f079c79ccfe8875f0b0be8dc8398361bc782f5.png",
         "artist": "モリモリあつし",
         "title": "PUPA",
@@ -261,7 +297,7 @@
         "isDx": "True"
     },
     {
-        "id": "29",
+        "id": "33",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/5333d75c3243a610e6c15cf9361e996326ec71e6e61a40c42d019d258498972d.png",
         "artist": "立秋 feat.ちょこ",
         "title": "地球",
@@ -270,7 +306,7 @@
         "isDx": "True"
     },
     {
-        "id": "30",
+        "id": "34",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/8fc67a95ea09b58cabdfdc1476cca942c00915b10d6ada5e82a85fdff4e4bbf8.png",
         "artist": "USAO & Yuta Imai",
         "title": "BULK UP (GAME EXCLUSIVE EDIT)",
@@ -279,7 +315,7 @@
         "isDx": "True"
     },
     {
-        "id": "31",
+        "id": "35",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/470282e7ffb75c309d3ccf64987437d1856cafaefadf6f11402569c2a6b955cb.png",
         "artist": "USAO",
         "title": "Cthugha",
@@ -288,7 +324,7 @@
         "isDx": "True"
     },
     {
-        "id": "32",
+        "id": "36",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/c7d904ebcd1c2c78a3e33bf177889712fc33c39ce5719ddedd1aef23bcbd518c.png",
         "artist": "Kobaryo",
         "title": "FLUFFY FLASH",
@@ -297,7 +333,7 @@
         "isDx": "True"
     },
     {
-        "id": "33",
+        "id": "37",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/af5aa2985ef533cc430c6ed4ca9f0fd040dfb4f53650684b65b12c8f56e4fba1.png",
         "artist": "s-don vs. 翡乃イスカ",
         "title": "Trrricksters!!",
@@ -306,7 +342,7 @@
         "isDx": "True"
     },
     {
-        "id": "34",
+        "id": "38",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/e346593c2015e71c3bc9ed03946c0cae997d16903f5cec626903344f931fd5aa.png",
         "artist": "REDALiCE vs USAO",
         "title": "最強STRONGER",
@@ -315,7 +351,7 @@
         "isDx": "True"
     },
     {
-        "id": "35",
+        "id": "39",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/0fee1f54c5613514d93e215e37a737be3fffb1e47fd04bbd4ca562595eddc4e3.png",
         "artist": "Silentroom vs Frums",
         "title": "Aegleseeker",
@@ -324,7 +360,7 @@
         "isDx": "True"
     },
     {
-        "id": "36",
+        "id": "40",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/890070403457183caf1a5ef11fe54142ee7a6760507c23241445099eb9672fc7.png",
         "artist": "Tanchiky",
         "title": "\"411Ψ892\"",
@@ -333,7 +369,7 @@
         "isDx": "True"
     },
     {
-        "id": "37",
+        "id": "41",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/0e482d3fe98d45755363a909270688f5e2ebd96ae780fd2861531958fb42d6ed.png",
         "artist": "ETIA.",
         "title": "Hainuwele",
@@ -342,7 +378,7 @@
         "isDx": "True"
     },
     {
-        "id": "38",
+        "id": "42",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/232416388033cec9f28cdd9cc4f94965593dcf809f54241555edf5e5a8859a23.png",
         "artist": "HiTECH NINJA",
         "title": "電光石火",
@@ -351,7 +387,7 @@
         "isDx": "True"
     },
     {
-        "id": "39",
+        "id": "43",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/2b1920f465b6732e3b6bc08e709e032ca330f06dfb6d1642a931dde271954067.png",
         "artist": "Lime",
         "title": "VIIIbit Explorer",
@@ -360,7 +396,7 @@
         "isDx": "False"
     },
     {
-        "id": "40",
+        "id": "44",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/935bacbf2bdb863b80bb9d09fe238ddcabca732d4c1f059edac5658c8eb1af45.png",
         "artist": "s-don",
         "title": "VSpook!",
@@ -369,7 +405,7 @@
         "isDx": "True"
     },
     {
-        "id": "41",
+        "id": "45",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/49ca54d97c6ab8775a109ae0fe0a684fc9f562c3bdf1cfe2dbbbee16a45637ef.png",
         "artist": "DJ Raisei",
         "title": "#狂った民族２ PRAVARGYAZOOQA",
@@ -378,7 +414,7 @@
         "isDx": "True"
     },
     {
-        "id": "42",
+        "id": "46",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/ce1aad3c87f1a9a7ff1c5f00c2bb9ec6ed1f2aa07aa503959bc1e8c6176ebbc5.png",
         "artist": "TAG",
         "title": "Rising on the horizon",
@@ -387,7 +423,7 @@
         "isDx": "True"
     },
     {
-        "id": "43",
+        "id": "47",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/dc0d6733393a2701699b7ab61af373f361a12ed5e819d96385214dfc461685f9.png",
         "artist": "AJURIKA",
         "title": "SUPER AMBULANCE",
@@ -396,7 +432,7 @@
         "isDx": "True"
     },
     {
-        "id": "44",
+        "id": "48",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/cf170e8dfbeccce0f373c874a7b3bc5910444e501a4350f67f8462c3efc212d2.png",
         "artist": "立秋 feat.ちょこ",
         "title": "田中",
@@ -405,7 +441,7 @@
         "isDx": "True"
     },
     {
-        "id": "45",
+        "id": "49",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/43e274dd8f15a897ab59067b6b738233b8897e0b8d56b4d94cd4f81c9924d656.png",
         "artist": "黒魔",
         "title": "Don't Fight The Music",
@@ -414,7 +450,7 @@
         "isDx": "True"
     },
     {
-        "id": "46",
+        "id": "50",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/3b0db48212e6690748900b9d4b3ec8e9af6f84995602ec6e4b4df307860bc42c.png",
         "artist": "きくお×cosMo＠暴走P feat.影縫英",
         "title": "蜘蛛の糸",
@@ -423,7 +459,7 @@
         "isDx": "True"
     },
     {
-        "id": "47",
+        "id": "51",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/4aff8b8f7c1b17804e954601c952f07a3e001f0170259d6dfe3a5cf6e85453d0.png",
         "artist": "ルゼ",
         "title": "エータ・ベータ・イータ",
@@ -432,7 +468,7 @@
         "isDx": "True"
     },
     {
-        "id": "48",
+        "id": "52",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/00e952a6be2d44a35828287fc402f316ec7c0af5046e857cf1f3b23025332417.png",
         "artist": "かめりあ",
         "title": "Sage",
@@ -441,7 +477,7 @@
         "isDx": "True"
     },
     {
-        "id": "49",
+        "id": "53",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/623e24aea4cc64001e2417b9f43adde6aa3097be89a871509e55249702efeb80.png",
         "artist": "Laur",
         "title": "Swift Swing",
@@ -450,7 +486,7 @@
         "isDx": "True"
     },
     {
-        "id": "50",
+        "id": "54",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/4ad18e055dba18cd77eb4920f360604ccdde5b2f2c964b69162de7fa3b0baa97.png",
         "artist": "C-Show",
         "title": "N3V3R G3T OV3R",
@@ -459,7 +495,7 @@
         "isDx": "True"
     },
     {
-        "id": "51",
+        "id": "55",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/a0387ebdea91588f18c1ea37a6143c766ae3ac49c80dabcf8bda2590648e07e0.png",
         "artist": "Yuta Imai",
         "title": "HECATONCHEIR",
@@ -468,7 +504,7 @@
         "isDx": "True"
     },
     {
-        "id": "52",
+        "id": "56",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/f6ac558d0e2ae1793829f8157fe0d415022118a861d629e7ac12d5734292681c.png",
         "artist": "xi",
         "title": "Mjölnir",
@@ -477,7 +513,7 @@
         "isDx": "True"
     },
     {
-        "id": "53",
+        "id": "57",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/4e342767a7e8d71ad856ea1dec834b3e9ed4e8addb0eb5eb635b08b310a13075.png",
         "artist": "Hommarju",
         "title": "Love's Theme of BADASS ～バッド・アス 愛のテーマ～",
@@ -486,7 +522,7 @@
         "isDx": "True"
     },
     {
-        "id": "54",
+        "id": "58",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/79445040703621f31dba23e6042178f599c77083d127cebb197c7d84eb18d9e7.png",
         "artist": "Tatsh x NAOKI",
         "title": "BLUE ZONE",
@@ -495,7 +531,7 @@
         "isDx": "True"
     },
     {
-        "id": "55",
+        "id": "59",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/5c8013230cc9233adc95f112da9f4381085898dc33034ce9dca8b01d081581ff.png",
         "artist": "NAOKI underground",
         "title": "otorii INNOVATED -[i]3-",
@@ -504,7 +540,7 @@
         "isDx": "True"
     },
     {
-        "id": "56",
+        "id": "60",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/4215613aad4f3b3cf565719eed2cbc2fd8217480d7a24ac810c86874bb2cceef.png",
         "artist": "Yooh",
         "title": "Good bye, Merry-Go-Round.",
@@ -513,7 +549,7 @@
         "isDx": "True"
     },
     {
-        "id": "57",
+        "id": "61",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/4bdcc9a5748f22c22339484d623579d3a00b50623fb8858cde3ff3b576b0f449.png",
         "artist": "Noah",
         "title": "Strive against fate",
@@ -522,7 +558,7 @@
         "isDx": "True"
     },
     {
-        "id": "58",
+        "id": "62",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/6545b0299e65ee70636dea0bbbe83d65c587221dfca6712f177926154b264fcb.png",
         "artist": "xi",
         "title": "Halcyon",
@@ -531,7 +567,7 @@
         "isDx": "False"
     },
     {
-        "id": "59",
+        "id": "63",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/1d56b7818aa2efc495b1757c9e19133ab2ae5b4e936786cfeebbf729dabef79e.png",
         "artist": "Acotto",
         "title": "スピカの天秤",
@@ -540,7 +576,7 @@
         "isDx": "True"
     },
     {
-        "id": "60",
+        "id": "64",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/70b83fc113aa3f30894a0febc529995fa56f63e493f93ad0055bd1efb3bb787e.png",
         "artist": "しーけー",
         "title": "Trick tear",
@@ -549,7 +585,7 @@
         "isDx": "True"
     },
     {
-        "id": "61",
+        "id": "65",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/cb129ca3b7051d4289839528f4005012ad1de565ed68baa7641508c15a627062.png",
         "artist": "kanone",
         "title": "Falsum Atlantis.",
@@ -558,7 +594,7 @@
         "isDx": "True"
     },
     {
-        "id": "62",
+        "id": "66",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/039d7dd5b8db61bbee5896526ac06faa004772fd06ae489304ca71b71ae3f44a.png",
         "artist": "削除 feat. Nikki Simmons",
         "title": "Destr0yer",
@@ -567,7 +603,7 @@
         "isDx": "False"
     },
     {
-        "id": "63",
+        "id": "67",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/bac06802ab44b23ac597298651ef3551f026564a65c6acc855cc5f24174ec9bc.png",
         "artist": "Kai VS 大国奏音 VS 水野健治",
         "title": "U&iVERSE -銀河鸞翔-",
@@ -576,7 +612,7 @@
         "isDx": "True"
     },
     {
-        "id": "64",
+        "id": "68",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/9808a875f51681af62fd3685fe151641fae4720dd8cd4bfe71470f51ee53260f.png",
         "artist": "Kobaryo",
         "title": "Raven Emperor",
@@ -585,7 +621,7 @@
         "isDx": "True"
     },
     {
-        "id": "65",
+        "id": "69",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/48b230be9dd9b5cbafa31e5fa94ed7f1fbdb3dc37245bc0a6665d943fb290d95.png",
         "artist": "COOL&CREATE feat.ビートまりおとまろん「東方ダンマクカグラ」",
         "title": "マツヨイナイトバグ",
@@ -594,7 +630,7 @@
         "isDx": "True"
     },
     {
-        "id": "66",
+        "id": "70",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/bf917dca342a26c89b0170691937bb26edbbed3f719b243a0ce0fa894ddb4912.png",
         "artist": "立秋 feat.ちょこ",
         "title": "竹",
@@ -603,7 +639,7 @@
         "isDx": "True"
     },
     {
-        "id": "67",
+        "id": "71",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/0b9d1d28767d8cec362444f2441367bba8f04af1955c7dea86f130a8f5ffbee9.png",
         "artist": "cosMo＠暴走P",
         "title": "デッドマンズバラッド",
@@ -612,7 +648,7 @@
         "isDx": "True"
     },
     {
-        "id": "68",
+        "id": "72",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/b80fc2a93fafd0af5bd2d34b1177ee9fa857ebf29d10f9a0c717157238485115.png",
         "artist": "梅干茶漬け",
         "title": "NAGAREBOSHI☆ROCKET",
@@ -621,7 +657,7 @@
         "isDx": "True"
     },
     {
-        "id": "69",
+        "id": "73",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/2de78b437312cee6fce9e393b0e9546a074a199e8fe8ce545fd8ac86f7c58219.png",
         "artist": "suzu",
         "title": "宿星審判",
@@ -630,7 +666,7 @@
         "isDx": "True"
     },
     {
-        "id": "70",
+        "id": "74",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/7242c25b5ee7af0748ed7ee0c5b4346591ae9e01a350a6ae899fde71755c024a.png",
         "artist": "BlackY vs. Yooh",
         "title": "MEGATON BLAST",
@@ -639,7 +675,7 @@
         "isDx": "True"
     },
     {
-        "id": "71",
+        "id": "75",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/0aad1815e3ded98572b433a214f2189c844bf9224ee6a384f7fd9d44f32b1012.png",
         "artist": "奏音",
         "title": "ほしぞらスペクタクル",
@@ -648,7 +684,7 @@
         "isDx": "True"
     },
     {
-        "id": "72",
+        "id": "76",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/35c25daec9ad947444b55005ee3ec1c73230357e2904b3e6194f623155c39d07.png",
         "artist": "ツミキ × 宮下遊",
         "title": "チエルカ／エソテリカ",
@@ -657,7 +693,7 @@
         "isDx": "True"
     },
     {
-        "id": "73",
+        "id": "77",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/bb375466af93f4c9ea79d708204eecdd7bab87ed50efb371c1793ec80338017d.png",
         "artist": "kanone",
         "title": "CO5M1C R4ILR0AD",
@@ -666,7 +702,7 @@
         "isDx": "True"
     },
     {
-        "id": "74",
+        "id": "78",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/6edff32d63ce43edab1eb3a8d3a78c5438250314acb4e8a6a135de7821cb8756.png",
         "artist": "uma vs. モリモリあつし",
         "title": "Re：End of a Dream",
@@ -675,7 +711,7 @@
         "isDx": "True"
     },
     {
-        "id": "75",
+        "id": "79",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/3e10317281b4a1118df79bc5ea322ebb159a168e522b58034128fb4368ff49d9.png",
         "artist": "Juggernaut.",
         "title": "Xenovcipher",
@@ -684,7 +720,7 @@
         "isDx": "True"
     },
     {
-        "id": "76",
+        "id": "80",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/56093588350f227ffa29ef713230d9b53020fb433f7f9bd93276c219a593ad37.png",
         "artist": "ぺのれり",
         "title": "Desperado Waltz",
@@ -693,7 +729,7 @@
         "isDx": "True"
     },
     {
-        "id": "77",
+        "id": "81",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/66a08e0f1c413f46a55710d6d49d1597b7a3400372c88b120ab743d41eb78931.png",
         "artist": "llliiillliiilll",
         "title": "BIRTH",
@@ -702,7 +738,7 @@
         "isDx": "True"
     },
     {
-        "id": "78",
+        "id": "82",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/8819e109bb385c47f9bd06d37b6197182757c88b415f806375f761e4f51b3df8.png",
         "artist": "アリスシャッハと魔法の楽団",
         "title": "ワンダーシャッフェンの法則",
@@ -711,7 +747,7 @@
         "isDx": "True"
     },
     {
-        "id": "79",
+        "id": "83",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/31ac770f045a51cc274a65b9f29488deba2e71acdd414fc24045ae8d34b9f736.png",
         "artist": "Team Grimoire vs Laur",
         "title": "Grievous Lady",
@@ -720,7 +756,7 @@
         "isDx": "True"
     },
     {
-        "id": "80",
+        "id": "84",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/53505cce8a6282ef54ae3b7e005d5f83da53bde161bd04dcc35edc393cae5522.png",
         "artist": "USAO",
         "title": "Climax",
@@ -729,7 +765,7 @@
         "isDx": "True"
     },
     {
-        "id": "81",
+        "id": "85",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/dff3cceaa23397597e37e9395162e77e7c30ef8fe802216119ef1d8a28003b74.png",
         "artist": "t+pazolite",
         "title": "YURUSHITE",
@@ -738,7 +774,7 @@
         "isDx": "True"
     },
     {
-        "id": "82",
+        "id": "86",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/2cd36cab260aae1c5fdb71b054e92a99ecdb8c1e083bd4a0ea66632145ec6177.png",
         "artist": "水野健治",
         "title": "≠彡\"/了→",
@@ -747,7 +783,7 @@
         "isDx": "True"
     },
     {
-        "id": "83",
+        "id": "87",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/9c1f149b62ab6a5313a413b0e97132b04b5507d244ba6c5fd94fe3dc8f41a281.png",
         "artist": "onoken",
         "title": "felys -final remix-",
@@ -756,7 +792,7 @@
         "isDx": "True"
     },
     {
-        "id": "84",
+        "id": "88",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/2fd726ca3fa377be50907588ac592eac6fc1f0b8a300915de78e013046c7f2ac.png",
         "artist": "owl＊tree Remixed by Camellia",
         "title": "Sqlupp (Camellia's \"Sqleipd*Hiytex\" Remix)",
@@ -765,7 +801,7 @@
         "isDx": "True"
     },
     {
-        "id": "85",
+        "id": "89",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/a413d7183f0df7df05c23d504baf27adf67fc0f4b53620093d1ef0973f9738f9.png",
         "artist": "TANO*C Sound Team",
         "title": "BATTLE NO.1",
@@ -774,7 +810,7 @@
         "isDx": "True"
     },
     {
-        "id": "86",
+        "id": "90",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/58d17025b3ec3f7597c3938f24db34d4f0d6ef0c6ae8469d8e92938fcd1e5c2c.png",
         "artist": "千本松 仁",
         "title": "ARAIS",
@@ -783,7 +819,7 @@
         "isDx": "True"
     },
     {
-        "id": "87",
+        "id": "91",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/4c891fd1abc9b728df7a38a4c67e18e459ed87bc0bcc1f0c0fd1cd75ab2097d6.png",
         "artist": "かめりあ(EDP)",
         "title": "Maboroshi",
@@ -792,7 +828,7 @@
         "isDx": "True"
     },
     {
-        "id": "88",
+        "id": "92",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/fbed0027cc902c3ee3417596d041727fc84c848e2d920c8b7a5ef61789d55374.png",
         "artist": "BlackY vs. WAiKURO",
         "title": "STEEL TRANSONIC",
@@ -801,7 +837,7 @@
         "isDx": "True"
     },
     {
-        "id": "89",
+        "id": "93",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/1b6fa9cfc73a16dc267429dd150407ea4d440071edbe750711f6d6c9c05864e1.png",
         "artist": "Masahiro \"Godspeed\" Aoki VS Kai",
         "title": "UniTas",
@@ -810,7 +846,7 @@
         "isDx": "True"
     },
     {
-        "id": "90",
+        "id": "94",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/11364aeccd394c4dfb26114157f8638765cd6c55ca2456db938767ef18e2c2cf.png",
         "artist": "cosMo＠暴走AlterEgo",
         "title": "アポカリプスに反逆の焔を焚べろ",
@@ -819,7 +855,7 @@
         "isDx": "True"
     },
     {
-        "id": "91",
+        "id": "95",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/0cb730e9fc36d1ad9b4eb83fa756b84835f3a37aa3facac4cac285c0a3294dfd.png",
         "artist": "MintJam",
         "title": "Now or Never",
@@ -828,7 +864,7 @@
         "isDx": "True"
     },
     {
-        "id": "92",
+        "id": "96",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/87f68309e3a18c9fceb1c009583ca02243b9261acc33ce9745b9a79d5af98a86.png",
         "artist": "USAO",
         "title": "Blows Up Everything",
@@ -837,7 +873,7 @@
         "isDx": "True"
     },
     {
-        "id": "93",
+        "id": "97",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/4725fd0a1119bf56e0f3141058148e24bd73c8721a96cb2677786176d8f87aab.png",
         "artist": "Sampling Masters MEGA",
         "title": "バーチャルダム　ネーション",
@@ -846,7 +882,7 @@
         "isDx": "True"
     },
     {
-        "id": "94",
+        "id": "98",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/3d63e8574fb1ce6b571cbc21bb14c980a24738e0f36e109a1fe5ac8c46b917bc.png",
         "artist": "EBIMAYO",
         "title": "MAXRAGE",
@@ -855,7 +891,7 @@
         "isDx": "True"
     },
     {
-        "id": "95",
+        "id": "99",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/5c8fc242ab90ff214120f0d5927c9e64f05b92cc9db3d950a69891317bbe36f9.png",
         "artist": "cybermiso",
         "title": "FFT",
@@ -864,7 +900,7 @@
         "isDx": "False"
     },
     {
-        "id": "96",
+        "id": "100",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/cf885f0760a8e67a942c27861bc7c815f697ab81d47fe9f7f3038a3421ef99aa.png",
         "artist": "BlackY fused with WAiKURO",
         "title": "Alea jacta est!",
@@ -873,7 +909,7 @@
         "isDx": "False"
     },
     {
-        "id": "97",
+        "id": "101",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/fb6e02b14a9e8ff1012842c6acd7ec9be6e0765272e53364742d27b9f8d38e3c.png",
         "artist": "Tsukasa",
         "title": "Schwarzschild",
@@ -882,7 +918,7 @@
         "isDx": "False"
     },
     {
-        "id": "98",
+        "id": "102",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/a976f30250a36aa1eaaddd1e275988dc1cb730904cebcd5e2d6eef308d466216.png",
         "artist": "光吉猛修の父",
         "title": "B.M.S.",
@@ -891,7 +927,7 @@
         "isDx": "False"
     },
     {
-        "id": "99",
+        "id": "103",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/947ddb753cf8501b8273e2dd5dc4239130df53b8998a4a99e5fbde5e39e6c3ac.png",
         "artist": "MASAKI（ZUNTATA）「グルーヴコースター3EXドリームパーティー」より",
         "title": "Scarlet Lance",
@@ -900,7 +936,7 @@
         "isDx": "False"
     },
     {
-        "id": "100",
+        "id": "104",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/8173619680c5e0a2962f043d26fc1e17b2812b232ca080241c6aba04c1a7da2a.png",
         "artist": "cosMo VS dj TAKA「SOUND VOLTEX」より",
         "title": "極圏",
@@ -909,7 +945,7 @@
         "isDx": "False"
     },
     {
-        "id": "101",
+        "id": "105",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/2b9ee0b6ea8fef773725b8ae8832cd6a8c1676669408f689b0698939d89ad81b.png",
         "artist": "kanone feat. せんざい",
         "title": "花と、雪と、ドラムンベース。",
@@ -918,7 +954,7 @@
         "isDx": "False"
     },
     {
-        "id": "102",
+        "id": "106",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/02c941820e6430fa0587589c62a97d17bd266e7c7533850767894434f54c24bd.png",
         "artist": "t+pazolite",
         "title": "FREEDOM DiVE (tpz Overcute Remix)",
@@ -927,7 +963,7 @@
         "isDx": "False"
     },
     {
-        "id": "103",
+        "id": "107",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/055474e5d50fe33a286f7e7c9b4d85f5e3f388bd7c1a6040a3fbac2b567d033d.png",
         "artist": "sky_delta",
         "title": "Ragnarok",
@@ -936,7 +972,7 @@
         "isDx": "False"
     },
     {
-        "id": "104",
+        "id": "108",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/aca41bbc5e8874a347207065533971a2652e9d0217e377c54eaa4d118d69d396.png",
         "artist": "Tatsh",
         "title": "Xevel",
@@ -945,7 +981,7 @@
         "isDx": "False"
     },
     {
-        "id": "105",
+        "id": "109",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/3d8d1dd48b27fbf3c2924e1047ad52fe2d4239d36355b823e067acf46c90578b.png",
         "artist": "Storyteller",
         "title": "初音ミクの激唱",
@@ -954,7 +990,7 @@
         "isDx": "False"
     },
     {
-        "id": "106",
+        "id": "110",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/739c9134f70f49dc86e57cb52d8aaae78abdf8e4a7343bf426752651e5a05e18.png",
         "artist": "void (Mournfinale)",
         "title": "World Vanquisher",
@@ -963,7 +999,7 @@
         "isDx": "False"
     },
     {
-        "id": "107",
+        "id": "111",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/07aa6858d07c8011b0e8a5e90e04b38f97af727102708c8fc1ec96306fb74ba2.png",
         "artist": "cosMo＠暴走P",
         "title": "エンドマークに希望と涙を添えて",
@@ -972,7 +1008,7 @@
         "isDx": "False"
     },
     {
-        "id": "108",
+        "id": "112",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/b3835a12ab7ec04f9f4f38a383aea500459466e51b05209d550dbcce5824d971.png",
         "artist": "sasakure.UK",
         "title": "麒麟",
@@ -981,7 +1017,7 @@
         "isDx": "False"
     },
     {
-        "id": "109",
+        "id": "113",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/84e1340f3193eeef9dd152ebc9ed324e4c23471a9608653bca5f7cbd76665e3f.png",
         "artist": "LeaF",
         "title": "Calamity Fortune",
@@ -990,7 +1026,7 @@
         "isDx": "False"
     },
     {
-        "id": "110",
+        "id": "114",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/51323f3bc8073d991fca4bb8c78c21eaff445cd57d7e2971d8112820fe93656e.png",
         "artist": "Sampling Masters MEGA",
         "title": "Moon of Noon",
@@ -999,7 +1035,7 @@
         "isDx": "False"
     },
     {
-        "id": "111",
+        "id": "115",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/2c34e6ecd46d18ba5b392a7c4030623f02c55611a8aea37ac5f80c96be12232c.png",
         "artist": "cybermiso",
         "title": "Panopticon",
@@ -1008,7 +1044,7 @@
         "isDx": "False"
     },
     {
-        "id": "112",
+        "id": "116",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/2c34e6ecd46d18ba5b392a7c4030623f02c55611a8aea37ac5f80c96be12232c.png",
         "artist": "cybermiso",
         "title": "Panopticon",
@@ -1017,7 +1053,7 @@
         "isDx": "False"
     },
     {
-        "id": "113",
+        "id": "117",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/cbe42455075460ba27ef54231732903147d12b0ba82a9bee6de8520a23686393.png",
         "artist": "cosMo＠暴走P",
         "title": "ねぇ、壊れタ人形ハ何処へ棄テらレるノ？",
@@ -1026,7 +1062,7 @@
         "isDx": "False"
     },
     {
-        "id": "114",
+        "id": "118",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/22884dde4e0926f82aec00942aca61b134bd7c3894eadedcbf1ac9636de5328f.png",
         "artist": "Feryquitous",
         "title": "Lividi",
@@ -1035,7 +1071,7 @@
         "isDx": "False"
     },
     {
-        "id": "115",
+        "id": "119",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/c8f70548b764a923f9c07b0457d87a286170a5be6d3a2c524de6723e0d0e9561.png",
         "artist": "ルゼ",
         "title": "HERA",
@@ -1044,7 +1080,7 @@
         "isDx": "False"
     },
     {
-        "id": "116",
+        "id": "120",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/ad00d95b400d16ac7bdd65b7ab4772051bbd0e4bcd6f4738ab1434901aac6347.png",
         "artist": "siromaru + cranky",
         "title": "conflict",
@@ -1053,7 +1089,7 @@
         "isDx": "False"
     },
     {
-        "id": "117",
+        "id": "121",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/de160cdc21de9c124db1c597dbfd8719d1365e2013e70d4a70132d15b3b845c0.png",
         "artist": "WAiKURO",
         "title": "AMAZING MIGHTYYYY!!!!",
@@ -1062,7 +1098,7 @@
         "isDx": "False"
     },
     {
-        "id": "118",
+        "id": "122",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/e0d4065eac9bda002310933ad04e3378e141fda3ddf5fd70f1d2a0b8f694d9b4.png",
         "artist": "D-Cee",
         "title": "CITRUS MONSTER",
@@ -1071,7 +1107,7 @@
         "isDx": "False"
     },
     {
-        "id": "119",
+        "id": "123",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/727ef246ec32c604d22d9358f358194ddfd8dc44f87de2e77bcaee8e7db96448.png",
         "artist": "t+pazolite",
         "title": "Contrapasso -paradiso-",
@@ -1080,7 +1116,7 @@
         "isDx": "False"
     },
     {
-        "id": "120",
+        "id": "124",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/e9f57c0d3a782935794eda4f7bf216d8b2a3973b2b0fbc4717da1522c0dfe462.png",
         "artist": "SHIKI",
         "title": "METATRON",
@@ -1089,7 +1125,7 @@
         "isDx": "False"
     },
     {
-        "id": "121",
+        "id": "125",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/4f7d9ec836d61addbbc5a26c8a3f03e17fd91ad5c06711981dc54b1e04b2e932.png",
         "artist": "削除",
         "title": "7thSense",
@@ -1098,7 +1134,7 @@
         "isDx": "False"
     },
     {
-        "id": "122",
+        "id": "126",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/e2ca2f1853a16d4ab25d67784af8692e0737d8b0af5f15fad4f9edc17f779489.png",
         "artist": "void(Mournfinale)",
         "title": "Revive The Rave",
@@ -1107,7 +1143,7 @@
         "isDx": "False"
     },
     {
-        "id": "123",
+        "id": "127",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/4ea26f737916ec69c73e22628452904ea0a619835a21211b4f03bd17bef56e14.png",
         "artist": "cosMo＠暴走P",
         "title": "初音ミクの消失",
@@ -1116,7 +1152,7 @@
         "isDx": "True"
     },
     {
-        "id": "124",
+        "id": "128",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/43a86d80f379804a7c04a39f5c08fafe16c3e915767f04d1abac59ccab556dda.png",
         "artist": "AcuticNotes",
         "title": "Axeria",
@@ -1125,7 +1161,7 @@
         "isDx": "False"
     },
     {
-        "id": "125",
+        "id": "129",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/1a95069d603925739cbd7d014ba13f582771713ce0158701493b43f0dab4f860.png",
         "artist": "xi",
         "title": "Aiolos",
@@ -1134,7 +1170,7 @@
         "isDx": "False"
     },
     {
-        "id": "126",
+        "id": "130",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/bc7cd87b2a854f63049f834d7ecd9733724424188dc1dae53b33234c70d585b1.png",
         "artist": "t+pazolite",
         "title": "Oshama Scramble!",
@@ -1143,7 +1179,7 @@
         "isDx": "False"
     },
     {
-        "id": "127",
+        "id": "131",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/c299f1dea4115d6106b5e5b4433be3506680c727f029b0e10706af1311ba4a83.png",
         "artist": "Neru",
         "title": "ロストワンの号哭",
@@ -1152,7 +1188,7 @@
         "isDx": "False"
     },
     {
-        "id": "128",
+        "id": "132",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/9b5077aa1296855dd87961ca3e8b5d3e2508725c56c2f6a7cf93b8b2ab50f45b.png",
         "artist": "Project Grimoire",
         "title": "Caliburne ～Story of the Legendary sword～",
@@ -1161,7 +1197,7 @@
         "isDx": "False"
     },
     {
-        "id": "129",
+        "id": "133",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/434dc1342db00b19ce5963c43f1c8234b0bb77d20bf951978a79089cb2b28e97.png",
         "artist": "Shandy kubota",
         "title": "Dragoon",
@@ -1170,7 +1206,7 @@
         "isDx": "False"
     },
     {
-        "id": "130",
+        "id": "134",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/004479a6ef2fec8718f8c1ce3e5785c29b687862128baa216d446ce9e05023b6.png",
         "artist": "COSIO(ZUNTATA)「グルーヴコースター」より",
         "title": "FUJIN Rumble",
@@ -1179,7 +1215,7 @@
         "isDx": "False"
     },
     {
-        "id": "131",
+        "id": "135",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/eee51f837da9a38075824a55c9b213f5f6902dd5092b581a41b97edecb12bb23.png",
         "artist": "Yuji Masubuchi「太鼓の達人」より",
         "title": "Ignis Danse",
@@ -1188,7 +1224,7 @@
         "isDx": "False"
     },
     {
-        "id": "132",
+        "id": "136",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/a2549bd0afcfd0c262823acd96912fdb2887dfc172e90c6649fc9b65742fb7e1.png",
         "artist": "E.G.G.「グルーヴコースター」より",
         "title": "Got more raves？",
@@ -1197,7 +1233,7 @@
         "isDx": "False"
     },
     {
-        "id": "133",
+        "id": "137",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/da91c79222faa000bc23e5f2d1f02fbf2627981b3ef559164bcefe609e9c0a35.png",
         "artist": "DJ YOSHITAKA「jubeat」より",
         "title": "FLOWER",
@@ -1206,7 +1242,7 @@
         "isDx": "False"
     },
     {
-        "id": "134",
+        "id": "138",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/8f925c357cf40d1b17b9c3d6b195f50f97f66ed7a793d8117fd71a38a147487c.png",
         "artist": "LindaAI-CUE(BNGI)「太鼓の達人」より",
         "title": "きたさいたま2000",
@@ -1215,7 +1251,7 @@
         "isDx": "False"
     },
     {
-        "id": "135",
+        "id": "139",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/aa61d49f63dc0ed90cd36cc73e28979a8660449e4f97bf57e696bc0804e2b8e7.png",
         "artist": "sasakure.UK",
         "title": "Jack-the-Ripper◆",
@@ -1224,7 +1260,7 @@
         "isDx": "False"
     },
     {
-        "id": "136",
+        "id": "140",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/306f56cd0dfbf01698b1a082043fd78ef1e4a5c1541c6c9b206f878bb541fb31.png",
         "artist": "豚乙女",
         "title": "幻想のサテライト",
@@ -1233,7 +1269,7 @@
         "isDx": "False"
     },
     {
-        "id": "137",
+        "id": "141",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/627593efd5b676fb993a7390c816b23eabdcbe32719d3f37da7230016d5ed07e.png",
         "artist": "山根ミチル",
         "title": "火炎地獄",
@@ -1242,7 +1278,7 @@
         "isDx": "True"
     },
     {
-        "id": "138",
+        "id": "142",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/627593efd5b676fb993a7390c816b23eabdcbe32719d3f37da7230016d5ed07e.png",
         "artist": "山根ミチル",
         "title": "火炎地獄",
@@ -1251,7 +1287,7 @@
         "isDx": "False"
     },
     {
-        "id": "139",
+        "id": "143",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/d1759073b8ff47cbb1ac00b7a3fb4d0c7c06fcc338671a19362fdcd00510bd1d.png",
         "artist": "Cranky feat. まらしぃ ＆ てっぺい先生",
         "title": "MYTHOS",
@@ -1260,7 +1296,7 @@
         "isDx": "False"
     },
     {
-        "id": "140",
+        "id": "144",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/8b3292764265e4742752625340e8a72348dc3ef4e99894e6a360ecd27969398c.png",
         "artist": "Jimmy Weckl",
         "title": "System “Z”",
@@ -1269,7 +1305,7 @@
         "isDx": "False"
     },
     {
-        "id": "141",
+        "id": "145",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/2fd925d0bc0256851e1c4c80354c792af803f98e057c95972873b5dd352b6a8f.png",
         "artist": "t+pazolite",
         "title": "Garakuta Doll Play",
@@ -1278,7 +1314,7 @@
         "isDx": "False"
     },
     {
-        "id": "142",
+        "id": "146",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/8cccf9898f16f827eb0c419df0982b13b1b1a2846d38d45b89f2e3ec0c0198d2.png",
         "artist": "SHIKI",
         "title": "Death Scythe",
@@ -1287,7 +1323,7 @@
         "isDx": "False"
     },
     {
-        "id": "143",
+        "id": "147",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/613f42e31298545c27f2ac9ba3f81d877a13401c03f7ea1fc2faf5c7cbe1bb5d.png",
         "artist": "Shoichiro Hirata",
         "title": "Beat of getting entangled",
@@ -1296,7 +1332,7 @@
         "isDx": "False"
     },
     {
-        "id": "144",
+        "id": "148",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/3cce017c2fed74309256a3b3f13e4788a383736d28d5112a90178f4ad2b8abb3.png",
         "artist": "LOPIT(SEGA)",
         "title": "記憶、記録",
@@ -1305,7 +1341,7 @@
         "isDx": "False"
     },
     {
-        "id": "145",
+        "id": "149",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/a9ecc1e80667056bc5cbb75e81923782746a5a83aaef06242b2a1770c35c1e63.png",
         "artist": "ビートまりお(COOL＆CREATE)",
         "title": "ナイト・オブ・ナイツ",
@@ -1314,7 +1350,7 @@
         "isDx": "False"
     },
     {
-        "id": "146",
+        "id": "150",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/a12e92a73087d0568a87563ae78945099febd1f5dd6c8bf2fcddb7e85bb9ed8a.png",
         "artist": "じん",
         "title": "カゲロウデイズ",
@@ -1323,7 +1359,7 @@
         "isDx": "False"
     },
     {
-        "id": "147",
+        "id": "151",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/5db6d9816b387ecc6b30bef27ec0787619b54ec01af68b7c02931edeed4aee63.png",
         "artist": "れるりり",
         "title": "脳漿炸裂ガール",
@@ -1332,7 +1368,7 @@
         "isDx": "False"
     },
     {
-        "id": "148",
+        "id": "152",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/c3542fc22bf60cc32880e3c4d72f93d02b4315e04a0a5feceeedb17c2ef4d431.png",
         "artist": "Taishi",
         "title": "Nerverakes",
@@ -1341,7 +1377,7 @@
         "isDx": "False"
     },
     {
-        "id": "149",
+        "id": "153",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/0ecab941e218b4f8828451af340524a74fb786e9f65d2122eafcec15cc658db4.png",
         "artist": "Tsukasa(Arte Refact)",
         "title": "Fragrance",
@@ -1350,7 +1386,7 @@
         "isDx": "False"
     },
     {
-        "id": "150",
+        "id": "154",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/671128a0c103a5de70afc3d6a4eeb123d3afb4d79ef092de0022bba4543efd68.png",
         "artist": "SEGA Sound Unit [H.]",
         "title": "ジングルベル",
@@ -1359,7 +1395,7 @@
         "isDx": "False"
     },
     {
-        "id": "151",
+        "id": "155",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/671128a0c103a5de70afc3d6a4eeb123d3afb4d79ef092de0022bba4543efd68.png",
         "artist": "SEGA Sound Unit [H.]",
         "title": "ジングルベル",
@@ -1368,7 +1404,7 @@
         "isDx": "False"
     },
     {
-        "id": "152",
+        "id": "156",
         "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/96246c9fe1f280ed589042129b57eca5b1523781f61de4100f338cc91f015e2f.png",
         "artist": "Hiro「Crackin’DJ」",
         "title": "Beat Of Mind",

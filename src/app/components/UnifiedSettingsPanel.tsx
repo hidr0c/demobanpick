@@ -5,11 +5,14 @@ import { Song } from '../interface';
 
 // Available pools
 const POOL_OPTIONS = [
-    { id: 'newbieSemi', name: 'Newbie Semi', file: 'newbieSemi.json' },
-    { id: 'qualTop', name: 'Qual Top', file: 'qualTop.json' },
-    { id: 'qualBottom', name: 'Qual Bottom', file: 'qualBottom.json' },
-    { id: 'semiFinals', name: 'Semi Finals', file: 'semiFinals.json' },
-    { id: 'finals', name: 'Finals', file: 'finals.json' },
+    { id: 'newbieQual1', name: 'Bảng dưới - Vòng loại 1', file: 'N1 - newbieQual1.json' },
+    { id: 'newbieQual2', name: 'Bảng dưới - Vòng loại 2', file: 'N2 - newbieQual2.json' },
+    { id: 'newbieSemi', name: 'Bảng dưới - Bán kết', file: 'N3 - newbieSemi.json' },
+    { id: 'newbieFinals', name: 'Bảng dưới - Chung kết', file: 'N4 - newbieFinals.json' },
+    { id: 'proQual', name: 'Bảng trên - Vòng 32 và 16', file: 'P1 - proTop3216.json' },
+    { id: 'proTop8', name: 'Bảng trên - Vòng 8', file: 'P2 - proTop8.json' },
+    { id: 'proSemi', name: 'Bảng trên - Bán kết', file: 'P3 - proSemi.json' },
+    { id: 'proFinals', name: 'Bảng trên - Chung kết', file: 'P4 - proFinals.json' },
     { id: 'top32', name: 'Top 32 (Custom)', file: 'top32.json' },
 ];
 
