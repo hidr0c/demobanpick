@@ -71,7 +71,7 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
                 setSelectedIndex(prev => {
                     let newIndex = prev - 1;
                     // Skip banned songs
-                    while (newIndex >= 0 && isBanned(songs[newIndex])) {
+                    while (newIndex >= 0 && (isBanned(songs[newIndex]) || isPicked(songs[newIndex]))) {
                         newIndex--;
                     }
                     return Math.max(0, newIndex);
@@ -80,7 +80,7 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
                 setSelectedIndex(prev => {
                     let newIndex = prev + 1;
                     // Skip banned songs
-                    while (newIndex < songs.length && isBanned(songs[newIndex])) {
+                    while (newIndex < songs.length && (isBanned(songs[newIndex]) || isPicked(songs[newIndex]))) {
                         newIndex++;
                     }
                     return Math.min(songs.length - 1, newIndex);
@@ -89,7 +89,7 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
                 setSelectedIndex(prev => {
                     let newIndex = prev - gridColumns;
                     // Skip banned songs
-                    while (newIndex >= 0 && isBanned(songs[newIndex])) {
+                    while (newIndex >= 0 && (isBanned(songs[newIndex]) || isPicked(songs[newIndex]))) {
                         newIndex--;
                     }
                     return Math.max(0, newIndex);
@@ -98,7 +98,7 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
                 setSelectedIndex(prev => {
                     let newIndex = prev + gridColumns;
                     // Skip banned songs
-                    while (newIndex < songs.length && isBanned(songs[newIndex])) {
+                    while (newIndex < songs.length && (isBanned(songs[newIndex]) || isPicked(songs[newIndex]))) {
                         newIndex++;
                     }
                     return Math.min(songs.length - 1, newIndex);
