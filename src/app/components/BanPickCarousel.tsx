@@ -89,10 +89,10 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
                 setSelectedIndex(prev => {
                     let newIndex = prev - gridColumns;
                     // Skip banned songs
-                    while (newIndex < songs.length && isBanned(songs[newIndex])) {
-                        newIndex++;
+                    while (newIndex >= 0 && isBanned(songs[newIndex])) {
+                        newIndex--;
                     }
-                    return Math.min(songs.length - 1, newIndex);
+                    return Math.max(0, newIndex);
                 });
             } else if (e.key === 'ArrowDown') {
                 setSelectedIndex(prev => {
