@@ -85,7 +85,26 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
                     }
                     return Math.min(songs.length - 1, newIndex);
                 });
-            } else if (e.key === 'Enter') {
+            } else if (e.key === 'ArrowUp') {
+                setSelectedIndex(prev => {
+                    let newIndex = prev - gridColumns;
+                    // Skip banned songs
+                    while (newIndex < songs.length && isBanned(songs[newIndex])) {
+                        newIndex++;
+                    }
+                    return Math.min(songs.length - 1, newIndex);
+                });
+            } else if (e.key === 'ArrowDown') {
+                setSelectedIndex(prev => {
+                    let newIndex = prev + gridColumns;
+                    // Skip banned songs
+                    while (newIndex < songs.length && isBanned(songs[newIndex])) {
+                        newIndex++;
+                    }
+                    return Math.min(songs.length - 1, newIndex);
+                });
+            }
+            else if (e.key === 'Enter') {
                 if (isCompleted && onComplete) {
                     onComplete();
                 } else {
