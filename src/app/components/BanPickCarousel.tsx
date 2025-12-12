@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import { Song } from '../interface';
 
@@ -14,6 +14,8 @@ interface BanPickCarouselProps {
     remainingPicks: number;
     onComplete?: () => void;
     showFinalOnly?: boolean;
+    lockedTracks?: { track3?: Song; track4?: Song };
+    hiddenTracks?: { track3Hidden: boolean; track4Hidden: boolean };
 }
 
 const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
@@ -25,9 +27,34 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
     remainingBans,
     remainingPicks,
     onComplete,
-    showFinalOnly = false
+    showFinalOnly = false,
+    lockedTracks = {},
+    hiddenTracks = { track3Hidden: false, track4Hidden: false }
 }) => {
     const [selectedIndex, setSelectedIndex] = useState(0);
+    const preloadedImagesRef = useRef<Set<string>>(new Set());
+
+    // Check if a song is a hidden locked track
+    const isHiddenLockedTrack = (song: Song): boolean => {
+        if (lockedTracks.track3 && song.id === lockedTracks.track3.id && hiddenTracks.track3Hidden) {
+            return true;
+        }
+        if (lockedTracks.track4 && song.id === lockedTracks.track4.id && hiddenTracks.track4Hidden) {
+            return true;
+        }
+        return false;
+    };
+
+    // Preload images when songs change
+    useEffect(() => {
+        songs.forEach(song => {
+            if (!preloadedImagesRef.current.has(song.imgUrl)) {
+                const img = new window.Image();
+                img.src = song.imgUrl;
+                preloadedImagesRef.current.add(song.imgUrl);
+            }
+        });
+    }, [songs]);
 
     const getDiffColor = (difficulty: string) => {
         switch (difficulty) {
@@ -177,30 +204,36 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
                                 width: FRAME_OVERLAY_W,
                                 height: FRAME_OVERLAY_H,
                                 flexShrink: 0,
-                                transform: picked
-                                    ? 'scale(1.05) translateY(-10px)'
-                                    : banned || notChosen
-                                        ? 'scale(0.9) translateY(10px)'
-                                        : 'scale(1)',
+                                transform: showFinalOnly
+                                    ? 'scale(1)'
+                                    : picked
+                                        ? 'scale(1.05) translateY(-10px)'
+                                        : banned || notChosen
+                                            ? 'scale(0.9) translateY(10px)'
+                                            : 'scale(1)',
                                 opacity: 1,
                                 zIndex: picked ? 10 : banned || notChosen ? 1 : 5,
+                                marginTop: showFinalOnly ? '40px' : '0' // Space for track label
                             }}
                         >
 
-                            {/* Jacket image */}
+                            {/* Jacket image - use random.png if hidden locked track in final view */}
                             <img
-                                src={song.imgUrl}
+                                src={showFinalOnly && isHiddenLockedTrack(song) ? '/assets/random.png' : song.imgUrl}
                                 alt={song.title}
+                                loading="eager"
+                                decoding="async"
                                 className="absolute"
                                 style={{
-                                    width: FRAME_W,
-                                    height: FRAME_H,
+                                    width: showFinalOnly && isHiddenLockedTrack(song) ? FRAME_W * 1.1 : FRAME_W,
+                                    height: showFinalOnly && isHiddenLockedTrack(song) ? FRAME_H * 1.1 : FRAME_H,
                                     objectFit: 'cover',
                                     left: '50%',
                                     top: '50%',
                                     transform: `translate(-50%, -50%) translateY(-${FRAME_OVERLAY_H / 13}px)`,
                                     zIndex: 1,
-                                    filter: (banned || notChosen) ? 'grayscale(100%)' : 'none'
+                                    filter: (banned || notChosen) ? 'grayscale(100%)' : 'none',
+                                    contentVisibility: 'auto'
                                 }}
                             />
 
@@ -260,12 +293,14 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
                                 </div>
                                 <div
                                     style={{
-                                        fontSize: 20,
+                                        fontSize: (showFinalOnly && isHiddenLockedTrack(song)) ? 22 : 20,
                                         fontWeight: 800,
-                                        color: (banned || notChosen) ? '#d1d5db' : '#f1f1f1',
+                                        color: (banned || notChosen) ? '#9ca3af' : '#f1f1f1',
                                         textShadow: (banned || notChosen)
                                             ? '0 2px 4px rgba(0,0,0,0.8), 0 0 8px rgba(0,0,0,0.6)'
-                                            : `
+                                            : (showFinalOnly && isHiddenLockedTrack(song))
+                                                ? `-2px -2px 0 ${getDiffColor(song.diff)}, 2px -2px 0 ${getDiffColor(song.diff)}, -2px 2px 0 ${getDiffColor(song.diff)}, 2px 2px 0 ${getDiffColor(song.diff)}, -3px 0px 0 ${getDiffColor(song.diff)}, 3px 0px 0 ${getDiffColor(song.diff)}, 0px -3px 0 ${getDiffColor(song.diff)}, 0px 3px 0 ${getDiffColor(song.diff)}`
+                                                : `
                                         -2px -2px 0 ${getDiffColor(song.diff)}, 
                                         2px -2px 0 ${getDiffColor(song.diff)},
                                         -2px 2px 0 ${getDiffColor(song.diff)},
@@ -278,7 +313,7 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
                                         letterSpacing: '0.5px'
                                     }}
                                 >
-                                    {song.lv}
+                                    {showFinalOnly && isHiddenLockedTrack(song) ? '???' : song.lv}
                                 </div>
                             </div>
 
@@ -307,12 +342,12 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
                                         fontSize: `${TITLE_FONT_SIZE}`,
                                         color: '#000',
                                         whiteSpace: 'nowrap',
-                                        animation: song.title.length > 20 ? 'marquee 15s linear infinite' : 'none',
+                                        animation: (!showFinalOnly || !isHiddenLockedTrack(song)) && song.title.length > 20 ? 'marquee 15s linear infinite' : 'none',
                                         display: 'inline-block'
                                     }}
 
                                 >
-                                    {song.title}
+                                    {showFinalOnly && isHiddenLockedTrack(song) ? '???' : song.title}
                                 </div>
                             </div>
 
@@ -340,11 +375,11 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
                                         fontSize: 12,
                                         color: '#000',
                                         whiteSpace: 'nowrap',
-                                        animation: song.artist.length > 20 ? 'marquee 18s linear infinite' : 'none',
+                                        animation: (!showFinalOnly || !isHiddenLockedTrack(song)) && song.artist.length > 20 ? 'marquee 18s linear infinite' : 'none',
                                         display: 'inline-block'
                                     }}
                                 >
-                                    {song.artist}
+                                    {showFinalOnly && isHiddenLockedTrack(song) ? '???' : song.artist}
                                 </div>
                             </div>
 
@@ -359,14 +394,20 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
                                 />
                             )}
 
-                            {/* Border for picked songs */}
-                            {showFinalOnly && picked && (
+                            {/* Track number label for final results */}
+                            {showFinalOnly && (
                                 <div
-                                    className="absolute inset-0 rounded-lg pointer-events-none z-50"
+                                    className="absolute -top-10 left-1/2 transform -translate-x-1/2 z-50"
                                     style={{
-                                        border: `4px solid ${getDiffColor(song.diff)}`
+                                        fontSize: '24px',
+                                        fontWeight: 800,
+                                        color: '#fff',
+                                        textShadow: `0 0 10px ${getDiffColor(song.diff)}, 0 2px 4px rgba(0,0,0,0.5)`,
+                                        letterSpacing: '2px'
                                     }}
-                                />
+                                >
+                                    TRACK {index + 1}
+                                </div>
                             )}
 
                             {/* Banned Overlay */}

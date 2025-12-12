@@ -213,6 +213,8 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
                         <img
                             src={song.imgUrl}
                             alt={song.title}
+                            loading="eager"
+                            decoding="async"
                             className="absolute"
                             style={{
                                 width: FRAME_W,
@@ -223,7 +225,8 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
                                 transform: `translate(-50%, -50%) translateY(-${FRAME_OVERLAY_H / 13}px)`,
                                 zIndex: 1,
                                 backfaceVisibility: 'hidden',
-                                willChange: 'contents'
+                                willChange: 'contents',
+                                contentVisibility: 'auto'
                             }}
                         />
 

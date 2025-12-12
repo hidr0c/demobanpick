@@ -102,170 +102,151 @@ export default function MatchDisplay() {
         }
 
         return `/assets/${diffName}-${type}.png`;
-    }; const FRAME_W = 140;
-    const FRAME_H = 140;
-    const FRAME_OVERLAY_W = 200;
-    const FRAME_OVERLAY_H = 260;
+    };
+
+    const getGradientColor = (diff: string) => {
+        switch (diff) {
+            case 'EXPERT':
+                return '#ef4444';
+            case 'MASTER':
+                return '#9333ea';
+            case 'RE:MASTER':
+            case 'Re:MASTER':
+                return '#c084fc';
+            default:
+                return '#a855f7';
+        }
+    };
+
+    const getDiffBgColor = (diff: string) => {
+        switch (diff) {
+            case 'EXPERT':
+                return '#ef4444';
+            case 'MASTER':
+                return '#9333ea';
+            case 'RE:MASTER':
+            case 'Re:MASTER':
+                return '#c084fc';
+            default:
+                return '#9333ea';
+        }
+    };
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-start pt-8 p-8 pb-16">
-            {/* Track counter */}
-            <div className="mb-8 text-white text-2xl font-bold">
-                Track {currentIndex + 1} / {songs.length}
-            </div>
-
-            {/* Main display */}
+        <div className="min-h-screen flex flex-col items-center justify-end p-8 pb-2">
+            {/* Main display - horizontal card */}
             <div
-                className="relative transition-all duration-300"
+                className="relative flex items-center transition-all duration-300"
                 style={{
-                    width: FRAME_OVERLAY_W,
-                    height: FRAME_OVERLAY_H,
-                    paddingBottom: '8px'
+                    background: `linear-gradient(to right, transparent 0%, ${getGradientColor(currentSong.diff)}90 30%, ${getGradientColor(currentSong.diff)} 100%)`,
+                    borderRadius: '12px',
+                    paddingBottom: '20px',
+                    paddingTop: '12px',
+                    paddingRight: '24px',
+                    paddingLeft: '12px',
+                    maxWidth: '600px',
+                    width: '100%',
+                    gap: '16px'
                 }}
             >
                 {/* Jacket */}
                 <img
                     src={currentSong.imgUrl}
                     alt={currentSong.title}
-                    className="absolute"
                     style={{
-                        width: FRAME_W,
-                        height: FRAME_H,
+                        width: '80px',
+                        height: '80px',
                         objectFit: 'cover',
-                        borderRadius: '12px',
-                        border: `3px solid ${getBorderColor(currentSong.diff)}`,
-                        boxShadow: `0 0 20px ${getBorderColor(currentSong.diff)}80`,
-                        left: '50%',
-                        top: '50%',
-                        transform: 'translate(-50%, -50%) translateY(-20px)',
-                        zIndex: 1
+                        borderRadius: '8px',
+                        border: `2px solid rgba(255,255,255,0.3)`,
+                        flexShrink: 0
                     }}
                 />
 
-                {/* Frame */}
-                <img
-                    src={getFrameImage(currentSong.diff, currentSong.isDx)}
-                    alt="frame"
-                    className="absolute"
-                    style={{
-                        width: FRAME_OVERLAY_W,
-                        height: FRAME_OVERLAY_H,
-                        left: '50%',
-                        top: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        pointerEvents: 'none',
-                        zIndex: 3
-                    }}
-                />
-
-                {/* Diff + Lv - centered with gap */}
-                <div
-                    className="absolute"
-                    style={{
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        bottom: FRAME_OVERLAY_H * 0.23,
-                        zIndex: 4,
-                        pointerEvents: 'none',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        gap: '4px',
-                        color: 'white',
-                        textShadow: `
-                            -2px -2px 0 ${getDiffColor(currentSong.diff)}, 
-                            2px -2px 0 ${getDiffColor(currentSong.diff)},
-                            -2px 2px 0 ${getDiffColor(currentSong.diff)},
-                            2px 2px 0 ${getDiffColor(currentSong.diff)},
-                            -3px 0px 0 ${getDiffColor(currentSong.diff)},
-                            3px 0px 0 ${getDiffColor(currentSong.diff)},
-                            0px -3px 0 ${getDiffColor(currentSong.diff)},
-                            0px 3px 0 ${getDiffColor(currentSong.diff)}
-                            `,
-                    }}
-                >
+                {/* Info section */}
+                <div className="flex flex-col flex-grow min-w-0">
+                    {/* Track number */}
                     <div
                         style={{
-                            fontSize: 16,
+                            fontSize: '18px',
                             fontWeight: 800,
-                            letterSpacing: '0.5px'
+                            color: 'white',
+                            textTransform: 'uppercase',
+                            letterSpacing: '1px',
+                            marginBottom: '4px'
                         }}
                     >
-                        {currentSong.diff}
+                        TRACK {currentIndex + 1}/{songs.length}
                     </div>
-                    <div
-                        style={{
-                            fontSize: 16,
-                            fontWeight: 800,
-                            letterSpacing: '0.5px'
-                        }}
-                    >
-                        {currentSong.lv}
-                    </div>
-                </div>
 
-                {/* Title */}
-                <div
-                    className="absolute"
-                    style={{
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        bottom: FRAME_OVERLAY_H * 0.13,
-                        width: FRAME_OVERLAY_W * 0.75,
-                        textAlign: 'center',
-                        zIndex: 4,
-                        overflow: 'hidden',
-                        clipPath: 'inset(0)',
-                        pointerEvents: 'none',
-                        height: '18px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                    }}
-                >
+                    {/* Title */}
                     <div
                         style={{
-                            fontSize: 14,
+                            fontSize: '20px',
                             fontWeight: 700,
-                            color: '#000',
+                            color: 'white',
                             whiteSpace: 'nowrap',
-                            animation: currentSong.title.length > 15 ? 'marquee 15s linear infinite' : 'none',
-                            display: 'inline-block'
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
                         }}
                     >
                         {currentSong.title}
                     </div>
-                </div>
 
-                {/* Artist */}
-                <div
-                    className="absolute"
-                    style={{
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        bottom: FRAME_OVERLAY_H * 0.045,
-                        width: FRAME_OVERLAY_W * 0.75,
-                        textAlign: 'center',
-                        zIndex: 4,
-                        overflow: 'hidden',
-                        clipPath: 'inset(0)',
-                        pointerEvents: 'none',
-                        height: '16px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                    }}
-                >
+                    {/* Artist */}
                     <div
                         style={{
-                            fontSize: 12,
-                            color: '#000',
+                            fontSize: '14px',
+                            color: 'rgba(255,255,255,0.8)',
                             whiteSpace: 'nowrap',
-                            animation: currentSong.artist.length > 20 ? 'marquee 18s linear infinite' : 'none',
-                            display: 'inline-block'
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
                         }}
                     >
                         {currentSong.artist}
+                    </div>
+                </div>
+
+                {/* Diff badges */}
+                <div className="flex items-center gap-2 flex-shrink-0">
+                    {/* STD/DX badge */}
+                    <div
+                        style={{
+                            padding: '4px 10px',
+                            borderRadius: '4px',
+                            backgroundColor: 'rgba(255,255,255,0.2)',
+                            color: 'white',
+                            fontSize: '12px',
+                            fontWeight: 700
+                        }}
+                    >
+                        {currentSong.isDx === 'True' ? 'DX' : 'STD'}
+                    </div>
+
+                    {/* Diff badge */}
+                    <div
+                        style={{
+                            padding: '4px 12px',
+                            borderRadius: '4px',
+                            backgroundColor: getDiffBgColor(currentSong.diff),
+                            color: 'white',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            border: '1px solid rgba(255,255,255,0.3)'
+                        }}
+                    >
+                        {currentSong.diff}
+                    </div>
+
+                    {/* Level */}
+                    <div
+                        style={{
+                            fontSize: '16px',
+                            fontWeight: 800,
+                            color: 'white'
+                        }}
+                    >
+                        {currentSong.lv}
                     </div>
                 </div>
             </div>

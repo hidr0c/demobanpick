@@ -23,12 +23,14 @@ type UnifiedSettingsPanelProps = {
     banCount: number;
     fixedSongs: Song[];
     lockedTracks: { track3?: Song; track4?: Song };
+    hiddenTracks: { track3Hidden: boolean; track4Hidden: boolean };
     selectedPool: string;
     onRandomCountChange: (count: number) => void;
     onPickCountChange: (count: number) => void;
     onBanCountChange: (count: number) => void;
     onFixedSongsChange: (songs: Song[]) => void;
     onLockedTracksChange: (locked: { track3?: Song; track4?: Song }) => void;
+    onHiddenTracksChange: (hidden: { track3Hidden: boolean; track4Hidden: boolean }) => void;
     onPoolChange: (poolId: string) => void;
     maxTotal?: number;
     minTotal?: number;
@@ -41,12 +43,14 @@ const UnifiedSettingsPanel: React.FC<UnifiedSettingsPanelProps> = ({
     banCount,
     fixedSongs,
     lockedTracks,
+    hiddenTracks,
     selectedPool,
     onRandomCountChange,
     onPickCountChange,
     onBanCountChange,
     onFixedSongsChange,
     onLockedTracksChange,
+    onHiddenTracksChange,
     onPoolChange,
     // maxTotal = 6,
     // minTotal = 2
@@ -448,9 +452,39 @@ const UnifiedSettingsPanel: React.FC<UnifiedSettingsPanelProps> = ({
                                 )}
                             </div>
 
-                            <p className="text-xs text-gray-500 mt-2">
-                                Locked tracks won't appear in random/ban/pick pools
-                            </p>
+                            {/* Hidden Tracks Options */}
+                            <div className="mt-4 p-3 bg-gray-700 rounded-lg">
+                                <label className="text-gray-300 text-xs font-bold block mb-2">Hiển thị ẩn (Bài bí mật)</label>
+                                <div className="space-y-2">
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={hiddenTracks.track3Hidden}
+                                            onChange={(e) => onHiddenTracksChange({ ...hiddenTracks, track3Hidden: e.target.checked })}
+                                            disabled={!lockedTracks.track3}
+                                            className="w-4 h-4 rounded border-purple-500 text-purple-600 focus:ring-purple-500 disabled:opacity-50"
+                                        />
+                                        <span className={`text-sm ${lockedTracks.track3 ? 'text-white' : 'text-gray-500'}`}>
+                                            Track 3 - Bài ẩn {lockedTracks.track3 ? '' : '(Chưa chọn bài)'}
+                                        </span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={hiddenTracks.track4Hidden}
+                                            onChange={(e) => onHiddenTracksChange({ ...hiddenTracks, track4Hidden: e.target.checked })}
+                                            disabled={!lockedTracks.track4}
+                                            className="w-4 h-4 rounded border-purple-500 text-purple-600 focus:ring-purple-500 disabled:opacity-50"
+                                        />
+                                        <span className={`text-sm ${lockedTracks.track4 ? 'text-white' : 'text-gray-500'}`}>
+                                            Track 4 - Bài ẩn {lockedTracks.track4 ? '' : '(Chưa chọn bài)'}
+                                        </span>
+                                    </label>
+                                </div>
+                                <p className="text-xs text-gray-500 mt-2">
+                                    Bài ẩn sẽ chỉ hiển thị tại kết quả Ban/Pick và Match Display
+                                </p>
+                            </div>
                         </div>
 
                         {/* Song Pool Section */}

@@ -41,6 +41,19 @@ export default function Home() {
   const [poolVersion, setPoolVersion] = useState(0); // Force re-render key
   const abortControllerRef = useRef<AbortController | null>(null);
 
+  // Load selected pool from localStorage on mount
+  useEffect(() => {
+    const savedPool = localStorage.getItem('selectedPool');
+    if (savedPool && POOL_FILES[savedPool]) {
+      setSelectedPool(savedPool);
+    }
+  }, []);
+
+  // Save selected pool to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('selectedPool', selectedPool);
+  }, [selectedPool]);
+
   // Load pool data when selected pool changes
   useEffect(() => {
     // Cancel previous request if exists
@@ -120,6 +133,12 @@ export default function Home() {
   // Locked tracks (predetermined tracks 3 & 4)
   const [lockedTracks, setLockedTracks] = useState<{ track3?: Song; track4?: Song }>({});
 
+  // Hidden tracks settings (which locked tracks are hidden/secret)
+  const [hiddenTracks, setHiddenTracks] = useState<{ track3Hidden: boolean; track4Hidden: boolean }>({
+    track3Hidden: false,
+    track4Hidden: false
+  });
+
   // Random results (4-6 songs)
   const [randomResults, setRandomResults] = useState<Song[]>([]);
 
@@ -127,17 +146,22 @@ export default function Home() {
   const [showBanPick, setShowBanPick] = useState(false);
   const [bannedSongs, setBannedSongs] = useState<Song[]>([]);
   const [pickedSongs, setPickedSongs] = useState<Song[]>([]);
+  const [showFinalResults, setShowFinalResults] = useState(false);
 
-  // Listen for R key to reset
+  // Listen for R key to reset and Enter key for final results navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'r' || e.key === 'R') {
         handleReset();
       }
+      // Enter key to navigate to match display from final results screen
+      if (e.key === 'Enter' && showFinalResults) {
+        router.push('/match-display');
+      }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [showFinalResults, router]);
 
   const handleRandomComplete = useCallback((results: Song[]) => {
     setRandomResults(results);
@@ -177,27 +201,31 @@ export default function Home() {
   const handlePick = useCallback((song: Song) => {
     setPickedSongs(prev => [...prev, song]);
 
-    // When all picks are done, go to match display
+    // When all picks are done, show final results first
     if (pickedSongs.length + 1 >= pickCount) {
+      const finalPicked = [...pickedSongs, song];
+      localStorage.setItem('matchSongs', JSON.stringify(finalPicked));
+      localStorage.setItem('lockedTracks', JSON.stringify(lockedTracks));
+
+      // Show final results screen
       setTimeout(() => {
-        const finalPicked = [...pickedSongs, song];
-        localStorage.setItem('matchSongs', JSON.stringify(finalPicked));
-        localStorage.setItem('lockedTracks', JSON.stringify(lockedTracks));
-        router.push('/match-display');
+        setShowFinalResults(true);
       }, 500);
     }
-  }, [pickedSongs, pickCount, router]);
+  }, [pickedSongs, pickCount, lockedTracks]);
 
   const handleReset = () => {
     setFixedSongs([]);
     setRandomResults([]);
     setShowBanPick(false);
+    setShowFinalResults(false);
     setBannedSongs([]);
     setPickedSongs([]);
     setRandomCount(4);
     setPickCount(2);
     setBanCount(0);
     setLockedTracks({});
+    setHiddenTracks({ track3Hidden: false, track4Hidden: false });
   };
 
   const handlePoolChange = (poolId: string) => {
@@ -239,7 +267,7 @@ export default function Home() {
       />
 
       {/* Unified Settings Panel (top left) */}
-      {!showBanPick && (
+      {!showBanPick && !showFinalResults && (
         <UnifiedSettingsPanel
           pool={songData}
           randomCount={randomCount}
@@ -247,22 +275,52 @@ export default function Home() {
           banCount={banCount}
           fixedSongs={fixedSongs}
           lockedTracks={lockedTracks}
+          hiddenTracks={hiddenTracks}
           selectedPool={selectedPool}
           onRandomCountChange={setRandomCount}
           onBanCountChange={setBanCount}
           onPickCountChange={setPickCount}
           onFixedSongsChange={setFixedSongs}
           onLockedTracksChange={setLockedTracks}
+          onHiddenTracksChange={setHiddenTracks}
           onPoolChange={handlePoolChange}
           maxTotal={6}
           minTotal={4}
         />
       )}
 
-      {!showBanPick ? (
-        /* Random Phase */
+      {showFinalResults ? (
+        /* Final Results Phase - Show picked songs + locked tracks */
+        <div className="min-h-screen flex flex-col items-center justify-center p-4">
+          <h2 className="text-4xl font-bold text-white mb-8 text-center drop-shadow-lg tracking-wide"
+            style={{ textShadow: '0 0 20px rgba(168, 85, 247, 0.5), 0 4px 8px rgba(0,0,0,0.3)' }}>
+            BAN PICK RESULT
+          </h2>
+          <BanPickCarousel
+            songs={[
+              ...pickedSongs,
+              ...(lockedTracks.track3 ? [lockedTracks.track3] : []),
+              ...(lockedTracks.track4 ? [lockedTracks.track4] : [])
+            ]}
+            onBan={() => { }}
+            onPick={() => { }}
+            bannedSongs={[]}
+            pickedSongs={[
+              ...pickedSongs,
+              ...(lockedTracks.track3 ? [lockedTracks.track3] : []),
+              ...(lockedTracks.track4 ? [lockedTracks.track4] : [])
+            ]}
+            remainingBans={0}
+            remainingPicks={0}
+            showFinalOnly={true}
+            lockedTracks={lockedTracks}
+            hiddenTracks={hiddenTracks}
+          />
+        </div>
+      ) : !showBanPick ? (
+        /* Random Phase - Locked tracks NOT shown here */
         <QuadRandomSlot
-          key={`${selectedPool}-${poolVersion}-${fixedSongs.length}`}
+          key={`${selectedPool}-${poolVersion}-${fixedSongs.length}-${randomCount}`}
           pool={availablePool}
           fixedSongs={fixedSongs}
           randomCount={randomCount}

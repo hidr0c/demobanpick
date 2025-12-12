@@ -1,111 +1,126 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import banPickSettings from '../../../public/roundBanPickSettings.json';
 import { Song, RoundSetting } from '../interface';
-import songData from '../../../public/pools/N1 - newbieQual1.json';
 import DisplayAll from './DisplayAllSongs';
 
-export default function Home() {
+// Helper to ensure songs have id field
+const ensureIds = (songs: any[]): Song[] => {
+  return songs.map((song, index) => ({
+    ...song,
+    id: song.id || `${song.title}-${song.diff}-${index}`,
+    isDx: String(song.isDx)
+  }));
+};
+
+// Pool file mapping - same as main page
+const POOL_FILES: Record<string, string> = {
+  newbieQual1: '/pools/N1 - newbieQual1.json',
+  newbieQual2: '/pools/N2 - newbieQual2.json',
+  newbieSemi: '/pools/N3 - newbieSemi.json',
+  newbieFinals: '/pools/N4 - newbieFinals.json',
+  proQual: '/pools/P1 - proTop3216.json',
+  proTop8: '/pools/P2 - proTop8.json',
+  proSemi: '/pools/P3 - proSemi.json',
+  proFinals: '/pools/P4 - proFinals.json',
+  top32: '/pools/top32.json',
+};
+
+const POOL_OPTIONS = [
+  { id: 'newbieQual1', name: 'Bảng dưới - Vòng loại 1' },
+  { id: 'newbieQual2', name: 'Bảng dưới - Vòng loại 2' },
+  { id: 'newbieSemi', name: 'Bảng dưới - Bán kết' },
+  { id: 'newbieFinals', name: 'Bảng dưới - Chung kết' },
+  { id: 'proQual', name: 'Bảng trên - Vòng 32 và 16' },
+  { id: 'proTop8', name: 'Bảng trên - Vòng 8' },
+  { id: 'proSemi', name: 'Bảng trên - Bán kết' },
+  { id: 'proFinals', name: 'Bảng trên - Chung kết' },
+  { id: 'top32', name: 'Top 32 (Custom)' },
+];
+
+export default function SongSelector() {
   const router = useRouter();
-  const [roundIndex, setRoundIndex] = useState(0);
-  const [banPickSetting] = useState<RoundSetting>(banPickSettings[roundIndex]);
 
-  // Fixed songs selected by user
-  const [fixedSongs, setFixedSongs] = useState<Song[]>([]);
+  // Selected pool - sync with localStorage
+  const [selectedPool, setSelectedPool] = useState('newbieSemi');
+  const [songData, setSongData] = useState<Song[]>([]);
+  const [isLoadingPool, setIsLoadingPool] = useState(true);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Random count (default 4, can be adjusted)
-  const [randomCount, setRandomCount] = useState(4);
-
-  // Locked tracks (predetermined tracks 3 & 4)
-  const [lockedTracks, setLockedTracks] = useState<{ track3?: Song; track4?: Song }>({});
-
-  // Random results (4-6 songs)
-  const [randomResults, setRandomResults] = useState<Song[]>([]);
-
-  // Ban/Pick phase states
-  const [showBanPick, setShowBanPick] = useState(false);
-  const [bannedSongs, setBannedSongs] = useState<Song[]>([]);
-  const [pickedSongs, setPickedSongs] = useState<Song[]>([]);
-
-  // Listen for R key to reset
+  // Load selected pool from localStorage on mount
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'r' || e.key === 'R') {
-        handleReset();
+    const savedPool = localStorage.getItem('selectedPool');
+    if (savedPool && POOL_FILES[savedPool]) {
+      setSelectedPool(savedPool);
+    }
+  }, []);
+
+  // Save selected pool to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('selectedPool', selectedPool);
+  }, [selectedPool]);
+
+  // Load pool data when selected pool changes
+  useEffect(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
+    const loadPool = async () => {
+      setIsLoadingPool(true);
+      const poolFile = POOL_FILES[selectedPool];
+
+      if (!poolFile) {
+        console.error('Unknown pool:', selectedPool);
+        setSelectedPool('newbieSemi');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${poolFile}?t=${Date.now()}`, {
+          signal: abortController.signal,
+          cache: 'no-store'
+        });
+
+        if (!res.ok) {
+          throw new Error(`Failed to load ${poolFile}`);
+        }
+
+        const data = await res.json();
+
+        if (!abortController.signal.aborted) {
+          setSongData(ensureIds(data));
+          console.log(`Pool loaded: ${selectedPool}, songs: ${data.length}`);
+        }
+      } catch (error: any) {
+        if (error.name === 'AbortError') {
+          return;
+        }
+        console.error('Error loading pool:', error);
+        if (selectedPool !== 'newbieSemi') {
+          setSelectedPool('newbieSemi');
+        }
+      } finally {
+        if (!abortController.signal.aborted) {
+          setIsLoadingPool(false);
+        }
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
 
-  const handleRandomComplete = useCallback((results: Song[]) => {
-    setRandomResults(results);
-    // Auto transition to ban/pick after showing result
-    setTimeout(() => {
-      setShowBanPick(true);
-    }, 800);
-  }, []);
+    loadPool();
 
-  const handleBanPick = useCallback((song: Song) => {
-    const remainingBans = banPickSetting.ban - bannedSongs.length;
+    return () => {
+      abortController.abort();
+    };
+  }, [selectedPool]);
 
-    if (remainingBans > 0) {
-      // Ban phase
-      setBannedSongs(prev => [...prev, song]);
-    } else if (pickedSongs.length < banPickSetting.pick) {
-      // Pick phase
-      setPickedSongs(prev => [...prev, song]);
-
-      // When all picks are done, go to match display
-      if (pickedSongs.length + 1 >= banPickSetting.pick) {
-        setTimeout(() => {
-          // Save picked songs to localStorage for match-display page
-          const finalPicked = [...pickedSongs, song];
-          localStorage.setItem('matchSongs', JSON.stringify(finalPicked));
-          localStorage.setItem('lockedTracks', JSON.stringify(lockedTracks));
-          router.push('/match-display');
-        }, 500);
-      }
-    }
-  }, [bannedSongs.length, pickedSongs.length, banPickSetting, router, pickedSongs]);
-
-  const handleBan = useCallback((song: Song) => {
-    setBannedSongs(prev => [...prev, song]);
-  }, []);
-
-  const handlePick = useCallback((song: Song) => {
-    setPickedSongs(prev => [...prev, song]);
-
-    // When all picks are done, go to match display
-    if (pickedSongs.length + 1 >= banPickSetting.pick) {
-      setTimeout(() => {
-        const finalPicked = [...pickedSongs, song];
-        localStorage.setItem('matchSongs', JSON.stringify(finalPicked));
-        localStorage.setItem('lockedTracks', JSON.stringify(lockedTracks));
-        router.push('/match-display');
-      }, 500);
-    }
-  }, [pickedSongs, banPickSetting, router]);
-
-  const handleReset = () => {
-    setFixedSongs([]);
-    setRandomResults([]);
-    setShowBanPick(false);
-    setBannedSongs([]);
-    setPickedSongs([]);
-    setRandomCount(4);
-    setLockedTracks({});
+  const handlePoolChange = (poolId: string) => {
+    setSelectedPool(poolId);
   };
-
-  // Filter out locked tracks from available pool
-  const availablePool = songData.filter(
-    (song) => song.id !== lockedTracks.track3?.id && song.id !== lockedTracks.track4?.id
-  );
-
-  // Combined pool for ban/pick = random results + fixed songs (excluding locked)
-  const banPickPool = [...randomResults, ...fixedSongs];
 
   return (
     <main className="min-h-screen relative">
@@ -119,26 +134,32 @@ export default function Home() {
         title="background"
       />
 
-      <div className='header'>
-        <iframe
-          src="/assets/prism+.html"
-          className="w-full"
-          title="header"
-        />
+      {/* Pool Selector - Fixed top right */}
+      <div className="fixed top-4 right-4 z-50">
+        <select
+          value={selectedPool}
+          onChange={(e) => handlePoolChange(e.target.value)}
+          className="px-4 py-2 bg-gray-800 text-white border border-gray-600 rounded-lg shadow-lg cursor-pointer hover:bg-gray-700 transition-colors"
+          style={{ minWidth: '200px' }}
+        >
+          {POOL_OPTIONS.map((pool) => (
+            <option key={pool.id} value={pool.id}>
+              {pool.name}
+            </option>
+          ))}
+        </select>
       </div>
 
-      <div className='footer'>
-        <iframe
-          src="/assets/prism+.html"
-          className="w-full"
-          title="header"
+      {isLoadingPool ? (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-white text-xl">Loading pool...</div>
+        </div>
+      ) : (
+        <DisplayAll
+          pool={songData}
+          selectCount={12}
         />
-      </div>
-
-      <DisplayAll
-        pool={songData}
-        selectCount={12}
-      />
+      )}
     </main>
   );
 }
