@@ -76,9 +76,9 @@ export default function Home() {
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       // Reload all settings when controller page updates
-      if (e.key === 'controllerSettings' || e.key === 'selectedPool' || 
-          e.key === 'randomCount' || e.key === 'pickCount' || e.key === 'banCount' ||
-          e.key === 'fixedSongs' || e.key === 'lockedTracks' || e.key === 'hiddenTracks') {
+      if (e.key === 'controllerSettings' || e.key === 'selectedPool' ||
+        e.key === 'randomCount' || e.key === 'pickCount' || e.key === 'banCount' ||
+        e.key === 'fixedSongs' || e.key === 'lockedTracks' || e.key === 'hiddenTracks') {
         loadSettingsFromStorage();
       }
     };
