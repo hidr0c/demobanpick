@@ -63,6 +63,21 @@ export default function ControllerPage() {
     const [track4Search, setTrack4Search] = useState('');
     const [showTrack3Dropdown, setShowTrack3Dropdown] = useState(false);
     const [showTrack4Dropdown, setShowTrack4Dropdown] = useState(false);
+    const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
+    const [banPickLog, setBanPickLog] = useState<{ type: 'ban' | 'pick'; song: Song }[]>([]);
+
+    // Stream text state
+    const [streamText, setStreamText] = useState({
+        player1: '', player1Tag: '', player1UseJson: false,
+        player2: '', player2Tag: '', player2UseJson: false,
+        player3: '', player3Tag: '', player3UseJson: false,
+        player4: '', player4Tag: '', player4UseJson: false,
+        roundName: '', roundUseJson: false
+    });
+    const [playerJsonData, setPlayerJsonData] = useState<{ name: string; tag: string }[]>([]);
+    const [roundJsonData, setRoundJsonData] = useState<string[]>([]);
+    const [showPlayerDropdown, setShowPlayerDropdown] = useState<number | null>(null);
+    const [showRoundDropdown, setShowRoundDropdown] = useState(false);
 
     // Load settings from localStorage on mount
     useEffect(() => {
@@ -83,7 +98,77 @@ export default function ControllerPage() {
         if (savedFixedSongs) setFixedSongs(JSON.parse(savedFixedSongs));
         if (savedLockedTracks) setLockedTracks(JSON.parse(savedLockedTracks));
         if (savedHiddenTracks) setHiddenTracks(JSON.parse(savedHiddenTracks));
+
+        // Load ban/pick log
+        const savedBanPickLog = localStorage.getItem('banPickLog');
+        if (savedBanPickLog) setBanPickLog(JSON.parse(savedBanPickLog));
     }, []);
+
+    // Listen for ban/pick log updates from main page
+    useEffect(() => {
+        const handleStorageChange = (e: StorageEvent) => {
+            if (e.key === 'banPickLog' && e.newValue) {
+                setBanPickLog(JSON.parse(e.newValue));
+            }
+        };
+
+        // Also poll localStorage for updates (same tab won't trigger storage event)
+        const pollInterval = setInterval(() => {
+            const savedLog = localStorage.getItem('banPickLog');
+            if (savedLog) {
+                const parsed = JSON.parse(savedLog);
+                setBanPickLog(parsed);
+            }
+        }, 1000);
+
+        window.addEventListener('storage', handleStorageChange);
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            clearInterval(pollInterval);
+        };
+    }, []);
+
+    // Load stream text data and JSON files
+    useEffect(() => {
+        const savedStreamText = localStorage.getItem('streamTextData');
+        if (savedStreamText) {
+            const parsed = JSON.parse(savedStreamText);
+            setStreamText(prev => ({ ...prev, ...parsed }));
+        }
+
+        // Load player JSON data
+        fetch('/players.json')
+            .then(res => res.ok ? res.json() : [])
+            .then(data => setPlayerJsonData(data))
+            .catch(() => setPlayerJsonData([]));
+
+        // Load round JSON data
+        fetch('/rounds.json')
+            .then(res => res.ok ? res.json() : [])
+            .then(data => setRoundJsonData(data))
+            .catch(() => setRoundJsonData([]));
+    }, []);
+
+    // Push stream text to localStorage (only when button clicked)
+    const pushStreamText = () => {
+        const textData = {
+            player1: streamText.player1,
+            player1Tag: streamText.player1Tag,
+            player2: streamText.player2,
+            player2Tag: streamText.player2Tag,
+            player3: streamText.player3,
+            player3Tag: streamText.player3Tag,
+            player4: streamText.player4,
+            player4Tag: streamText.player4Tag,
+            roundName: streamText.roundName
+        };
+        localStorage.setItem('streamTextData', JSON.stringify(textData));
+        // Dispatch event so text-display can update
+        window.dispatchEvent(new StorageEvent('storage', {
+            key: 'streamTextData',
+            newValue: JSON.stringify(textData)
+        }));
+    };
 
     // Save all settings to localStorage and dispatch event
     const saveSettings = () => {
@@ -296,25 +381,119 @@ export default function ControllerPage() {
         setHiddenTracks({ track3Hidden: false, track4Hidden: false });
     };
 
-    return (
-        <div className="min-h-screen bg-gray-900 p-6">
-            <div className="max-w-6xl mx-auto">
-                <h1 className="text-3xl font-bold text-white mb-6 text-center">
-                    Controller Panel
-                </h1>
+    // Handle file upload for players JSON
+    const handlePlayersFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const data = JSON.parse(event.target?.result as string);
+                    setPlayerJsonData(data);
+                } catch (err) {
+                    alert('Invalid JSON file');
+                }
+            };
+            reader.readAsText(file);
+        }
+    };
 
-                <div className="grid grid-cols-2 gap-6">
-                    {/* Left Column */}
-                    <div className="space-y-6">
+    // Handle file upload for rounds JSON
+    const handleRoundsFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const data = JSON.parse(event.target?.result as string);
+                    setRoundJsonData(data);
+                } catch (err) {
+                    alert('Invalid JSON file');
+                }
+            };
+            reader.readAsText(file);
+        }
+    };
+
+    return (
+        <div className="min-h-screen bg-gray-900 p-4">
+            <div className="max-w-full mx-auto px-4">
+                <div className="flex items-center justify-between mb-4">
+                    <div className="w-10"></div>
+                    <h1 className="text-2xl font-bold text-white text-center">
+                        Controller Panel
+                    </h1>
+                    <button
+                        onClick={() => setShowKeyboardShortcuts(!showKeyboardShortcuts)}
+                        className="w-10 h-10 bg-gray-700 hover:bg-gray-600 rounded-lg text-white font-bold flex items-center justify-center transition-all duration-300"
+                        title="Keyboard Shortcuts"
+                        style={{
+                            transform: showKeyboardShortcuts ? 'rotate(180deg)' : 'rotate(0deg)'
+                        }}
+                    >
+                        ▲
+                    </button>
+                </div>
+
+                {/* Keyboard Shortcuts Panel */}
+                {showKeyboardShortcuts && (
+                    <div className="bg-gray-800 rounded-xl p-4 mb-6">
+                        <h2 className="text-lg font-semibold text-white mb-3">Keyboard Shortcuts</h2>
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-3">
+                                    <kbd className="px-2 py-1 bg-gray-700 rounded text-white font-mono">Space</kbd>
+                                    <span className="text-gray-300">Start random</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <kbd className="px-2 py-1 bg-gray-700 rounded text-white font-mono">R</kbd>
+                                    <span className="text-gray-300">Reset all</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <kbd className="px-2 py-1 bg-gray-700 rounded text-white font-mono">Enter</kbd>
+                                    <span className="text-gray-300">Confirm / Go to match display</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <kbd className="px-2 py-1 bg-gray-700 rounded text-white font-mono">ESC</kbd>
+                                    <span className="text-gray-300">Go back / Exit</span>
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-3">
+                                    <kbd className="px-2 py-1 bg-gray-700 rounded text-white font-mono">←</kbd>
+                                    <kbd className="px-2 py-1 bg-gray-700 rounded text-white font-mono">→</kbd>
+                                    <span className="text-gray-300">Navigate songs (Ban/Pick)</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <kbd className="px-2 py-1 bg-gray-700 rounded text-white font-mono">↑</kbd>
+                                    <kbd className="px-2 py-1 bg-gray-700 rounded text-white font-mono">↓</kbd>
+                                    <span className="text-gray-300">Navigate tracks (Match Display)</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <kbd className="px-2 py-1 bg-gray-700 rounded text-white font-mono">B</kbd>
+                                    <span className="text-gray-300">Ban selected song</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <kbd className="px-2 py-1 bg-gray-700 rounded text-white font-mono">P</kbd>
+                                    <span className="text-gray-300">Pick selected song</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                <div className="grid grid-cols-4 gap-4">
+                    {/* Column 1 - Pool & Settings */}
+                    <div className="space-y-4">
                         {/* Pool Selection */}
-                        <div className="bg-gray-800 rounded-xl p-4">
-                            <h2 className="text-lg font-semibold text-white mb-3">Pool Selection</h2>
+                        <div className="bg-gray-800 rounded-xl p-3">
+                            <h2 className="text-sm font-semibold text-white mb-2">Pool Selection</h2>
                             <div className="pool-container relative">
                                 <input
                                     type="text"
                                     value={showPoolDropdown ? poolSearch : (POOL_OPTIONS.find(p => p.id === selectedPool)?.name || '')}
                                     placeholder="Search pool..."
-                                    className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg outline-none focus:ring-2 focus:ring-purple-500"
+                                    className="w-full px-3 py-2 bg-gray-700 text-white rounded-lg outline-none focus:ring-2 focus:ring-purple-500 text-sm"
                                     onFocus={() => {
                                         setShowPoolDropdown(true);
                                         setPoolSearch('');
@@ -326,7 +505,7 @@ export default function ControllerPage() {
                                         {filteredPools.map((pool) => (
                                             <div
                                                 key={pool.id}
-                                                className={`px-4 py-2 cursor-pointer hover:bg-purple-600 ${selectedPool === pool.id ? 'bg-purple-600' : ''}`}
+                                                className={`px-3 py-2 cursor-pointer hover:bg-purple-600 text-sm ${selectedPool === pool.id ? 'bg-purple-600' : ''}`}
                                                 onClick={() => handlePoolChange(pool.id)}
                                             >
                                                 <span className="text-white">{pool.name}</span>
@@ -578,6 +757,220 @@ export default function ControllerPage() {
                                 );
                             })}
                         </div>
+                    </div>
+
+                    {/* Column 3 - Stream Text */}
+                    <div className="bg-gray-800 rounded-xl p-3 h-fit">
+                        <h2 className="text-sm font-semibold text-white mb-2">Stream Text</h2>
+
+                        {/* JSON File Uploads */}
+                        <div className="grid grid-cols-2 gap-2 mb-3">
+                            <div>
+                                <label className="block text-xs text-gray-400 mb-1">Players JSON</label>
+                                <input
+                                    type="file"
+                                    accept=".json"
+                                    onChange={handlePlayersFileUpload}
+                                    className="w-full text-xs text-gray-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-gray-700 file:text-white hover:file:bg-gray-600"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">{playerJsonData.length} players</p>
+                            </div>
+                            <div>
+                                <label className="block text-xs text-gray-400 mb-1">Rounds JSON</label>
+                                <input
+                                    type="file"
+                                    accept=".json"
+                                    onChange={handleRoundsFileUpload}
+                                    className="w-full text-xs text-gray-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-gray-700 file:text-white hover:file:bg-gray-600"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">{roundJsonData.length} rounds</p>
+                            </div>
+                        </div>
+
+                        {/* Round Name */}
+                        <div className="mb-3">
+                            <div className="flex items-center justify-between mb-1">
+                                <p className="text-gray-300 text-xs">Round</p>
+                                <label className="flex items-center gap-1 text-xs text-gray-400">
+                                    <input
+                                        type="checkbox"
+                                        checked={streamText.roundUseJson}
+                                        onChange={(e) => setStreamText({ ...streamText, roundUseJson: e.target.checked })}
+                                        className="rounded w-3 h-3"
+                                    />
+                                    JSON
+                                </label>
+                            </div>
+                            {streamText.roundUseJson ? (
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        value={streamText.roundName}
+                                        placeholder="Select round..."
+                                        className="w-full px-2 py-1 bg-gray-700 text-white rounded outline-none focus:ring-2 focus:ring-purple-500 text-xs"
+                                        onFocus={() => setShowRoundDropdown(true)}
+                                        readOnly
+                                    />
+                                    {showRoundDropdown && roundJsonData.length > 0 && (
+                                        <div className="absolute z-50 left-0 right-0 mt-1 bg-gray-700 rounded-lg shadow-xl max-h-32 overflow-y-auto">
+                                            {roundJsonData.map((round, idx) => (
+                                                <div
+                                                    key={idx}
+                                                    className={`px-2 py-1 cursor-pointer hover:bg-purple-600 text-white text-xs ${streamText.roundName === round ? 'bg-purple-600' : ''}`}
+                                                    onClick={() => {
+                                                        setStreamText({ ...streamText, roundName: round });
+                                                        setShowRoundDropdown(false);
+                                                    }}
+                                                >
+                                                    {round}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <input
+                                    type="text"
+                                    value={streamText.roundName}
+                                    onChange={(e) => setStreamText({ ...streamText, roundName: e.target.value })}
+                                    placeholder="Enter round..."
+                                    className="w-full px-2 py-1 bg-gray-700 text-white rounded outline-none focus:ring-2 focus:ring-purple-500 text-xs"
+                                />
+                            )}
+                        </div>
+
+                        {/* Player Inputs */}
+                        {[1, 2, 3, 4].map((num) => {
+                            const playerKey = `player${num}` as 'player1' | 'player2' | 'player3' | 'player4';
+                            const tagKey = `player${num}Tag` as 'player1Tag' | 'player2Tag' | 'player3Tag' | 'player4Tag';
+                            const jsonKey = `player${num}UseJson` as 'player1UseJson' | 'player2UseJson' | 'player3UseJson' | 'player4UseJson';
+
+                            return (
+                                <div key={num} className="mb-2">
+                                    <div className="flex items-center justify-between mb-1">
+                                        <p className="text-gray-300 text-xs">P{num}</p>
+                                        <label className="flex items-center gap-1 text-xs text-gray-400">
+                                            <input
+                                                type="checkbox"
+                                                checked={streamText[jsonKey]}
+                                                onChange={(e) => setStreamText({ ...streamText, [jsonKey]: e.target.checked })}
+                                                className="rounded w-3 h-3"
+                                            />
+                                            JSON
+                                        </label>
+                                    </div>
+                                    {streamText[jsonKey] ? (
+                                        <div className="relative">
+                                            <input
+                                                type="text"
+                                                value={streamText[playerKey]}
+                                                placeholder="Select..."
+                                                className="w-full px-2 py-1 bg-gray-700 text-white rounded outline-none focus:ring-2 focus:ring-purple-500 text-xs"
+                                                onFocus={() => setShowPlayerDropdown(num)}
+                                                readOnly
+                                            />
+                                            {showPlayerDropdown === num && playerJsonData.length > 0 && (
+                                                <div className="absolute z-50 left-0 right-0 mt-1 bg-gray-700 rounded-lg shadow-xl max-h-32 overflow-y-auto">
+                                                    {playerJsonData.map((player, idx) => (
+                                                        <div
+                                                            key={idx}
+                                                            className={`px-2 py-1 cursor-pointer hover:bg-purple-600 ${streamText[playerKey] === player.name ? 'bg-purple-600' : ''}`}
+                                                            onClick={() => {
+                                                                setStreamText({
+                                                                    ...streamText,
+                                                                    [playerKey]: player.name,
+                                                                    [tagKey]: player.tag
+                                                                });
+                                                                setShowPlayerDropdown(null);
+                                                            }}
+                                                        >
+                                                            <span className="text-white text-xs">{player.name}</span>
+                                                            {player.tag && <span className="text-gray-400 text-xs ml-1">{player.tag}</span>}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div className="flex gap-1">
+                                            <input
+                                                type="text"
+                                                value={streamText[playerKey]}
+                                                onChange={(e) => setStreamText({ ...streamText, [playerKey]: e.target.value })}
+                                                placeholder="Name"
+                                                className="flex-1 px-2 py-1 bg-gray-700 text-white rounded outline-none focus:ring-2 focus:ring-purple-500 text-xs"
+                                            />
+                                            <input
+                                                type="text"
+                                                value={streamText[tagKey]}
+                                                onChange={(e) => setStreamText({ ...streamText, [tagKey]: e.target.value })}
+                                                placeholder="Tag"
+                                                className="w-16 px-2 py-1 bg-gray-700 text-white rounded outline-none focus:ring-2 focus:ring-purple-500 text-xs"
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+
+                        {/* Push & Clear Buttons */}
+                        <div className="flex gap-2 mt-2">
+                            <button
+                                onClick={pushStreamText}
+                                className="flex-1 py-1 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded text-xs transition-colors"
+                            >
+                                Push to Stream
+                            </button>
+                            <button
+                                onClick={() => setStreamText({
+                                    player1: '', player1Tag: '', player1UseJson: false,
+                                    player2: '', player2Tag: '', player2UseJson: false,
+                                    player3: '', player3Tag: '', player3UseJson: false,
+                                    player4: '', player4Tag: '', player4UseJson: false,
+                                    roundName: '', roundUseJson: false
+                                })}
+                                className="py-1 px-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded text-xs transition-colors"
+                            >
+                                Clear
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Column 4 - Ban/Pick Log */}
+                    <div className="bg-gray-800 rounded-xl p-3 h-fit">
+                        <div className="flex items-center justify-between mb-2">
+                            <h2 className="text-sm font-semibold text-white">Ban/Pick Log</h2>
+                            <button
+                                onClick={() => {
+                                    localStorage.removeItem('banPickLog');
+                                    setBanPickLog([]);
+                                }}
+                                className="px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded text-gray-300 text-xs"
+                            >
+                                Clear
+                            </button>
+                        </div>
+                        {banPickLog.length === 0 ? (
+                            <p className="text-gray-500 text-xs">No actions yet...</p>
+                        ) : (
+                            <div className="max-h-[600px] overflow-y-auto space-y-1">
+                                {banPickLog.map((entry, idx) => (
+                                    <div
+                                        key={idx}
+                                        className={`flex items-center gap-2 px-2 py-1 rounded ${entry.type === 'ban' ? 'bg-red-900/30' : 'bg-green-900/30'}`}
+                                    >
+                                        <span className={`text-xs font-bold px-1 py-0.5 rounded ${entry.type === 'ban' ? 'bg-red-600 text-white' : 'bg-green-600 text-white'}`}>
+                                            {entry.type === 'ban' ? 'B' : 'P'}
+                                        </span>
+                                        <img src={entry.song.imgUrl} alt="" className="w-6 h-6 rounded object-cover" />
+                                        <div className="flex-1 min-w-0">
+                                            <span className="text-white text-xs truncate block">{entry.song.title}</span>
+                                            <span className={`text-xs ${getDiffColor(entry.song.diff)}`}>{entry.song.diff} {entry.song.lv}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
 

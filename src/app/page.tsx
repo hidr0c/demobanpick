@@ -229,10 +229,16 @@ export default function Home() {
 
   const handleBan = useCallback((song: Song) => {
     setBannedSongs(prev => [...prev, song]);
+    // Log ban action
+    const currentLog = JSON.parse(localStorage.getItem('banPickLog') || '[]');
+    localStorage.setItem('banPickLog', JSON.stringify([...currentLog, { type: 'ban', song }]));
   }, []);
 
   const handlePick = useCallback((song: Song) => {
     setPickedSongs(prev => [...prev, song]);
+    // Log pick action
+    const currentLog = JSON.parse(localStorage.getItem('banPickLog') || '[]');
+    localStorage.setItem('banPickLog', JSON.stringify([...currentLog, { type: 'pick', song }]));
 
     // When all picks are done, show final results first
     if (pickedSongs.length + 1 >= pickCount) {
@@ -258,6 +264,8 @@ export default function Home() {
     setPickCount(2);
     setBanCount(0);
     setLockedTracks({});
+    // Clear ban/pick log on reset
+    localStorage.removeItem('banPickLog');
     setHiddenTracks({ track3Hidden: false, track4Hidden: false });
   };
 
