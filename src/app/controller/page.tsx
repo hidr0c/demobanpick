@@ -427,55 +427,103 @@ export default function ControllerPage() {
                         onClick={() => setShowKeyboardShortcuts(!showKeyboardShortcuts)}
                         className="w-10 h-10 bg-gray-700 hover:bg-gray-600 rounded-lg text-white font-bold flex items-center justify-center transition-all duration-300"
                         title="Keyboard Shortcuts"
-                        style={{
-                            transform: showKeyboardShortcuts ? 'rotate(180deg)' : 'rotate(0deg)'
-                        }}
                     >
-                        ▲
+                        <span
+                            className="transition-transform duration-300"
+                            style={{
+                                transform: showKeyboardShortcuts ? 'rotate(90deg)' : 'rotate(0deg)'
+                            }}
+                        >
+                            ▶
+                        </span>
                     </button>
                 </div>
 
                 {/* Keyboard Shortcuts Panel */}
                 {showKeyboardShortcuts && (
-                    <div className="bg-gray-800 rounded-xl p-4 mb-6">
-                        <h2 className="text-lg font-semibold text-white mb-3">Keyboard Shortcuts</h2>
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div className="space-y-2">
-                                <div className="flex items-center gap-3">
-                                    <kbd className="px-2 py-1 bg-gray-700 rounded text-white font-mono">Space</kbd>
-                                    <span className="text-gray-300">Start random</span>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <kbd className="px-2 py-1 bg-gray-700 rounded text-white font-mono">R</kbd>
-                                    <span className="text-gray-300">Reset all</span>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <kbd className="px-2 py-1 bg-gray-700 rounded text-white font-mono">Enter</kbd>
-                                    <span className="text-gray-300">Confirm / Go to match display</span>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <kbd className="px-2 py-1 bg-gray-700 rounded text-white font-mono">ESC</kbd>
-                                    <span className="text-gray-300">Go back / Exit</span>
+                    <div className="bg-gray-800 rounded-xl p-4 mb-6 animate-fade-in-down-simple">
+                        <div className="flex items-start justify-between gap-6">
+                            {/* Keyboard Shortcuts */}
+                            <div className="flex-1">
+                                <h2 className="text-lg font-semibold text-white mb-3">Keyboard Shortcuts</h2>
+                                <div className="grid grid-cols-2 gap-4 text-sm">
+                                    <div className="space-y-2">
+                                        <div className="flex items-center gap-3">
+                                            <kbd className="px-2 py-1 bg-gray-700 rounded text-white font-mono">Space</kbd>
+                                            <span className="text-gray-300">Start random</span>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <kbd className="px-2 py-1 bg-gray-700 rounded text-white font-mono">R</kbd>
+                                            <span className="text-gray-300">Reset all</span>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <kbd className="px-2 py-1 bg-gray-700 rounded text-white font-mono">Enter</kbd>
+                                            <span className="text-gray-300">Confirm / Go to match display</span>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <kbd className="px-2 py-1 bg-gray-700 rounded text-white font-mono">ESC</kbd>
+                                            <span className="text-gray-300">Go back / Exit</span>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <div className="flex items-center gap-3">
+                                            <kbd className="px-2 py-1 bg-gray-700 rounded text-white font-mono">←</kbd>
+                                            <kbd className="px-2 py-1 bg-gray-700 rounded text-white font-mono">→</kbd>
+                                            <span className="text-gray-300">Navigate songs (Ban/Pick)</span>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <kbd className="px-2 py-1 bg-gray-700 rounded text-white font-mono">↑</kbd>
+                                            <kbd className="px-2 py-1 bg-gray-700 rounded text-white font-mono">↓</kbd>
+                                            <span className="text-gray-300">Navigate tracks (Match Display)</span>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <kbd className="px-2 py-1 bg-gray-700 rounded text-white font-mono">B</kbd>
+                                            <span className="text-gray-300">Ban selected song</span>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <kbd className="px-2 py-1 bg-gray-700 rounded text-white font-mono">P</kbd>
+                                            <span className="text-gray-300">Pick selected song</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div className="space-y-2">
-                                <div className="flex items-center gap-3">
-                                    <kbd className="px-2 py-1 bg-gray-700 rounded text-white font-mono">←</kbd>
-                                    <kbd className="px-2 py-1 bg-gray-700 rounded text-white font-mono">→</kbd>
-                                    <span className="text-gray-300">Navigate songs (Ban/Pick)</span>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <kbd className="px-2 py-1 bg-gray-700 rounded text-white font-mono">↑</kbd>
-                                    <kbd className="px-2 py-1 bg-gray-700 rounded text-white font-mono">↓</kbd>
-                                    <span className="text-gray-300">Navigate tracks (Match Display)</span>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <kbd className="px-2 py-1 bg-gray-700 rounded text-white font-mono">B</kbd>
-                                    <span className="text-gray-300">Ban selected song</span>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <kbd className="px-2 py-1 bg-gray-700 rounded text-white font-mono">P</kbd>
-                                    <span className="text-gray-300">Pick selected song</span>
+
+                            {/* Quick Navigation */}
+                            <div className="w-48">
+                                <h2 className="text-lg font-semibold text-white mb-3">Quick Navigation</h2>
+                                <div className="space-y-2">
+                                    <a
+                                        href="http://localhost:3000/"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="block w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded text-center transition-colors"
+                                    >
+                                        Random
+                                    </a>
+                                    <a
+                                        href="http://localhost:3000/text-display"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="block w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded text-center transition-colors"
+                                    >
+                                        Text Display
+                                    </a>
+                                    <a
+                                        href="http://localhost:3000/match-display"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="block w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded text-center transition-colors"
+                                    >
+                                        Match Display
+                                    </a>
+                                    <a
+                                        href="http://localhost:3000/song-selector"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="block w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded text-center transition-colors"
+                                    >
+                                        Song Selector
+                                    </a>
                                 </div>
                             </div>
                         </div>
