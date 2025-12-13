@@ -6,7 +6,6 @@ import { Song, RoundSetting } from './interface';
 
 import QuadRandomSlot from './components/QuadRandomSlot';
 import BanPickCarousel from './components/BanPickCarousel';
-import UnifiedSettingsPanel from './components/UnifiedSettingsPanel';
 
 // Helper to ensure songs have id field
 const ensureIds = (songs: any[]): Song[] => {
@@ -41,18 +40,52 @@ export default function Home() {
   const [poolVersion, setPoolVersion] = useState(0); // Force re-render key
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Load selected pool from localStorage on mount
-  useEffect(() => {
+  // Load all settings from localStorage
+  const loadSettingsFromStorage = useCallback(() => {
     const savedPool = localStorage.getItem('selectedPool');
+    const savedRandomCount = localStorage.getItem('randomCount');
+    const savedPickCount = localStorage.getItem('pickCount');
+    const savedBanCount = localStorage.getItem('banCount');
+    const savedFixedSongs = localStorage.getItem('fixedSongs');
+    const savedLockedTracks = localStorage.getItem('lockedTracks');
+    const savedHiddenTracks = localStorage.getItem('hiddenTracks');
+
     if (savedPool && POOL_FILES[savedPool]) {
-      setSelectedPool(savedPool);
+      setSelectedPool(prev => {
+        if (prev !== savedPool) {
+          setPoolVersion(v => v + 1);
+          return savedPool;
+        }
+        return prev;
+      });
     }
+    if (savedRandomCount) setRandomCount(parseInt(savedRandomCount));
+    if (savedPickCount) setPickCount(parseInt(savedPickCount));
+    if (savedBanCount) setBanCount(parseInt(savedBanCount));
+    if (savedFixedSongs) setFixedSongs(JSON.parse(savedFixedSongs));
+    if (savedLockedTracks) setLockedTracks(JSON.parse(savedLockedTracks));
+    if (savedHiddenTracks) setHiddenTracks(JSON.parse(savedHiddenTracks));
   }, []);
 
-  // Save selected pool to localStorage when it changes
+  // Load settings on mount
   useEffect(() => {
-    localStorage.setItem('selectedPool', selectedPool);
-  }, [selectedPool]);
+    loadSettingsFromStorage();
+  }, [loadSettingsFromStorage]);
+
+  // Listen for storage events from /controller page
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      // Reload all settings when controller page updates
+      if (e.key === 'controllerSettings' || e.key === 'selectedPool' || 
+          e.key === 'randomCount' || e.key === 'pickCount' || e.key === 'banCount' ||
+          e.key === 'fixedSongs' || e.key === 'lockedTracks' || e.key === 'hiddenTracks') {
+        loadSettingsFromStorage();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [loadSettingsFromStorage]);
 
   // Load pool data when selected pool changes
   useEffect(() => {
@@ -265,29 +298,6 @@ export default function Home() {
         }}
         title="background"
       />
-
-      {/* Unified Settings Panel (top left) */}
-      {!showBanPick && !showFinalResults && (
-        <UnifiedSettingsPanel
-          pool={songData}
-          randomCount={randomCount}
-          pickCount={pickCount}
-          banCount={banCount}
-          fixedSongs={fixedSongs}
-          lockedTracks={lockedTracks}
-          hiddenTracks={hiddenTracks}
-          selectedPool={selectedPool}
-          onRandomCountChange={setRandomCount}
-          onBanCountChange={setBanCount}
-          onPickCountChange={setPickCount}
-          onFixedSongsChange={setFixedSongs}
-          onLockedTracksChange={setLockedTracks}
-          onHiddenTracksChange={setHiddenTracks}
-          onPoolChange={handlePoolChange}
-          maxTotal={6}
-          minTotal={4}
-        />
-      )}
 
       {showFinalResults ? (
         /* Final Results Phase - Show picked songs + locked tracks */
