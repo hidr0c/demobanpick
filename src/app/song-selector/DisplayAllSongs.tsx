@@ -6,6 +6,11 @@ import { Song } from '../interface';
 type DisplayAllProps = {
     pool: Song[];
     selectCount?: number;
+    selectedPoolId: string;
+    poolFile: string;
+    onPoolChange: (poolId: string) => void;
+    poolOptions: { id: string; name: string }[];
+    onAddSong: (song: Song) => void;
 };
 
 type SearchTag = { type: 'diff' | 'level'; value: string };
@@ -18,15 +23,34 @@ const DIFF_MAP: Record<string, string> = {
 
 const DisplayAll: React.FC<DisplayAllProps> = ({
     pool,
-    selectCount = 4
+    selectCount = 4,
+    selectedPoolId,
+    poolFile,
+    onPoolChange,
+    poolOptions,
+    onAddSong
 }) => {
     const [slots, setSlots] = useState<Song[]>(pool);
     const [inputValue, setInputValue] = useState('');
     const [tags, setTags] = useState<SearchTag[]>([]);
     const [selectedSongs, setSelectedSongs] = useState<Set<string>>(new Set());
     const [isExporting, setIsExporting] = useState(false);
+    const [showAddSongPopup, setShowAddSongPopup] = useState(false);
+    const [newSong, setNewSong] = useState<Partial<Song>>({
+        title: '',
+        artist: '',
+        imgUrl: '',
+        lv: '13',
+        diff: 'MASTER',
+        isDx: 'True'
+    });
     const selectedSongsRef = useRef<Song[]>([]);
     const preloadedImagesRef = useRef<Set<string>>(new Set());
+
+    // Sync slots with pool prop
+    useEffect(() => {
+        setSlots(pool);
+    }, [pool]);
 
     // Toggle song selection
     const toggleSongSelection = (songId: string) => {
@@ -65,6 +89,49 @@ const DisplayAll: React.FC<DisplayAllProps> = ({
             alert('Export failed!');
         } finally {
             setIsExporting(false);
+        }
+    };
+
+    // Handle adding new song
+    const handleAddSong = async () => {
+        if (!newSong.title) {
+            alert('Title is required!');
+            return;
+        }
+
+        const songToAdd = {
+            title: newSong.title || '',
+            artist: newSong.artist || '',
+            imgUrl: newSong.imgUrl || '/assets/testjacket.png',
+            lv: newSong.lv || '13',
+            diff: newSong.diff || 'MASTER',
+            isDx: newSong.isDx || 'True'
+        };
+
+        try {
+            const response = await fetch('/api/add-song', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    song: songToAdd, 
+                    poolFile: poolFile.replace('/pools/', '')
+                })
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                // Add to local state
+                onAddSong(result.song);
+                setNewSong({ title: '', artist: '', imgUrl: '', lv: '13', diff: 'MASTER', isDx: 'True' });
+                setShowAddSongPopup(false);
+                alert(`Song added! Total: ${result.totalSongs} songs`);
+            } else {
+                alert('Failed to add song: ' + result.error);
+            }
+        } catch (error) {
+            console.error('Add song error:', error);
+            alert('Failed to add song!');
         }
     };
 
@@ -199,6 +266,20 @@ const DisplayAll: React.FC<DisplayAllProps> = ({
                         className="flex flex-wrap items-center gap-2 border border-gray-600 rounded-lg px-3 py-2"
                         style={{backgroundColor: 'rgba(255, 255, 255, 0.9)'}}
                         >
+                        {/* Pool Dropdown */}
+                        <select
+                            value={selectedPoolId}
+                            onChange={(e) => onPoolChange(e.target.value)}
+                            className="px-2 py-1 bg-gray-800 text-white border border-gray-600 rounded text-sm cursor-pointer hover:bg-gray-700 transition-colors"
+                        >
+                            {poolOptions.map((p) => (
+                                <option key={p.id} value={p.id}>{p.name}</option>
+                            ))}
+                        </select>
+
+                        {/* Divider */}
+                        <div className="w-px h-6 bg-gray-400"></div>
+
                         {/* Tags */}
                         {tags.map((tag, index) => (
                             <span
@@ -244,6 +325,13 @@ const DisplayAll: React.FC<DisplayAllProps> = ({
                             className="px-4 py-1.5 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors text-sm font-medium whitespace-nowrap"
                         >
                             {isExporting ? 'Exporting...' : `Export (${selectedSongs.size})`}
+                        </button>
+                        {/* Add Song Button */}
+                        <button
+                            onClick={() => setShowAddSongPopup(true)}
+                            className="px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm font-medium whitespace-nowrap"
+                        >
+                            + Add Song
                         </button>
                     </div>
                 </div>
@@ -445,6 +533,141 @@ const DisplayAll: React.FC<DisplayAllProps> = ({
                     );
                 })}
             </div>
+
+            {/* Add Song Popup */}
+            {showAddSongPopup && (
+                <div 
+                    className="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
+                    onClick={() => setShowAddSongPopup(false)}
+                >
+                    <div 
+                        className="bg-gray-800 rounded-xl p-6 w-full max-w-md"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h2 className="text-xl font-bold text-white mb-4">Add New Song</h2>
+                        
+                        <div className="space-y-3">
+                            {/* Title */}
+                            <div>
+                                <label className="block text-sm text-gray-300 mb-1">Title *</label>
+                                <input
+                                    type="text"
+                                    value={newSong.title}
+                                    onChange={(e) => setNewSong({ ...newSong, title: e.target.value })}
+                                    placeholder="Song title"
+                                    className="w-full px-3 py-2 bg-gray-700 text-white rounded outline-none focus:ring-2 focus:ring-purple-500"
+                                />
+                            </div>
+
+                            {/* Artist */}
+                            <div>
+                                <label className="block text-sm text-gray-300 mb-1">Artist</label>
+                                <input
+                                    type="text"
+                                    value={newSong.artist}
+                                    onChange={(e) => setNewSong({ ...newSong, artist: e.target.value })}
+                                    placeholder="Artist name"
+                                    className="w-full px-3 py-2 bg-gray-700 text-white rounded outline-none focus:ring-2 focus:ring-purple-500"
+                                />
+                            </div>
+
+                            {/* Image URL */}
+                            <div>
+                                <label className="block text-sm text-gray-300 mb-1">Image URL (optional)</label>
+                                <input
+                                    type="text"
+                                    value={newSong.imgUrl}
+                                    onChange={(e) => setNewSong({ ...newSong, imgUrl: e.target.value })}
+                                    placeholder="Leave empty for default image"
+                                    className="w-full px-3 py-2 bg-gray-700 text-white rounded outline-none focus:ring-2 focus:ring-purple-500"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">Default: /assets/testjacket.png</p>
+                            </div>
+
+                            {/* Level & Difficulty Row */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-sm text-gray-300 mb-1">Level</label>
+                                    <input
+                                        type="text"
+                                        value={newSong.lv}
+                                        onChange={(e) => setNewSong({ ...newSong, lv: e.target.value })}
+                                        placeholder="13+"
+                                        className="w-full px-3 py-2 bg-gray-700 text-white rounded outline-none focus:ring-2 focus:ring-purple-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm text-gray-300 mb-1">Difficulty</label>
+                                    <select
+                                        value={newSong.diff}
+                                        onChange={(e) => setNewSong({ ...newSong, diff: e.target.value })}
+                                        className="w-full px-3 py-2 bg-gray-700 text-white rounded outline-none focus:ring-2 focus:ring-purple-500"
+                                    >
+                                        <option value="EXPERT">EXPERT</option>
+                                        <option value="MASTER">MASTER</option>
+                                        <option value="RE:MASTER">RE:MASTER</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* Chart Type */}
+                            <div>
+                                <label className="block text-sm text-gray-300 mb-1">Chart Type</label>
+                                <div className="flex gap-4">
+                                    <label className="flex items-center gap-2 text-white">
+                                        <input
+                                            type="radio"
+                                            checked={newSong.isDx === 'True'}
+                                            onChange={() => setNewSong({ ...newSong, isDx: 'True' })}
+                                            className="text-purple-500"
+                                        />
+                                        DX
+                                    </label>
+                                    <label className="flex items-center gap-2 text-white">
+                                        <input
+                                            type="radio"
+                                            checked={newSong.isDx === 'False'}
+                                            onChange={() => setNewSong({ ...newSong, isDx: 'False' })}
+                                            className="text-purple-500"
+                                        />
+                                        Standard
+                                    </label>
+                                </div>
+                            </div>
+
+                            {/* Preview */}
+                            <div className="flex items-center gap-3 p-2 bg-gray-700 rounded">
+                                <img 
+                                    src={newSong.imgUrl || '/assets/testjacket.png'} 
+                                    alt="preview" 
+                                    className="w-12 h-12 rounded object-cover"
+                                    onError={(e) => (e.target as HTMLImageElement).src = '/assets/testjacket.png'}
+                                />
+                                <div>
+                                    <p className="text-white text-sm">{newSong.title || 'Title'}</p>
+                                    <p className="text-gray-400 text-xs">{newSong.artist || 'Artist'}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Buttons */}
+                        <div className="flex gap-3 mt-6">
+                            <button
+                                onClick={() => setShowAddSongPopup(false)}
+                                className="flex-1 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleAddSong}
+                                className="flex-1 py-2 bg-green-600 hover:bg-green-500 text-white font-bold rounded transition-colors"
+                            >
+                                Add Song
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

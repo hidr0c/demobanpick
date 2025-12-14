@@ -122,6 +122,11 @@ export default function SongSelector() {
     setSelectedPool(poolId);
   };
 
+  const handleAddSong = (song: Song) => {
+    // Add the song to current pool data
+    setSongData(prev => [...prev, song]);
+  };
+
   return (
     <main className="min-h-screen relative">
       <iframe
@@ -134,22 +139,6 @@ export default function SongSelector() {
         title="background"
       />
 
-      {/* Pool Selector - Fixed top right */}
-      <div className="fixed top-4 right-4 z-50">
-        <select
-          value={selectedPool}
-          onChange={(e) => handlePoolChange(e.target.value)}
-          className="px-4 py-2 bg-gray-800 text-white border border-gray-600 rounded-lg shadow-lg cursor-pointer hover:bg-gray-700 transition-colors"
-          style={{ minWidth: '200px' }}
-        >
-          {POOL_OPTIONS.map((pool) => (
-            <option key={pool.id} value={pool.id}>
-              {pool.name}
-            </option>
-          ))}
-        </select>
-      </div>
-
       {isLoadingPool ? (
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-white text-xl">Loading pool...</div>
@@ -158,6 +147,11 @@ export default function SongSelector() {
         <DisplayAll
           pool={songData}
           selectCount={12}
+          selectedPoolId={selectedPool}
+          poolFile={POOL_FILES[selectedPool]}
+          onPoolChange={handlePoolChange}
+          poolOptions={POOL_OPTIONS}
+          onAddSong={handleAddSong}
         />
       )}
     </main>

@@ -78,6 +78,7 @@ export default function ControllerPage() {
     const [roundJsonData, setRoundJsonData] = useState<string[]>([]);
     const [showPlayerDropdown, setShowPlayerDropdown] = useState<number | null>(null);
     const [showRoundDropdown, setShowRoundDropdown] = useState(false);
+    const [customPoolData, setCustomPoolData] = useState<Song[]>([]);
 
     // Load settings from localStorage on mount
     useEffect(() => {
@@ -415,6 +416,85 @@ export default function ControllerPage() {
         }
     };
 
+    // Download template functions
+    const downloadPlayersTemplate = () => {
+        const template = [
+            { "name": "Player1", "tag": "Team1" },
+            { "name": "Player2", "tag": "Team2" }
+        ];
+        const blob = new Blob([JSON.stringify(template, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'players-template.json';
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
+    const downloadRoundsTemplate = () => {
+        const template = [
+            "Round of 32",
+            "Round of 16",
+            "Quarter Finals",
+            "Semi Finals",
+            "Grand Finals"
+        ];
+        const blob = new Blob([JSON.stringify(template, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'rounds-template.json';
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
+    // Download pool template
+    const downloadPoolTemplate = () => {
+        const template = [
+            {
+                "id": "0",
+                "imgUrl": "https://example.com/cover.png",
+                "artist": "Artist Name",
+                "title": "Song Title",
+                "lv": "13",
+                "diff": "MASTER",
+                "isDx": "True"
+            }
+        ];
+        const blob = new Blob([JSON.stringify(template, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'pool-template.json';
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
+    // Handle pool JSON file upload
+    const handlePoolFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const data = JSON.parse(event.target?.result as string);
+                    const songsWithIds = data.map((song: any, index: number) => ({
+                        ...song,
+                        id: song.id || `custom-${index}`,
+                        imgUrl: song.imgUrl || '/assets/testjacket.png',
+                        isDx: String(song.isDx)
+                    }));
+                    setCustomPoolData(songsWithIds);
+                    setSongData(songsWithIds);
+                    alert(`Loaded ${songsWithIds.length} songs from file`);
+                } catch (err) {
+                    alert('Invalid JSON file');
+                }
+            };
+            reader.readAsText(file);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gray-900 p-4">
             <div className="max-w-full mx-auto px-4">
@@ -568,6 +648,26 @@ export default function ControllerPage() {
                             <p className="text-gray-400 text-sm mt-2">
                                 {songData.length} songs in pool
                             </p>
+                            
+                            {/* Custom Pool Upload */}
+                            <div className="mt-3 pt-3 border-t border-gray-700">
+                                <label className="block text-xs text-gray-400 mb-1">Upload Custom Pool</label>
+                                <input
+                                    type="file"
+                                    accept=".json"
+                                    onChange={handlePoolFileUpload}
+                                    className="w-full text-xs text-gray-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-gray-700 file:text-white hover:file:bg-gray-600"
+                                />
+                                <div className="flex items-center justify-between mt-1">
+                                    <p className="text-xs text-gray-500">{customPoolData.length > 0 ? `${customPoolData.length} custom songs` : ''}</p>
+                                    <button
+                                        onClick={downloadPoolTemplate}
+                                        className="text-xs text-purple-400 hover:text-purple-300"
+                                    >
+                                        Template
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
                         {/* Game Settings */}
@@ -821,7 +921,15 @@ export default function ControllerPage() {
                                     onChange={handlePlayersFileUpload}
                                     className="w-full text-xs text-gray-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-gray-700 file:text-white hover:file:bg-gray-600"
                                 />
-                                <p className="text-xs text-gray-500 mt-1">{playerJsonData.length} players</p>
+                                <div className="flex items-center justify-between mt-1">
+                                    <p className="text-xs text-gray-500">{playerJsonData.length} players</p>
+                                    <button
+                                        onClick={downloadPlayersTemplate}
+                                        className="text-xs text-purple-400 hover:text-purple-300"
+                                    >
+                                        Template
+                                    </button>
+                                </div>
                             </div>
                             <div>
                                 <label className="block text-xs text-gray-400 mb-1">Rounds JSON</label>
@@ -831,7 +939,15 @@ export default function ControllerPage() {
                                     onChange={handleRoundsFileUpload}
                                     className="w-full text-xs text-gray-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-gray-700 file:text-white hover:file:bg-gray-600"
                                 />
-                                <p className="text-xs text-gray-500 mt-1">{roundJsonData.length} rounds</p>
+                                <div className="flex items-center justify-between mt-1">
+                                    <p className="text-xs text-gray-500">{roundJsonData.length} rounds</p>
+                                    <button
+                                        onClick={downloadRoundsTemplate}
+                                        className="text-xs text-purple-400 hover:text-purple-300"
+                                    >
+                                        Template
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
