@@ -34,13 +34,20 @@ export async function POST(request: NextRequest) {
     // Re-index the remaining songs
     const reindexedSongs = filteredSongs.map((song: any, index: number) => ({
       ...song,
-      id: String(index)
+      id: String(index),
     }));
 
     // Write back to file
-    fs.writeFileSync(filePath, JSON.stringify(reindexedSongs, null, 4), "utf-8");
+    fs.writeFileSync(
+      filePath,
+      JSON.stringify(reindexedSongs, null, 4),
+      "utf-8"
+    );
 
-    return NextResponse.json({ success: true, totalSongs: reindexedSongs.length });
+    return NextResponse.json({
+      success: true,
+      totalSongs: reindexedSongs.length,
+    });
   } catch (error) {
     console.error("Delete song error:", error);
     return NextResponse.json(

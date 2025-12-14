@@ -470,7 +470,7 @@ const DisplayAll: React.FC<DisplayAllProps> = ({
                                     }}
                                 />
                             )}
-                            
+
                             {/* Jacket image */}
                             <img
                                 src={song.imgUrl}

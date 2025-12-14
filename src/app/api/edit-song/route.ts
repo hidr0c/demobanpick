@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
       ...updatedSong,
       id: songId, // Keep the original ID
       imgUrl: updatedSong.imgUrl || "/assets/testjacket.png",
-      isDx: String(updatedSong.isDx)
+      isDx: String(updatedSong.isDx),
     };
 
     // Write back to file
