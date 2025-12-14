@@ -11,6 +11,8 @@ type DisplayAllProps = {
     onPoolChange: (poolId: string) => void;
     poolOptions: { id: string; name: string }[];
     onAddSong: (song: Song) => void;
+    onDeleteSong: (songId: string) => void;
+    onEditSong: (song: Song) => void;
 };
 
 type SearchTag = { type: 'diff' | 'level'; value: string };
@@ -28,7 +30,9 @@ const DisplayAll: React.FC<DisplayAllProps> = ({
     poolFile,
     onPoolChange,
     poolOptions,
-    onAddSong
+    onAddSong,
+    onDeleteSong,
+    onEditSong
 }) => {
     const [slots, setSlots] = useState<Song[]>(pool);
     const [inputValue, setInputValue] = useState('');
@@ -36,6 +40,8 @@ const DisplayAll: React.FC<DisplayAllProps> = ({
     const [selectedSongs, setSelectedSongs] = useState<Set<string>>(new Set());
     const [isExporting, setIsExporting] = useState(false);
     const [showAddSongPopup, setShowAddSongPopup] = useState(false);
+    const [showEditSongPopup, setShowEditSongPopup] = useState(false);
+    const [editingSong, setEditingSong] = useState<Song | null>(null);
     const [newSong, setNewSong] = useState<Partial<Song>>({
         title: '',
         artist: '',
@@ -133,6 +139,71 @@ const DisplayAll: React.FC<DisplayAllProps> = ({
             console.error('Add song error:', error);
             alert('Failed to add song!');
         }
+    };
+
+    // Handle deleting a song
+    const handleDeleteSong = async (song: Song) => {
+        if (!confirm(`Delete "${song.title}"?`)) return;
+
+        try {
+            const response = await fetch('/api/delete-song', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    songId: song.id,
+                    poolFile: poolFile.replace('/pools/', '')
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                onDeleteSong(song.id);
+                alert(`Deleted! Remaining: ${result.totalSongs} songs`);
+            } else {
+                alert('Failed to delete: ' + result.error);
+            }
+        } catch (error) {
+            console.error('Delete song error:', error);
+            alert('Failed to delete song!');
+        }
+    };
+
+    // Handle editing a song
+    const handleEditSong = async () => {
+        if (!editingSong) return;
+
+        try {
+            const response = await fetch('/api/edit-song', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    songId: editingSong.id,
+                    updatedSong: editingSong,
+                    poolFile: poolFile.replace('/pools/', '')
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                onEditSong(result.song);
+                setShowEditSongPopup(false);
+                setEditingSong(null);
+                alert('Song updated!');
+            } else {
+                alert('Failed to edit: ' + result.error);
+            }
+        } catch (error) {
+            console.error('Edit song error:', error);
+            alert('Failed to edit song!');
+        }
+    };
+
+    // Open edit popup
+    const openEditPopup = (song: Song) => {
+        setEditingSong({ ...song });
+        setShowEditSongPopup(true);
     };
 
     // Add tag function
@@ -318,6 +389,32 @@ const DisplayAll: React.FC<DisplayAllProps> = ({
                                 Deselect All
                             </button>
                         )}
+                        {/* Edit Button - show when exactly 1 song selected */}
+                        {selectedSongs.size === 1 && (
+                            <button
+                                onClick={() => {
+                                    const selectedId = Array.from(selectedSongs)[0];
+                                    const song = slots.find(s => s.id === selectedId);
+                                    if (song) openEditPopup(song);
+                                }}
+                                className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium whitespace-nowrap"
+                            >
+                                Edit
+                            </button>
+                        )}
+                        {/* Delete Button - show when exactly 1 song selected */}
+                        {selectedSongs.size === 1 && (
+                            <button
+                                onClick={() => {
+                                    const selectedId = Array.from(selectedSongs)[0];
+                                    const song = slots.find(s => s.id === selectedId);
+                                    if (song) handleDeleteSong(song);
+                                }}
+                                className="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-sm font-medium whitespace-nowrap"
+                            >
+                                Delete
+                            </button>
+                        )}
                         {/* Export Button */}
                         <button
                             onClick={exportToPool}
@@ -373,6 +470,7 @@ const DisplayAll: React.FC<DisplayAllProps> = ({
                                     }}
                                 />
                             )}
+                            
                             {/* Jacket image */}
                             <img
                                 src={song.imgUrl}
@@ -663,6 +761,146 @@ const DisplayAll: React.FC<DisplayAllProps> = ({
                                 className="flex-1 py-2 bg-green-600 hover:bg-green-500 text-white font-bold rounded transition-colors"
                             >
                                 Add Song
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Song Popup */}
+            {showEditSongPopup && editingSong && (
+                <div
+                    className="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
+                    onClick={() => {
+                        setShowEditSongPopup(false);
+                        setEditingSong(null);
+                    }}
+                >
+                    <div
+                        className="bg-gray-800 rounded-xl p-6 w-full max-w-md"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h2 className="text-xl font-bold text-white mb-4">Edit Song</h2>
+
+                        <div className="space-y-3">
+                            {/* Title */}
+                            <div>
+                                <label className="block text-sm text-gray-300 mb-1">Title *</label>
+                                <input
+                                    type="text"
+                                    value={editingSong.title}
+                                    onChange={(e) => setEditingSong({ ...editingSong, title: e.target.value })}
+                                    placeholder="Song title"
+                                    className="w-full px-3 py-2 bg-gray-700 text-white rounded outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
+
+                            {/* Artist */}
+                            <div>
+                                <label className="block text-sm text-gray-300 mb-1">Artist</label>
+                                <input
+                                    type="text"
+                                    value={editingSong.artist}
+                                    onChange={(e) => setEditingSong({ ...editingSong, artist: e.target.value })}
+                                    placeholder="Artist name"
+                                    className="w-full px-3 py-2 bg-gray-700 text-white rounded outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
+
+                            {/* Image URL */}
+                            <div>
+                                <label className="block text-sm text-gray-300 mb-1">Image URL (optional)</label>
+                                <input
+                                    type="text"
+                                    value={editingSong.imgUrl}
+                                    onChange={(e) => setEditingSong({ ...editingSong, imgUrl: e.target.value })}
+                                    placeholder="Leave empty for default image"
+                                    className="w-full px-3 py-2 bg-gray-700 text-white rounded outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
+
+                            {/* Level & Difficulty Row */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-sm text-gray-300 mb-1">Level</label>
+                                    <input
+                                        type="text"
+                                        value={editingSong.lv}
+                                        onChange={(e) => setEditingSong({ ...editingSong, lv: e.target.value })}
+                                        placeholder="13+"
+                                        className="w-full px-3 py-2 bg-gray-700 text-white rounded outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm text-gray-300 mb-1">Difficulty</label>
+                                    <select
+                                        value={editingSong.diff}
+                                        onChange={(e) => setEditingSong({ ...editingSong, diff: e.target.value })}
+                                        className="w-full px-3 py-2 bg-gray-700 text-white rounded outline-none focus:ring-2 focus:ring-blue-500"
+                                    >
+                                        <option value="EXPERT">EXPERT</option>
+                                        <option value="MASTER">MASTER</option>
+                                        <option value="RE:MASTER">RE:MASTER</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* Chart Type */}
+                            <div>
+                                <label className="block text-sm text-gray-300 mb-1">Chart Type</label>
+                                <div className="flex gap-4">
+                                    <label className="flex items-center gap-2 text-white">
+                                        <input
+                                            type="radio"
+                                            checked={editingSong.isDx === 'True'}
+                                            onChange={() => setEditingSong({ ...editingSong, isDx: 'True' })}
+                                            className="text-blue-500"
+                                        />
+                                        DX
+                                    </label>
+                                    <label className="flex items-center gap-2 text-white">
+                                        <input
+                                            type="radio"
+                                            checked={editingSong.isDx === 'False'}
+                                            onChange={() => setEditingSong({ ...editingSong, isDx: 'False' })}
+                                            className="text-blue-500"
+                                        />
+                                        Standard
+                                    </label>
+                                </div>
+                            </div>
+
+                            {/* Preview */}
+                            <div className="flex items-center gap-3 p-2 bg-gray-700 rounded">
+                                <img
+                                    src={editingSong.imgUrl || '/assets/testjacket.png'}
+                                    alt="preview"
+                                    className="w-12 h-12 rounded object-cover"
+                                    onError={(e) => (e.target as HTMLImageElement).src = '/assets/testjacket.png'}
+                                />
+                                <div>
+                                    <p className="text-white text-sm">{editingSong.title || 'Title'}</p>
+                                    <p className="text-gray-400 text-xs">{editingSong.artist || 'Artist'}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Buttons */}
+                        <div className="flex gap-3 mt-6">
+                            <button
+                                onClick={() => {
+                                    setShowEditSongPopup(false);
+                                    setEditingSong(null);
+                                }}
+                                className="flex-1 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleEditSong}
+                                className="flex-1 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded transition-colors"
+                            >
+                                Save Changes
                             </button>
                         </div>
                     </div>

@@ -127,6 +127,16 @@ export default function SongSelector() {
     setSongData(prev => [...prev, song]);
   };
 
+  const handleDeleteSong = (songId: string) => {
+    // Remove the song from current pool data
+    setSongData(prev => prev.filter(s => s.id !== songId));
+  };
+
+  const handleEditSong = (updatedSong: Song) => {
+    // Update the song in current pool data
+    setSongData(prev => prev.map(s => s.id === updatedSong.id ? updatedSong : s));
+  };
+
   return (
     <main className="min-h-screen relative">
       <iframe
@@ -152,6 +162,8 @@ export default function SongSelector() {
           onPoolChange={handlePoolChange}
           poolOptions={POOL_OPTIONS}
           onAddSong={handleAddSong}
+          onDeleteSong={handleDeleteSong}
+          onEditSong={handleEditSong}
         />
       )}
     </main>
