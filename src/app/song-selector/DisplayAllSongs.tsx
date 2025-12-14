@@ -112,14 +112,14 @@ const DisplayAll: React.FC<DisplayAllProps> = ({
             const response = await fetch('/api/add-song', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    song: songToAdd, 
+                body: JSON.stringify({
+                    song: songToAdd,
                     poolFile: poolFile.replace('/pools/', '')
                 })
             });
 
             const result = await response.json();
-            
+
             if (result.success) {
                 // Add to local state
                 onAddSong(result.song);
@@ -262,10 +262,10 @@ const DisplayAll: React.FC<DisplayAllProps> = ({
                 className="sticky top-0 z-50 px-6 pt-10 pb-4"
             >
                 <div className="max-w-8/10 mx-auto">
-                    <div 
+                    <div
                         className="flex flex-wrap items-center gap-2 border border-gray-600 rounded-lg px-3 py-2"
-                        style={{backgroundColor: 'rgba(255, 255, 255, 0.9)'}}
-                        >
+                        style={{ backgroundColor: 'rgba(255, 255, 255, 0.9)' }}
+                    >
                         {/* Pool Dropdown */}
                         <select
                             value={selectedPoolId}
@@ -536,16 +536,16 @@ const DisplayAll: React.FC<DisplayAllProps> = ({
 
             {/* Add Song Popup */}
             {showAddSongPopup && (
-                <div 
+                <div
                     className="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
                     onClick={() => setShowAddSongPopup(false)}
                 >
-                    <div 
+                    <div
                         className="bg-gray-800 rounded-xl p-6 w-full max-w-md"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <h2 className="text-xl font-bold text-white mb-4">Add New Song</h2>
-                        
+
                         <div className="space-y-3">
                             {/* Title */}
                             <div>
@@ -637,9 +637,9 @@ const DisplayAll: React.FC<DisplayAllProps> = ({
 
                             {/* Preview */}
                             <div className="flex items-center gap-3 p-2 bg-gray-700 rounded">
-                                <img 
-                                    src={newSong.imgUrl || '/assets/testjacket.png'} 
-                                    alt="preview" 
+                                <img
+                                    src={newSong.imgUrl || '/assets/testjacket.png'}
+                                    alt="preview"
                                     className="w-12 h-12 rounded object-cover"
                                     onError={(e) => (e.target as HTMLImageElement).src = '/assets/testjacket.png'}
                                 />

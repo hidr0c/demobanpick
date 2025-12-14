@@ -648,7 +648,7 @@ export default function ControllerPage() {
                             <p className="text-gray-400 text-sm mt-2">
                                 {songData.length} songs in pool
                             </p>
-                            
+
                             {/* Custom Pool Upload */}
                             <div className="mt-3 pt-3 border-t border-gray-700">
                                 <label className="block text-xs text-gray-400 mb-1">Upload Custom Pool</label>
