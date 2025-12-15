@@ -39,6 +39,32 @@ export default function MatchDisplay() {
         }
     }, [router]);
 
+    // Sync to API when songs or currentIndex changes
+    useEffect(() => {
+        if (songs.length > 0) {
+            const syncMatchDisplay = async () => {
+                try {
+                    await fetch('/api/sync-state', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            matchDisplay: {
+                                songs,
+                                currentIndex
+                            }
+                        })
+                    });
+                } catch (error) {
+                    console.error('Failed to sync match display:', error);
+                }
+            };
+            syncMatchDisplay();
+            
+            // Also save to localStorage for fallback
+            localStorage.setItem('matchCurrentIndex', String(currentIndex));
+        }
+    }, [songs, currentIndex]);
+
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'ArrowDown') {

@@ -27,47 +27,73 @@ export default function TextDisplayPage() {
         roundName: ''
     });
 
-    // Load and listen for text data changes
+    // Load and listen for text data changes - supports both localStorage and API sync
     useEffect(() => {
-        const loadTextData = () => {
-            const saved = localStorage.getItem('streamTextData');
-            if (saved) {
-                setTextData(JSON.parse(saved));
+        let lastTimestamp = 0;
+        
+        const loadTextData = async () => {
+            try {
+                // Always try API first (for OBS browser source)
+                const res = await fetch('/api/sync-state', {
+                    cache: 'no-store',
+                    headers: { 'Cache-Control': 'no-cache' }
+                });
+                
+                if (res.ok) {
+                    const data = await res.json();
+                    // Only update if timestamp changed (optimization)
+                    if (data.timestamp && data.timestamp !== lastTimestamp) {
+                        lastTimestamp = data.timestamp;
+                        if (data.textData) {
+                            console.log('[text-display] API sync:', data.textData);
+                            setTextData(data.textData);
+                            return;
+                        }
+                    } else if (data.textData) {
+                        // First load or same timestamp but has data
+                        setTextData(data.textData);
+                        return;
+                    }
+                }
+            } catch (err) {
+                console.log('[text-display] API failed, using localStorage:', err);
+            }
+            
+            // Fallback to localStorage (same browser only)
+            try {
+                const saved = localStorage.getItem('streamTextData');
+                if (saved) {
+                    setTextData(JSON.parse(saved));
+                }
+            } catch {
+                // localStorage not available (OBS)
             }
         };
 
         // Initial load
         loadTextData();
 
-        // Listen for storage events from other tabs
-        const handleStorageChange = (e: StorageEvent) => {
-            if (e.key === 'streamTextData' && e.newValue) {
-                setTextData(JSON.parse(e.newValue));
-            }
-        };
-
-        // Poll for same-tab updates
+        // Poll for updates (works across different browsers)
         const pollInterval = setInterval(loadTextData, 500);
 
-        window.addEventListener('storage', handleStorageChange);
         return () => {
-            window.removeEventListener('storage', handleStorageChange);
             clearInterval(pollInterval);
         };
     }, []);
 
     return (
         <div className="min-h-screen w-full relative" style={{ background: 'transparent' }}>
-            {/* Round Name - Top Left */}
+            {/* Row 1: Round Name - Top Left */}
             <div
                 className="absolute"
                 style={{
                     top: '8px',
-                    left: '16px'
+                    left: '16px',
+                    right: '16px'
                 }}
             >
                 <div
-                    className="px-4 py-2 rounded-lg"
+                    className="px-4 py-2 rounded-lg inline-block"
                     style={{
                         background: 'rgba(0, 0, 0, 0.7)',
                         backdropFilter: 'blur(4px)'
@@ -79,14 +105,13 @@ export default function TextDisplayPage() {
                 </div>
             </div>
 
-            {/* Player Names - Top Row */}
+            {/* Row 2: Player Names */}
             <div
                 className="absolute flex justify-between"
                 style={{
-                    top: '8px',
+                    top: '60px',
                     left: '16px',
-                    right: '16px',
-                    paddingLeft: '200px' // Space for round name
+                    right: '16px'
                 }}
             >
                 {/* Player 1 */}

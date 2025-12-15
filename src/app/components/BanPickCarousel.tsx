@@ -154,22 +154,32 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
     // When showing final only, display songs in pick order
     const displaySongs = showFinalOnly ? pickedSongs : songs;
 
-    // For sizing purposes
-    const FRAME_OVERLAY_W = 300;
-    const FRAME_OVERLAY_H = 390;
+    // For sizing purposes - 1.25x scale
+    const FRAME_OVERLAY_W = 375;
+    const FRAME_OVERLAY_H = 488;
     const FRAME_W = FRAME_OVERLAY_W * 0.61;
     const FRAME_H = FRAME_OVERLAY_H * 0.5;
-    const TITLE_FONT_SIZE = 20;
+    const TITLE_FONT_SIZE = 28;
 
-    // Determine grid columns based on song count
+    // Determine grid columns based on song count - improved logic
     const getGridColumns = () => {
         const count = displaySongs.length;
-        if (count === 5) return 3;
+        if (count <= 0) return 1;
+        if (count === 1) return 1;
+        if (count === 2) return 2;
+        if (count === 3) return 3;
         if (count === 4) return 4;
-        if (count <= 3) return count;
-        if (count % 3 === 0) return 3; // 6, 9, 12...
-        if (count % 2 === 0) return count / 2; // Even numbers
-        return 4; // Default
+        if (count === 5) return 5; // Changed: 5 columns for 5 songs
+        if (count === 6) return 3; // 2 rows x 3 columns
+        if (count === 7) return 4; // 2 rows, 4+3
+        if (count === 8) return 4; // 2 rows x 4 columns
+        if (count === 9) return 3; // 3 rows x 3 columns
+        if (count === 10) return 5; // 2 rows x 5 columns
+        // For larger counts
+        if (count % 4 === 0) return 4;
+        if (count % 3 === 0) return 3;
+        if (count % 5 === 0) return 5;
+        return Math.min(count, 5); // Max 5 columns
     };
 
     const gridColumns = getGridColumns();

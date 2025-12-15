@@ -150,8 +150,8 @@ export default function ControllerPage() {
             .catch(() => setRoundJsonData([]));
     }, []);
 
-    // Push stream text to localStorage (only when button clicked)
-    const pushStreamText = () => {
+    // Push stream text to localStorage AND API (for OBS sync)
+    const pushStreamText = async () => {
         const textData = {
             player1: streamText.player1,
             player1Tag: streamText.player1Tag,
@@ -163,16 +163,28 @@ export default function ControllerPage() {
             player4Tag: streamText.player4Tag,
             roundName: streamText.roundName
         };
+        
+        // Save to localStorage (for same browser tabs)
         localStorage.setItem('streamTextData', JSON.stringify(textData));
-        // Dispatch event so text-display can update
         window.dispatchEvent(new StorageEvent('storage', {
             key: 'streamTextData',
             newValue: JSON.stringify(textData)
         }));
+        
+        // Save to API (for OBS browser source sync)
+        try {
+            await fetch('/api/sync-state', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ textData })
+            });
+        } catch (error) {
+            console.error('Failed to sync to API:', error);
+        }
     };
 
-    // Save all settings to localStorage and dispatch event
-    const saveSettings = () => {
+    // Save all settings to localStorage AND API
+    const saveSettings = async () => {
         localStorage.setItem('selectedPool', selectedPool);
         localStorage.setItem('randomCount', String(randomCount));
         localStorage.setItem('pickCount', String(pickCount));
@@ -186,6 +198,27 @@ export default function ControllerPage() {
             key: 'controllerSettings',
             newValue: Date.now().toString()
         }));
+        
+        // Also sync to API for OBS
+        try {
+            await fetch('/api/sync-state', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    gameState: {
+                        selectedPool,
+                        randomCount,
+                        pickCount,
+                        banCount,
+                        fixedSongs,
+                        lockedTracks,
+                        hiddenTracks
+                    }
+                })
+            });
+        } catch (error) {
+            console.error('Failed to sync settings to API:', error);
+        }
     };
 
     // Auto-save when settings change
@@ -885,11 +918,11 @@ export default function ControllerPage() {
                             className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg outline-none focus:ring-2 focus:ring-purple-500 mb-3"
                         />
                         <div className="max-h-[500px] overflow-y-auto space-y-1">
-                            {filteredPool.slice(0, 100).map((song) => {
+                            {filteredPool.slice(0, 100).map((song, index) => {
                                 const isSelected = fixedSongs.some(s => s.id === song.id);
                                 return (
                                     <div
-                                        key={song.id}
+                                        key={`${song.id}-${song.diff}-${index}`}
                                         className={`px-3 py-2 rounded-lg cursor-pointer transition-colors flex items-center gap-3 ${isSelected ? 'bg-purple-600' : 'hover:bg-gray-700'}`}
                                         onClick={() => toggleSong(song)}
                                     >

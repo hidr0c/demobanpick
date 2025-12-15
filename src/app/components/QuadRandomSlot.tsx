@@ -9,6 +9,7 @@ type QuadRandomSlotProps = {
     disabled?: boolean;
     fixedSongs?: Song[];
     randomCount?: number;
+    externalResults?: Song[]; // For OBS mode - display results from API
 };
 
 const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
@@ -16,7 +17,8 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
     onRandomComplete,
     disabled = false,
     fixedSongs = [],
-    randomCount = 4
+    randomCount = 4,
+    externalResults
 }) => {
     const [slots, setSlots] = useState<Song[]>([]);
     const [isAnimating, setIsAnimating] = useState(false);
@@ -26,6 +28,15 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
     const finalResultsRef = useRef<Song[]>([]);
     const preloadedImagesRef = useRef<Set<string>>(new Set());
     const currentPoolRef = useRef<string>('');
+
+    // If external results provided (OBS mode), use them directly
+    useEffect(() => {
+        if (externalResults && externalResults.length > 0) {
+            setSlots(externalResults);
+            hasCompletedRef.current = true;
+            finalResultsRef.current = externalResults;
+        }
+    }, [externalResults]);
 
     // Preload all images from pool on mount
     useEffect(() => {
@@ -168,33 +179,43 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
         };
     }, []);
 
-    // Determine grid columns based on random count
+    // Determine grid columns based on random count - improved logic
     const getGridColumns = () => {
         const count = randomCount;
-        if (count === 5) return 3;
+        if (count <= 0) return 1;
+        if (count === 1) return 1;
+        if (count === 2) return 2;
+        if (count === 3) return 3;
         if (count === 4) return 4;
-        if (count <= 3) return count;
-        if (count % 3 === 0) return 3; // 6, 9, 12...
-        if (count % 2 === 0) return count / 2; // Even numbers
-        return 4; // Default
+        if (count === 5) return 5; // 5 columns for 5 songs
+        if (count === 6) return 3; // 2 rows x 3 columns
+        if (count === 7) return 4; // 2 rows, 4+3
+        if (count === 8) return 4; // 2 rows x 4 columns
+        if (count === 9) return 3; // 3 rows x 3 columns
+        if (count === 10) return 5; // 2 rows x 5 columns
+        // For larger counts
+        if (count % 4 === 0) return 4;
+        if (count % 3 === 0) return 3;
+        if (count % 5 === 0) return 5;
+        return Math.min(count, 5); // Max 5 columns
     };
     const gridColumns = getGridColumns();
 
-    const FRAME_OVERLAY_W = 300;
-    const FRAME_OVERLAY_H = 390;
+    const FRAME_OVERLAY_W = 375;
+    const FRAME_OVERLAY_H = 488;
     const FRAME_W = FRAME_OVERLAY_W * 0.61;
     const FRAME_H = FRAME_OVERLAY_H * 0.5;
-    const TITLE_FONT_SIZE = 20;
+    const TITLE_FONT_SIZE = 28;
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen gap-8 p-4">
+        <div className="flex flex-col items-center justify-center min-h-screen gap-4 p-2">
             {/* Random slots display */}
             <div
-                className="flex flex-row gap-8 justify-center items-center flex-wrap"
+                className="flex flex-row gap-4 justify-center items-center flex-wrap"
                 style={{
                     gridTemplateColumns: `repeat(${gridColumns}, 1fr)`,
                     gridTemplateRows: 'repeat(auto-fill, 1fr)',
-                    maxWidth: gridColumns >= 4 ? '1400px' : '1100px',
+                    maxWidth: gridColumns >= 4 ? '1600px' : '1200px',
                     margin: '0 auto'
                 }}
             >

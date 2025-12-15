@@ -29,6 +29,19 @@ const POOL_FILES: Record<string, string> = {
   top32: '/pools/top32.json',
 };
 
+// Helper function to sync state to API
+const syncToAPI = async (gameState: any) => {
+  try {
+    await fetch('/api/sync-state', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ gameState })
+    });
+  } catch (error) {
+    console.error('Failed to sync to API:', error);
+  }
+};
+
 export default function Home() {
   const router = useRouter();
   const [roundIndex, setRoundIndex] = useState(0);
@@ -39,6 +52,10 @@ export default function Home() {
   const [isLoadingPool, setIsLoadingPool] = useState(true);
   const [poolVersion, setPoolVersion] = useState(0); // Force re-render key
   const abortControllerRef = useRef<AbortController | null>(null);
+  
+  // Track if this is OBS mode (loaded from API)
+  const [isOBSMode, setIsOBSMode] = useState(false);
+  const lastAPITimestamp = useRef(0);
 
   // Load all settings from localStorage
   const loadSettingsFromStorage = useCallback(() => {
@@ -67,13 +84,79 @@ export default function Home() {
     if (savedHiddenTracks) setHiddenTracks(JSON.parse(savedHiddenTracks));
   }, []);
 
-  // Load settings on mount
+  // Load settings from API (for OBS mode)
+  const loadSettingsFromAPI = useCallback(async () => {
+    try {
+      const res = await fetch('/api/sync-state', {
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache' }
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        
+        // Only update if timestamp changed
+        if (data.timestamp && data.timestamp !== lastAPITimestamp.current) {
+          lastAPITimestamp.current = data.timestamp;
+          
+          if (data.gameState) {
+            const gs = data.gameState;
+            
+            if (gs.selectedPool && POOL_FILES[gs.selectedPool]) {
+              setSelectedPool(prev => {
+                if (prev !== gs.selectedPool) {
+                  setPoolVersion(v => v + 1);
+                  return gs.selectedPool;
+                }
+                return prev;
+              });
+            }
+            if (gs.randomCount !== undefined) setRandomCount(gs.randomCount);
+            if (gs.pickCount !== undefined) setPickCount(gs.pickCount);
+            if (gs.banCount !== undefined) setBanCount(gs.banCount);
+            if (gs.fixedSongs !== undefined) setFixedSongs(gs.fixedSongs || []);
+            if (gs.lockedTracks !== undefined) setLockedTracks(gs.lockedTracks || {});
+            if (gs.hiddenTracks !== undefined) setHiddenTracks(gs.hiddenTracks || { track3Hidden: false, track4Hidden: false });
+            if (gs.randomResults !== undefined) setRandomResults(gs.randomResults || []);
+            if (gs.bannedSongs !== undefined) setBannedSongs(gs.bannedSongs || []);
+            if (gs.pickedSongs !== undefined) setPickedSongs(gs.pickedSongs || []);
+            if (gs.showBanPick !== undefined) setShowBanPick(gs.showBanPick);
+            if (gs.showFinalResults !== undefined) setShowFinalResults(gs.showFinalResults);
+            
+            console.log('[Main] API sync - randomResults:', gs.randomResults?.length, 'showBanPick:', gs.showBanPick);
+          }
+        }
+      }
+    } catch (error) {
+      console.log('[Main] API not available, using localStorage');
+    }
+  }, []);
+
+  // Detect if running in OBS mode via URL query param ?obs=1
   useEffect(() => {
-    loadSettingsFromStorage();
-  }, [loadSettingsFromStorage]);
+    const urlParams = new URLSearchParams(window.location.search);
+    const obsParam = urlParams.get('obs');
+    
+    if (obsParam === '1' || obsParam === 'true') {
+      // OBS mode - only read from API, don't use localStorage
+      setIsOBSMode(true);
+      console.log('[Main] OBS mode enabled via URL param');
+    } else {
+      // Normal mode - use localStorage
+      setIsOBSMode(false);
+      loadSettingsFromStorage();
+    }
+    
+    // Always poll API for updates (works for both modes)
+    const pollInterval = setInterval(loadSettingsFromAPI, 500);
+    
+    return () => clearInterval(pollInterval);
+  }, [loadSettingsFromStorage, loadSettingsFromAPI]);
 
   // Listen for storage events from /controller page
   useEffect(() => {
+    if (isOBSMode) return; // Skip if OBS mode
+    
     const handleStorageChange = (e: StorageEvent) => {
       // Reload all settings when controller page updates
       if (e.key === 'controllerSettings' || e.key === 'selectedPool' ||
@@ -85,7 +168,7 @@ export default function Home() {
 
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
-  }, [loadSettingsFromStorage]);
+  }, [loadSettingsFromStorage, isOBSMode]);
 
   // Load pool data when selected pool changes
   useEffect(() => {
@@ -181,6 +264,30 @@ export default function Home() {
   const [pickedSongs, setPickedSongs] = useState<Song[]>([]);
   const [showFinalResults, setShowFinalResults] = useState(false);
 
+  // Sync game state to API whenever important state changes
+  useEffect(() => {
+    // Don't sync if in OBS mode (OBS only reads, doesn't write)
+    if (isOBSMode) return;
+    
+    const gameState = {
+      selectedPool,
+      randomCount,
+      pickCount,
+      banCount,
+      fixedSongs,
+      lockedTracks,
+      hiddenTracks,
+      randomResults,
+      bannedSongs,
+      pickedSongs,
+      showBanPick,
+      showFinalResults
+    };
+    
+    syncToAPI(gameState);
+  }, [selectedPool, randomCount, pickCount, banCount, fixedSongs, lockedTracks, 
+      hiddenTracks, randomResults, bannedSongs, pickedSongs, showBanPick, showFinalResults, isOBSMode]);
+
   // Listen for R key to reset and Enter key for final results navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -197,6 +304,7 @@ export default function Home() {
   }, [showFinalResults, router]);
 
   const handleRandomComplete = useCallback((results: Song[]) => {
+    console.log('[Main] handleRandomComplete called with', results.length, 'songs');
     setRandomResults(results);
     // Auto transition to ban/pick after showing result
     setTimeout(() => {
@@ -294,6 +402,9 @@ export default function Home() {
 
   // Combined pool for ban/pick = random results + fixed songs (excluding locked)
   const banPickPool = [...randomResults, ...fixedSongs];
+  
+  // Debug log
+  console.log('[Main] banPickPool:', banPickPool.length, 'randomResults:', randomResults.length, 'fixedSongs:', fixedSongs.length);
 
   return (
     <main className="min-h-screen relative">
@@ -343,6 +454,7 @@ export default function Home() {
           fixedSongs={fixedSongs}
           randomCount={randomCount}
           onRandomComplete={handleRandomComplete}
+          externalResults={isOBSMode ? randomResults : undefined}
         />
       ) : (
         /* Ban/Pick Phase */
