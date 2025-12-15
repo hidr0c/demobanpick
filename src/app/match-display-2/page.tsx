@@ -17,7 +17,7 @@ export default function MatchDisplay2() {
 
     useEffect(() => {
         let lastTimestamp = 0;
-        
+
         // Poll API for match state updates
         const handleUpdate = async () => {
             try {
@@ -25,13 +25,13 @@ export default function MatchDisplay2() {
                     cache: 'no-store',
                     headers: { 'Cache-Control': 'no-cache' }
                 });
-                
+
                 if (res.ok) {
                     const data = await res.json();
-                    
+
                     if (data.timestamp && data.timestamp !== lastTimestamp) {
                         lastTimestamp = data.timestamp;
-                        
+
                         // Get match songs and current index
                         if (data.matchDisplay) {
                             if (data.matchDisplay.songs) {
@@ -46,13 +46,13 @@ export default function MatchDisplay2() {
             } catch (err) {
                 console.log('[match-display-2] API failed:', err);
             }
-            
+
             // Fallback to localStorage
             try {
                 const stored = localStorage.getItem('matchSongs');
                 const indexStored = localStorage.getItem('matchCurrentIndex');
                 const lockedTracksStored = localStorage.getItem('lockedTracks');
-                
+
                 if (stored) {
                     const parsed = JSON.parse(stored);
                     let finalSongs = parsed;
@@ -104,7 +104,7 @@ export default function MatchDisplay2() {
 
     if (songs.length === 0 || !songs[currentIndex]) {
         return (
-            <div 
+            <div
                 className="min-h-screen w-full flex items-center"
                 style={{ background: 'transparent', paddingLeft: '10px' }}
             >
@@ -126,7 +126,7 @@ export default function MatchDisplay2() {
     const currentSong = songs[currentIndex];
 
     return (
-        <div 
+        <div
             className="min-h-screen w-full flex items-center"
             style={{ background: 'transparent', paddingLeft: '10px' }}
         >

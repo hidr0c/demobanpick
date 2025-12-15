@@ -30,7 +30,7 @@ export default function TextDisplayPage() {
     // Load and listen for text data changes - supports both localStorage and API sync
     useEffect(() => {
         let lastTimestamp = 0;
-        
+
         const loadTextData = async () => {
             try {
                 // Always try API first (for OBS browser source)
@@ -38,7 +38,7 @@ export default function TextDisplayPage() {
                     cache: 'no-store',
                     headers: { 'Cache-Control': 'no-cache' }
                 });
-                
+
                 if (res.ok) {
                     const data = await res.json();
                     // Only update if timestamp changed (optimization)
@@ -58,7 +58,7 @@ export default function TextDisplayPage() {
             } catch (err) {
                 console.log('[text-display] API failed, using localStorage:', err);
             }
-            
+
             // Fallback to localStorage (same browser only)
             try {
                 const saved = localStorage.getItem('streamTextData');

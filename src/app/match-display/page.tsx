@@ -59,7 +59,7 @@ export default function MatchDisplay() {
                 }
             };
             syncMatchDisplay();
-            
+
             // Also save to localStorage for fallback
             localStorage.setItem('matchCurrentIndex', String(currentIndex));
         }

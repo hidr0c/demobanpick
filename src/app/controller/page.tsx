@@ -163,14 +163,14 @@ export default function ControllerPage() {
             player4Tag: streamText.player4Tag,
             roundName: streamText.roundName
         };
-        
+
         // Save to localStorage (for same browser tabs)
         localStorage.setItem('streamTextData', JSON.stringify(textData));
         window.dispatchEvent(new StorageEvent('storage', {
             key: 'streamTextData',
             newValue: JSON.stringify(textData)
         }));
-        
+
         // Save to API (for OBS browser source sync)
         try {
             await fetch('/api/sync-state', {
@@ -198,7 +198,7 @@ export default function ControllerPage() {
             key: 'controllerSettings',
             newValue: Date.now().toString()
         }));
-        
+
         // Also sync to API for OBS
         try {
             await fetch('/api/sync-state', {
