@@ -5,16 +5,29 @@ import { Song } from '../interface';
 
 // Frame dimensions - match the frame PNG aspect ratio
 // Original frame is 300x390, scale down to ~60%
-const FRAME_W = 180;
-const FRAME_H = 234;
+const FRAME_W = 200;
+const FRAME_H = 260;
 // Jacket should be square and fit inside the frame's image area
-const JACKET_SIZE = Math.floor(FRAME_W * 0.92); // ~166px
-const JACKET_OFFSET = Math.floor(FRAME_W * 0.04); // ~7px from edge
+const JACKET_SIZE = Math.floor(FRAME_W * 0.7); // ~166px
+const TOP_JACKET_OFFSET = Math.floor(FRAME_W * 0.2); // ~7px from edge
+const LEFT_JACKET_OFFSET = Math.floor(FRAME_W * 0.15); // ~7px from edge
 
 export default function MatchDisplay2() {
     const [songs, setSongs] = useState<Song[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
-
+    const getDiffColor = (diff: string) => {
+        switch (diff) {
+            case 'EXPERT':
+                return '#fe6069';
+            case 'MASTER':
+                return '#a352de';
+            case 'RE:MASTER':
+            case 'Re:MASTER':
+                return '#e5d0f5';
+            default:
+                return '#a352de';
+        }
+    };
     useEffect(() => {
         let lastTimestamp = 0;
         let isFirstLoad = true;
@@ -118,7 +131,7 @@ export default function MatchDisplay2() {
 
         return () => clearInterval(pollInterval);
     }, []);
-
+    
     const getFrameImage = (diff: string, isDx: string) => {
         const type = isDx === 'True' ? 'dx' : 'std';
         let diffName = diff.toLowerCase();
@@ -175,14 +188,15 @@ export default function MatchDisplay2() {
                     alt={currentSong.title}
                     style={{
                         position: 'absolute',
-                        top: JACKET_OFFSET,
-                        left: JACKET_OFFSET,
+                        top: TOP_JACKET_OFFSET,
+                        left: LEFT_JACKET_OFFSET,
                         width: JACKET_SIZE,
                         height: JACKET_SIZE,
                         objectFit: 'cover',
                         zIndex: 1
                     }}
                 />
+
 
                 {/* Frame Overlay - on top */}
                 <img
@@ -194,21 +208,54 @@ export default function MatchDisplay2() {
                         left: 0,
                         width: FRAME_W,
                         height: FRAME_H,
-                        objectFit: 'contain',
+                        // objectFit: 'contain',
                         zIndex: 2,
                         pointerEvents: 'none'
                     }}
                 />
+                
+                {/* Diff + Lv - centered with gap */}
+                <div
+                    className="absolute"
+                    style={{
+                        position: 'absolute',
+                        bottom: FRAME_H / 4.25,
+                        left: 8,
+                        right: 8,
+                        textAlign: 'center',
+                        fontSize: FRAME_W / 13,
+                        fontWeight: 800,
+                        color: '#FFFFFF',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        zIndex: 3,
+                        gap: '4px',
+                        textShadow: `
+                        -2px -2px 0 ${getDiffColor(currentSong.diff)}, 
+                        2px -2px 0 ${getDiffColor(currentSong.diff)},
+                        -2px 2px 0 ${getDiffColor(currentSong.diff)},
+                        2px 2px 0 ${getDiffColor(currentSong.diff)},
+                        -3px 0px 0 ${getDiffColor(currentSong.diff)},
+                        3px 0px 0 ${getDiffColor(currentSong.diff)},
+                        0px -3px 0 ${getDiffColor(currentSong.diff)},
+                        0px 3px 0 ${getDiffColor(currentSong.diff)}
+                        `,
+                        letterSpacing: '0.5px'
+                    }}
+                >
+                    {currentSong.diff} {currentSong.lv}
+                </div>
 
                 {/* Title at bottom of frame */}
                 <div
                     style={{
                         position: 'absolute',
-                        bottom: 6,
+                        bottom: FRAME_W / 5.5,
                         left: 8,
                         right: 8,
                         textAlign: 'center',
-                        fontSize: 9,
+                        fontSize: FRAME_W / 20,
                         fontWeight: 600,
                         color: '#333',
                         overflow: 'hidden',
@@ -218,6 +265,26 @@ export default function MatchDisplay2() {
                     }}
                 >
                     {currentSong.title}
+                </div>
+                
+                {/* Artist at bottom of frame */}
+                <div
+                    style={{
+                        position: 'absolute',
+                        bottom: FRAME_W / 15,
+                        left: 8,
+                        right: 8,
+                        textAlign: 'center',
+                        fontSize: FRAME_W / 20 - 2,
+                        fontWeight: 600,
+                        color: '#333',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        zIndex: 3
+                    }}
+                >
+                    {currentSong.artist}
                 </div>
 
                 {/* Track number badge */}
