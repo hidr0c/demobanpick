@@ -259,18 +259,17 @@ export default function MatchDisplay2() {
                 <div
                     style={{
                         position: 'absolute',
-                        top: 4,
-                        right: 4,
+                        top: -FRAME_H / 5,
+                        right: FRAME_W / 4,
                         backgroundColor: 'rgba(0,0,0,0.75)',
                         color: 'white',
-                        padding: '2px 6px',
-                        borderRadius: '8px',
-                        fontSize: 9,
+                        borderRadius: '4px',
+                        fontSize: 20,
                         fontWeight: 700,
                         zIndex: 4
                     }}
                 >
-                    {currentIndex + 1}/{songs.length}
+                    <span>Track</span> {currentIndex + 1}/{songs.length}
                 </div>
             </div>
         </div>
