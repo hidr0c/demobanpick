@@ -277,7 +277,7 @@ export default function MatchDisplay() {
                 </div>
             </div>
 
-            {/* Navigation hints */}
+            {/* Navigation hints
             <div className="mt-8 text-white text-center space-y-2">
                 <div className="text-lg">
                     Press <kbd className="px-3 py-1 bg-white/20 rounded">↓</kbd> for next track
@@ -288,7 +288,7 @@ export default function MatchDisplay() {
                 <div className="text-sm opacity-70">
                     Press <kbd className="px-2 py-1 bg-white/20 rounded text-sm">ESC</kbd> to return
                 </div>
-            </div>
+            </div> */}
 
             {/* Track list indicator */}
             <div className="mt-8 flex gap-2">
