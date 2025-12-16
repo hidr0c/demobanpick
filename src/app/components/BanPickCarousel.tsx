@@ -71,8 +71,8 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
 
     // Preload images when songs change - limit to prevent memory issues
     useEffect(() => {
-        // Only preload first 20 images to prevent memory bloat
-        const songsToPreload = songs.slice(0, 20);
+        // Only preload first 10 images to save RAM
+        const songsToPreload = songs.slice(0, 10);
         songsToPreload.forEach(song => {
             if (!preloadedImagesRef.current.has(song.imgUrl)) {
                 const img = new window.Image();

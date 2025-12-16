@@ -80,6 +80,15 @@ export default function ControllerPage() {
     const [showRoundDropdown, setShowRoundDropdown] = useState(false);
     const [customPoolData, setCustomPoolData] = useState<Song[]>([]);
 
+    // Game control state (synced with Home page)
+    const [randomResults, setRandomResults] = useState<Song[]>([]);
+    const [bannedSongs, setBannedSongs] = useState<Song[]>([]);
+    const [pickedSongs, setPickedSongs] = useState<Song[]>([]);
+    const [showBanPick, setShowBanPick] = useState(false);
+    const [showFinalResults, setShowFinalResults] = useState(false);
+    const [selectedSongIndex, setSelectedSongIndex] = useState(0);
+    const lastSyncTime = useRef(0);
+
     // Load settings from localStorage on mount
     useEffect(() => {
         const savedPool = localStorage.getItem('selectedPool');
@@ -149,6 +158,202 @@ export default function ControllerPage() {
             .then(data => setRoundJsonData(data))
             .catch(() => setRoundJsonData([]));
     }, []);
+
+    // Poll game state from API
+    useEffect(() => {
+        const pollGameState = async () => {
+            // Don't poll if we just synced
+            if (Date.now() - lastSyncTime.current < 1000) return;
+
+            try {
+                const res = await fetch('/api/sync-state', { cache: 'no-store' });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.gameState) {
+                        const gs = data.gameState;
+                        if (gs.randomResults) setRandomResults(gs.randomResults);
+                        if (gs.bannedSongs) setBannedSongs(gs.bannedSongs);
+                        if (gs.pickedSongs) setPickedSongs(gs.pickedSongs);
+                        if (gs.showBanPick !== undefined) setShowBanPick(gs.showBanPick);
+                        if (gs.showFinalResults !== undefined) setShowFinalResults(gs.showFinalResults);
+                    }
+                }
+            } catch {
+                // Silent
+            }
+        };
+
+        pollGameState();
+        const interval = setInterval(pollGameState, 1000); // 1s polling for controller (less frequent)
+        return () => clearInterval(interval);
+    }, []);
+
+    // Sync game state to API
+    const syncGameState = async (updates: any) => {
+        lastSyncTime.current = Date.now();
+        try {
+            await fetch('/api/sync-state', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ gameState: updates })
+            });
+        } catch (error) {
+            console.error('Failed to sync game state:', error);
+        }
+    };
+
+    // Trigger random from controller
+    const triggerRandom = async () => {
+        const availablePool = songData.filter(
+            song => !fixedSongs.find(f => f.id === song.id) &&
+                song.id !== lockedTracks.track3?.id &&
+                song.id !== lockedTracks.track4?.id
+        );
+
+        if (availablePool.length < randomCount) {
+            alert('Not enough songs in pool!');
+            return;
+        }
+
+        // Shuffle and pick
+        const shuffled = [...availablePool].sort(() => Math.random() - 0.5);
+        const results = shuffled.slice(0, randomCount);
+
+        setRandomResults(results);
+        setShowBanPick(false);
+        setShowFinalResults(false);
+        setBannedSongs([]);
+        setPickedSongs([]);
+        setSelectedSongIndex(0);
+
+        await syncGameState({
+            randomResults: results,
+            showBanPick: false,
+            showFinalResults: false,
+            bannedSongs: [],
+            pickedSongs: []
+        });
+    };
+
+    // Go to ban/pick phase
+    const goToBanPickPhase = async () => {
+        if (randomResults.length === 0) return;
+        setShowBanPick(true);
+        setShowFinalResults(false);
+        await syncGameState({ showBanPick: true, showFinalResults: false });
+    };
+
+    // Ban a song
+    const handleBanSong = async (song: Song) => {
+        if (bannedSongs.length >= banCount) return;
+        const newBanned = [...bannedSongs, song];
+        setBannedSongs(newBanned);
+
+        // Update log
+        const newLog = [...banPickLog, { type: 'ban' as const, song }];
+        setBanPickLog(newLog);
+        localStorage.setItem('banPickLog', JSON.stringify(newLog));
+
+        // Sync both bannedSongs and log to API
+        await syncGameState({ bannedSongs: newBanned, banPickLog: newLog });
+    };
+
+    // Pick a song
+    const handlePickSong = async (song: Song) => {
+        if (bannedSongs.length < banCount) return; // Must finish banning first
+        if (pickedSongs.length >= pickCount) return;
+
+        const newPicked = [...pickedSongs, song];
+        setPickedSongs(newPicked);
+
+        // Update log
+        const newLog = [...banPickLog, { type: 'pick' as const, song }];
+        setBanPickLog(newLog);
+        localStorage.setItem('banPickLog', JSON.stringify(newLog));
+
+        // Sync both pickedSongs and log to API
+        await syncGameState({ pickedSongs: newPicked, banPickLog: newLog });
+
+        // Check if complete
+        if (newPicked.length >= pickCount) {
+            setShowFinalResults(true);
+            await syncGameState({ showFinalResults: true });
+        }
+    };
+
+    // Reset game
+    const handleGameReset = async () => {
+        setRandomResults([]);
+        setBannedSongs([]);
+        setPickedSongs([]);
+        setShowBanPick(false);
+        setShowFinalResults(false);
+        setSelectedSongIndex(0);
+        setBanPickLog([]);
+        localStorage.removeItem('banPickLog');
+
+        await syncGameState({
+            randomResults: [],
+            bannedSongs: [],
+            pickedSongs: [],
+            showBanPick: false,
+            showFinalResults: false
+        });
+    };
+
+    // Check if song is banned/picked
+    const isSongBanned = (song: Song) => bannedSongs.some(s => s.id === song.id);
+    const isSongPicked = (song: Song) => pickedSongs.some(s => s.id === song.id);
+    const isSongProcessed = (song: Song) => isSongBanned(song) || isSongPicked(song);
+
+    // Game phase info
+    const isBanPhase = showBanPick && bannedSongs.length < banCount;
+    const isPickPhase = showBanPick && bannedSongs.length >= banCount && pickedSongs.length < pickCount;
+    const remainingBans = banCount - bannedSongs.length;
+    const remainingPicks = pickCount - pickedSongs.length;
+
+    // Get available (unprocessed) songs for navigation
+    const getAvailableSongs = () => randomResults.filter(s => !isSongProcessed(s));
+
+    // Keyboard navigation for game control
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Only handle if we have random results and in ban/pick phase
+            if (randomResults.length === 0) return;
+
+            const availableSongs = getAvailableSongs();
+            if (availableSongs.length === 0) return;
+
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                e.preventDefault();
+                setSelectedSongIndex(prev => {
+                    const currentInAvailable = availableSongs.findIndex(s => s.id === randomResults[prev]?.id);
+                    const newIndex = currentInAvailable > 0 ? currentInAvailable - 1 : availableSongs.length - 1;
+                    return randomResults.findIndex(s => s.id === availableSongs[newIndex]?.id);
+                });
+            } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                e.preventDefault();
+                setSelectedSongIndex(prev => {
+                    const currentInAvailable = availableSongs.findIndex(s => s.id === randomResults[prev]?.id);
+                    const newIndex = currentInAvailable < availableSongs.length - 1 ? currentInAvailable + 1 : 0;
+                    return randomResults.findIndex(s => s.id === availableSongs[newIndex]?.id);
+                });
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                const selectedSong = randomResults[selectedSongIndex];
+                if (selectedSong && !isSongProcessed(selectedSong) && showBanPick) {
+                    if (isBanPhase) {
+                        handleBanSong(selectedSong);
+                    } else if (isPickPhase) {
+                        handlePickSong(selectedSong);
+                    }
+                }
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [randomResults, selectedSongIndex, showBanPick, isBanPhase, isPickPhase, bannedSongs, pickedSongs]);
 
     // Push stream text to localStorage AND API (for OBS sync)
     const pushStreamText = async () => {
@@ -643,7 +848,112 @@ export default function ControllerPage() {
                     </div>
                 )}
 
-                <div className="grid grid-cols-4 gap-4">
+                <div className="grid grid-cols-5 gap-4">
+                    {/* Column 0 - Game Control */}
+                    <div className="space-y-4">
+                        {/* Game Control Panel */}
+                        <div className="bg-gray-800 rounded-xl p-3">
+                            <h2 className="text-sm font-semibold text-white mb-3">Game Control</h2>
+
+                            {/* Phase Status */}
+                            <div className="mb-3 p-2 bg-gray-700 rounded-lg text-center">
+                                <span className={`text-sm font-bold ${showFinalResults ? 'text-green-400' :
+                                    isPickPhase ? 'text-blue-400' :
+                                        isBanPhase ? 'text-red-400' :
+                                            randomResults.length > 0 ? 'text-yellow-400' :
+                                                'text-gray-400'
+                                    }`}>
+                                    {showFinalResults ? 'Complete' :
+                                        isPickPhase ? `Pick Phase (${remainingPicks} left)` :
+                                            isBanPhase ? `Ban Phase (${remainingBans} left)` :
+                                                randomResults.length > 0 ? 'Random Done' :
+                                                    'Ready'}
+                                </span>
+                            </div>
+
+                            {/* Control Buttons */}
+                            <div className="space-y-2">
+                                <button
+                                    onClick={triggerRandom}
+                                    disabled={isLoadingPool}
+                                    className="w-full py-2 bg-purple-600 hover:bg-purple-500 disabled:bg-gray-600 text-white rounded-lg font-bold transition-colors"
+                                >
+                                    Random
+                                </button>
+
+                                <button
+                                    onClick={goToBanPickPhase}
+                                    disabled={randomResults.length === 0 || showBanPick}
+                                    className="w-full py-2 bg-yellow-600 hover:bg-yellow-500 disabled:bg-gray-600 text-white rounded-lg font-bold transition-colors"
+                                >
+                                    Go to Ban/Pick
+                                </button>
+
+                                <button
+                                    onClick={handleGameReset}
+                                    className="w-full py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg font-bold transition-colors"
+                                >
+                                    Reset Game
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Random Results / Ban Pick Grid */}
+                        {randomResults.length > 0 && (
+                            <div className="bg-gray-800 rounded-xl p-3">
+                                <h2 className="text-sm font-semibold text-white mb-2">
+                                    {showBanPick ? (isBanPhase ? 'Select to Ban' : 'Select to Pick') : 'Random Results'}
+                                </h2>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {randomResults.map((song, index) => {
+                                        const banned = isSongBanned(song);
+                                        const picked = isSongPicked(song);
+                                        const processed = banned || picked;
+
+                                        return (
+                                            <button
+                                                key={song.id}
+                                                onClick={() => {
+                                                    setSelectedSongIndex(index);
+                                                    if (showBanPick && !processed) {
+                                                        if (isBanPhase) handleBanSong(song);
+                                                        else if (isPickPhase) handlePickSong(song);
+                                                    }
+                                                }}
+                                                disabled={!showBanPick || processed}
+                                                className={`p-2 rounded-lg text-left transition-all ${index === selectedSongIndex && !processed ? 'ring-2 ring-yellow-400' : ''
+                                                    } ${banned ? 'bg-red-900/50 opacity-50' :
+                                                        picked ? 'bg-green-900/50 border-2 border-green-500' :
+                                                            showBanPick ? 'bg-gray-700 hover:bg-gray-600 cursor-pointer' :
+                                                                'bg-gray-700'
+                                                    }`}
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <img
+                                                        src={song.imgUrl}
+                                                        alt={song.title}
+                                                        className="w-10 h-10 rounded object-cover"
+                                                    />
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-white text-xs font-medium truncate">{song.title}</p>
+                                                        <p className={`text-xs ${song.diff === 'MASTER' ? 'text-purple-400' :
+                                                            song.diff === 'EXPERT' ? 'text-red-400' :
+                                                                'text-pink-400'
+                                                            }`}>
+                                                            {song.diff} {song.lv}
+                                                        </p>
+                                                    </div>
+                                                    {banned && <span className="text-red-400 text-lg">✕</span>}
+                                                    {picked && <span className="text-green-400 text-lg">✓</span>}
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
                     {/* Column 1 - Pool & Settings */}
                     <div className="space-y-4">
                         {/* Pool Selection */}

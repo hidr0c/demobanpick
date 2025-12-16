@@ -43,6 +43,7 @@ interface SyncState {
     pickedSongs: any[];
     showBanPick: boolean;
     showFinalResults: boolean;
+    banPickLog?: { type: 'ban' | 'pick'; song: any }[];
   };
   timestamp: number;
   // Optional match display sync

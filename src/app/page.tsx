@@ -162,6 +162,12 @@ export default function Home() {
 
   // Load settings from API (for OBS mode) - full fetch
   const loadSettingsFromAPI = useCallback(async (forceFullFetch = false) => {
+    // RACE CONDITION GUARD: Skip polling if we just synced locally (< 1.5 seconds)
+    // This prevents polling from overwriting local state changes before they reach API
+    if (!forceFullFetch && Date.now() - lastSyncTime < 1500) {
+      return;
+    }
+
     // Lightweight check first (unless forced)
     if (!forceFullFetch) {
       const hasUpdates = await checkAPIForUpdates();
@@ -201,50 +207,19 @@ export default function Home() {
           if (gs.lockedTracks !== undefined) setLockedTracks(gs.lockedTracks || {});
           if (gs.hiddenTracks !== undefined) setHiddenTracks(gs.hiddenTracks || { track3Hidden: false, track4Hidden: false });
 
-          // GAME PROGRESS STATE - Only apply if server is MORE ADVANCED or OBS mode
-          // This prevents race conditions where polling overwrites local progress
-          setRandomResults(prev => {
-            // Only update if server has data and local is empty, OR if we're in OBS mode
-            if (isOBSMode) return gs.randomResults || prev;
-            if (prev.length === 0 && gs.randomResults?.length > 0) return gs.randomResults;
-            return prev; // Keep local state
-          });
-
-          setBannedSongs(prev => {
-            if (isOBSMode) return gs.bannedSongs || prev;
-            // Only accept if server has MORE bans (progress forward)
-            if ((gs.bannedSongs?.length || 0) > prev.length) return gs.bannedSongs;
-            return prev;
-          });
-
-          setPickedSongs(prev => {
-            if (isOBSMode) return gs.pickedSongs || prev;
-            // Only accept if server has MORE picks (progress forward)
-            if ((gs.pickedSongs?.length || 0) > prev.length) return gs.pickedSongs;
-            return prev;
-          });
-
-          // Phase flags - Only accept if moving FORWARD in the game flow
-          // Flow: Random -> BanPick -> FinalResults
-          setShowBanPick(prev => {
-            if (isOBSMode) return gs.showBanPick ?? prev;
-            // Only go to ban/pick phase, never revert from it
-            if (gs.showBanPick === true && !prev) return true;
-            return prev;
-          });
-
-          setShowFinalResults(prev => {
-            if (isOBSMode) return gs.showFinalResults ?? prev;
-            // Only go to final results, never revert from it
-            if (gs.showFinalResults === true && !prev) return true;
-            return prev;
-          });
+          // GAME STATE - Always sync from API for real-time consistency
+          // All clients (preview iframe, OBS browser) will show the same state
+          if (gs.randomResults !== undefined) setRandomResults(gs.randomResults || []);
+          if (gs.bannedSongs !== undefined) setBannedSongs(gs.bannedSongs || []);
+          if (gs.pickedSongs !== undefined) setPickedSongs(gs.pickedSongs || []);
+          if (gs.showBanPick !== undefined) setShowBanPick(gs.showBanPick);
+          if (gs.showFinalResults !== undefined) setShowFinalResults(gs.showFinalResults);
         }
       }
     } catch (error) {
       // Silent fail - don't spam console
     }
-  }, [checkAPIForUpdates, isOBSMode]);
+  }, [checkAPIForUpdates]);
 
   // Detect if running in OBS mode via URL query param ?obs=1
   // But ALWAYS poll API for sync (OBS browser source has isolated localStorage)
@@ -264,7 +239,7 @@ export default function Home() {
     // ALWAYS poll API for sync (works for both regular browser and OBS browser source)
     // This ensures sync works even if OBS browser source URL doesn't have ?obs=1
     loadSettingsFromAPI(true); // Initial full fetch
-    const pollInterval = setInterval(() => loadSettingsFromAPI(false), 500);
+    const pollInterval = setInterval(() => loadSettingsFromAPI(false), 300); // 300ms balanced polling
     return () => clearInterval(pollInterval);
   }, [loadSettingsFromStorage, loadSettingsFromAPI]);
 
@@ -487,10 +462,19 @@ export default function Home() {
     // Clear ban/pick log on reset
     localStorage.removeItem('banPickLog');
 
-    // Reload settings from storage/API to keep controller settings
-    // This preserves randomCount, pickCount, banCount, pool, etc.
+    // Sync reset state to API immediately so all clients get reset
+    // This updates lastSyncTime, pausing polling for 1.5s
+    syncToAPI({
+      randomResults: [],
+      bannedSongs: [],
+      pickedSongs: [],
+      showBanPick: false,
+      showFinalResults: false
+    }, true);
+
+    // Reload settings from storage (not API) to keep controller settings
+    // Don't call loadSettingsFromAPI here - let polling handle it after 1.5s
     loadSettingsFromStorage();
-    loadSettingsFromAPI(true);
   };
 
   const handlePoolChange = (poolId: string) => {
