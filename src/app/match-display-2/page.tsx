@@ -17,72 +17,104 @@ export default function MatchDisplay2() {
 
     useEffect(() => {
         let lastTimestamp = 0;
+        let isFirstLoad = true;
+
+        // Lightweight check - only fetch timestamp
+        const checkForUpdates = async (): Promise<boolean> => {
+            try {
+                const res = await fetch('/api/sync-state?check=1', {
+                    cache: 'no-store'
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.timestamp && data.timestamp !== lastTimestamp) {
+                        return true; // Has updates
+                    }
+                }
+            } catch {
+                // Silent fail
+            }
+            return false;
+        };
+
+        // Full data fetch
+        const fetchFullData = async () => {
+            try {
+                const res = await fetch('/api/sync-state', {
+                    cache: 'no-store'
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.timestamp) {
+                        lastTimestamp = data.timestamp;
+                    }
+                    if (data.matchDisplay) {
+                        if (data.matchDisplay.songs) {
+                            setSongs(data.matchDisplay.songs);
+                        }
+                        if (data.matchDisplay.currentIndex !== undefined) {
+                            setCurrentIndex(data.matchDisplay.currentIndex);
+                        }
+                    }
+                    isFirstLoad = false;
+                }
+            } catch {
+                // Silent fail
+            }
+        };
 
         // Poll API for match state updates
         const handleUpdate = async () => {
-            try {
-                const res = await fetch('/api/sync-state', {
-                    cache: 'no-store',
-                    headers: { 'Cache-Control': 'no-cache' }
-                });
+            if (isFirstLoad) {
+                // First load - get full data
+                await fetchFullData();
 
-                if (res.ok) {
-                    const data = await res.json();
+                // Fallback to localStorage if API failed
+                if (isFirstLoad) {
+                    try {
+                        const stored = localStorage.getItem('matchSongs');
+                        const indexStored = localStorage.getItem('matchCurrentIndex');
+                        const lockedTracksStored = localStorage.getItem('lockedTracks');
 
-                    if (data.timestamp && data.timestamp !== lastTimestamp) {
-                        lastTimestamp = data.timestamp;
+                        if (stored) {
+                            const parsed = JSON.parse(stored);
+                            let finalSongs = parsed;
 
-                        // Get match songs and current index
-                        if (data.matchDisplay) {
-                            if (data.matchDisplay.songs) {
-                                setSongs(data.matchDisplay.songs);
+                            if (lockedTracksStored) {
+                                const locked = JSON.parse(lockedTracksStored);
+                                const firstTwo = parsed.slice(0, 2);
+                                const remaining = parsed.slice(2);
+                                finalSongs = [
+                                    ...firstTwo,
+                                    ...(locked.track3 ? [locked.track3] : []),
+                                    ...(locked.track4 ? [locked.track4] : []),
+                                    ...remaining
+                                ];
                             }
-                            if (data.matchDisplay.currentIndex !== undefined) {
-                                setCurrentIndex(data.matchDisplay.currentIndex);
-                            }
+                            setSongs(finalSongs);
                         }
+                        if (indexStored) {
+                            setCurrentIndex(parseInt(indexStored));
+                        }
+                        isFirstLoad = false;
+                    } catch {
+                        // localStorage not available
                     }
                 }
-            } catch (err) {
-                console.log('[match-display-2] API failed:', err);
-            }
-
-            // Fallback to localStorage
-            try {
-                const stored = localStorage.getItem('matchSongs');
-                const indexStored = localStorage.getItem('matchCurrentIndex');
-                const lockedTracksStored = localStorage.getItem('lockedTracks');
-
-                if (stored) {
-                    const parsed = JSON.parse(stored);
-                    let finalSongs = parsed;
-
-                    if (lockedTracksStored) {
-                        const locked = JSON.parse(lockedTracksStored);
-                        const firstTwo = parsed.slice(0, 2);
-                        const remaining = parsed.slice(2);
-                        finalSongs = [
-                            ...firstTwo,
-                            ...(locked.track3 ? [locked.track3] : []),
-                            ...(locked.track4 ? [locked.track4] : []),
-                            ...remaining
-                        ];
-                    }
-                    setSongs(finalSongs);
+            } else {
+                // Subsequent loads - lightweight check first
+                const hasUpdates = await checkForUpdates();
+                if (hasUpdates) {
+                    await fetchFullData();
                 }
-                if (indexStored) {
-                    setCurrentIndex(parseInt(indexStored));
-                }
-            } catch {
-                // localStorage not available
             }
         };
 
         // Initial load
         handleUpdate();
 
-        // Poll for updates
-        const pollInterval = setInterval(handleUpdate, 500);
+        // Poll for updates - lightweight check most of the time
+        const pollInterval = setInterval(handleUpdate, 1000);
 
         return () => clearInterval(pollInterval);
     }, []);

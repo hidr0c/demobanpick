@@ -30,51 +30,78 @@ export default function TextDisplayPage() {
     // Load and listen for text data changes - supports both localStorage and API sync
     useEffect(() => {
         let lastTimestamp = 0;
+        let isFirstLoad = true;
 
-        const loadTextData = async () => {
+        // Lightweight check - only fetch timestamp
+        const checkForUpdates = async (): Promise<boolean> => {
             try {
-                // Always try API first (for OBS browser source)
-                const res = await fetch('/api/sync-state', {
-                    cache: 'no-store',
-                    headers: { 'Cache-Control': 'no-cache' }
+                const res = await fetch('/api/sync-state?check=1', {
+                    cache: 'no-store'
                 });
-
                 if (res.ok) {
                     const data = await res.json();
-                    // Only update if timestamp changed (optimization)
                     if (data.timestamp && data.timestamp !== lastTimestamp) {
-                        lastTimestamp = data.timestamp;
-                        if (data.textData) {
-                            console.log('[text-display] API sync:', data.textData);
-                            setTextData(data.textData);
-                            return;
-                        }
-                    } else if (data.textData) {
-                        // First load or same timestamp but has data
-                        setTextData(data.textData);
-                        return;
+                        return true; // Has updates
                     }
                 }
-            } catch (err) {
-                console.log('[text-display] API failed, using localStorage:', err);
+            } catch {
+                // Silent fail
             }
+            return false;
+        };
 
-            // Fallback to localStorage (same browser only)
+        // Full data fetch
+        const fetchFullData = async () => {
             try {
-                const saved = localStorage.getItem('streamTextData');
-                if (saved) {
-                    setTextData(JSON.parse(saved));
+                const res = await fetch('/api/sync-state', {
+                    cache: 'no-store'
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.timestamp) {
+                        lastTimestamp = data.timestamp;
+                    }
+                    if (data.textData) {
+                        setTextData(data.textData);
+                        isFirstLoad = false;
+                    }
                 }
             } catch {
-                // localStorage not available (OBS)
+                // Silent fail
+            }
+        };
+
+        const loadTextData = async () => {
+            if (isFirstLoad) {
+                // First load - get full data
+                await fetchFullData();
+
+                // Fallback to localStorage if API failed
+                if (isFirstLoad) {
+                    try {
+                        const saved = localStorage.getItem('streamTextData');
+                        if (saved) {
+                            setTextData(JSON.parse(saved));
+                            isFirstLoad = false;
+                        }
+                    } catch {
+                        // localStorage not available (OBS)
+                    }
+                }
+            } else {
+                // Subsequent loads - lightweight check first
+                const hasUpdates = await checkForUpdates();
+                if (hasUpdates) {
+                    await fetchFullData();
+                }
             }
         };
 
         // Initial load
         loadTextData();
 
-        // Poll for updates (works across different browsers)
-        const pollInterval = setInterval(loadTextData, 500);
+        // Poll for updates - lightweight check most of the time
+        const pollInterval = setInterval(loadTextData, 200);
 
         return () => {
             clearInterval(pollInterval);

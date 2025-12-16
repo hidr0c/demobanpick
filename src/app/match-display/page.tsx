@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Song } from '../interface';
 
@@ -8,6 +8,19 @@ export default function MatchDisplay() {
     const router = useRouter();
     const [songs, setSongs] = useState<Song[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
+
+    // Track last user interaction to prevent sync overwriting local changes
+    const lastInteractionRef = useRef<number>(0);
+
+    // Update timestamp on any key press
+    useEffect(() => {
+        const handleInteraction = () => {
+            lastInteractionRef.current = Date.now();
+        };
+        // Use capture to ensure we detect interaction before state updates triggers
+        window.addEventListener('keydown', handleInteraction, true);
+        return () => window.removeEventListener('keydown', handleInteraction, true);
+    }, []);
 
     useEffect(() => {
         const stored = localStorage.getItem('matchSongs');
@@ -43,6 +56,9 @@ export default function MatchDisplay() {
     useEffect(() => {
         if (songs.length > 0) {
             const syncMatchDisplay = async () => {
+                // Update interaction timestamp to prevent immediate overwrite
+                lastInteractionRef.current = Date.now();
+
                 try {
                     await fetch('/api/sync-state', {
                         method: 'POST',
@@ -64,6 +80,50 @@ export default function MatchDisplay() {
             localStorage.setItem('matchCurrentIndex', String(currentIndex));
         }
     }, [songs, currentIndex]);
+
+    // Poll for updates from other clients (e.g. controller)
+    useEffect(() => {
+        let lastTimestamp = 0;
+
+        const checkForUpdates = async () => {
+            // Prevent fighting: If user interacted recently (< 2 seconds), don't poll
+            if (Date.now() - lastInteractionRef.current < 2000) {
+                return;
+            }
+
+            try {
+                // Lightweight check first
+                const res = await fetch('/api/sync-state?check=1', { cache: 'no-store' });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.timestamp && data.timestamp !== lastTimestamp) {
+                        // Timestamp changed, fetch full data
+                        const fullRes = await fetch('/api/sync-state', { cache: 'no-store' });
+                        if (fullRes.ok) {
+                            const fullData = await fullRes.json();
+                            lastTimestamp = fullData.timestamp;
+
+                            // Update match display if data exists
+                            if (fullData.matchDisplay) {
+                                if (fullData.matchDisplay.songs) setSongs(fullData.matchDisplay.songs);
+                                if (typeof fullData.matchDisplay.currentIndex === 'number') {
+                                    setCurrentIndex(fullData.matchDisplay.currentIndex);
+                                }
+                            } else if (fullData.matchSongs) {
+                                // Fallback: try to reconstruct from game state if matchDisplay specific object is missing
+                                // logic similar to initial load can go here if needed, but matchDisplay object is safer
+                            }
+                        }
+                    }
+                }
+            } catch {
+                // Silent fail
+            }
+        };
+
+        const pollInterval = setInterval(checkForUpdates, 200);
+        return () => clearInterval(pollInterval);
+    }, []);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {

@@ -45,9 +45,35 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
         return false;
     };
 
-    // Preload images when songs change
+    // Calculate display songs and grid columns BEFORE useEffect
+    const displaySongs = showFinalOnly ? pickedSongs : songs;
+
+    // Determine grid columns based on song count - improved logic
+    const getGridColumns = (count: number) => {
+        if (count <= 0) return 1;
+        if (count === 1) return 1;
+        if (count === 2) return 2;
+        if (count === 3) return 3;
+        if (count === 4) return 4;
+        if (count === 5) return 3; // 3 columns (row 1: 3, row 2: 2)
+        if (count === 6) return 3;
+        if (count === 7) return 4;
+        if (count === 8) return 4;
+        if (count === 9) return 3;
+        if (count === 10) return 5;
+        if (count % 4 === 0) return 4;
+        if (count % 3 === 0) return 3;
+        if (count % 5 === 0) return 5;
+        return Math.min(count, 5);
+    };
+
+    const gridColumns = getGridColumns(displaySongs.length);
+
+    // Preload images when songs change - limit to prevent memory issues
     useEffect(() => {
-        songs.forEach(song => {
+        // Only preload first 20 images to prevent memory bloat
+        const songsToPreload = songs.slice(0, 20);
+        songsToPreload.forEach(song => {
             if (!preloadedImagesRef.current.has(song.imgUrl)) {
                 const img = new window.Image();
                 img.src = song.imgUrl;
@@ -149,10 +175,7 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [selectedIndex, songs, onBan, onPick, remainingBans, remainingPicks, isCompleted, onComplete, bannedSongs]);
-
-    // When showing final only, display songs in pick order
-    const displaySongs = showFinalOnly ? pickedSongs : songs;
+    }, [selectedIndex, songs, onBan, onPick, remainingBans, remainingPicks, isCompleted, onComplete, bannedSongs, pickedSongs, gridColumns]);
 
     // For sizing purposes - 1.25x scale
     const FRAME_OVERLAY_W = 375;
@@ -161,33 +184,10 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
     const FRAME_H = FRAME_OVERLAY_H * 0.5;
     const TITLE_FONT_SIZE = 28;
 
-    // Determine grid columns based on song count - improved logic
-    const getGridColumns = () => {
-        const count = displaySongs.length;
-        if (count <= 0) return 1;
-        if (count === 1) return 1;
-        if (count === 2) return 2;
-        if (count === 3) return 3;
-        if (count === 4) return 4;
-        if (count === 5) return 5; // Changed: 5 columns for 5 songs
-        if (count === 6) return 3; // 2 rows x 3 columns
-        if (count === 7) return 4; // 2 rows, 4+3
-        if (count === 8) return 4; // 2 rows x 4 columns
-        if (count === 9) return 3; // 3 rows x 3 columns
-        if (count === 10) return 5; // 2 rows x 5 columns
-        // For larger counts
-        if (count % 4 === 0) return 4;
-        if (count % 3 === 0) return 3;
-        if (count % 5 === 0) return 5;
-        return Math.min(count, 5); // Max 5 columns
-    };
-
-    const gridColumns = getGridColumns();
-
     return (
         <div className="ban-pick-container py-8">
             <div
-                className="flex flex-row gap-8 justify-center items-center flex-wrap"
+                className="grid gap-8 justify-center items-center"
                 style={{
                     gridTemplateColumns: `repeat(${gridColumns}, 1fr)`,
                     gridTemplateRows: 'repeat(auto-fill, 1fr)',
