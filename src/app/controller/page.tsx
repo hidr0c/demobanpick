@@ -298,15 +298,15 @@ export default function ControllerPage() {
             ...(lockedTracks.track3 ? [lockedTracks.track3] : []),
             ...(lockedTracks.track4 ? [lockedTracks.track4] : [])
         ];
-        
+
         setMatchSongs(songs);
         setCurrentMatchIndex(0);
         setIsMatchPhase(true);
-        
+
         // Save to localStorage for OBS fallback
         localStorage.setItem('matchSongs', JSON.stringify(songs));
         localStorage.setItem('matchCurrentIndex', '0');
-        
+
         sendMessage('GO_TO_MATCH', { songs });
     };
 
