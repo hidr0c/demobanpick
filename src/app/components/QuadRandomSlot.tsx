@@ -5,23 +5,28 @@ import { Song } from '../interface';
 
 type QuadRandomSlotProps = {
     pool: Song[];
+    poolId?: string; // Pool ID for API calls
     onRandomComplete?: (results: Song[]) => void;
     disabled?: boolean;
     fixedSongs?: Song[];
     randomCount?: number;
     externalResults?: Song[]; // For OBS mode - display results from API
+    lockedTracks?: { track3?: Song; track4?: Song }; // For excluding from random
 };
 
 const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
     pool,
+    poolId = 'newbieSemi',
     onRandomComplete,
     disabled = false,
     fixedSongs = [],
     randomCount = 4,
-    externalResults
+    externalResults,
+    lockedTracks = {}
 }) => {
     const [slots, setSlots] = useState<Song[]>([]);
     const [isAnimating, setIsAnimating] = useState(false);
+    const [animationPool, setAnimationPool] = useState<Song[]>([]);
     const animationFrameRef = useRef<number | undefined>(undefined);
     const animationStartTimeRef = useRef<number>(0);
     const hasCompletedRef = useRef<boolean>(false);
@@ -121,41 +126,109 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
         return `/assets/${diffName}-${type}.png`;
     };
 
-    const startRandomAnimation = () => {
+    const startRandomAnimation = async () => {
         if (isAnimating || disabled) return;
 
         setIsAnimating(true);
         animationStartTimeRef.current = Date.now();
 
-        const availablePool = pool.filter(
-            song => !fixedSongs.find(f => f.id === song.id)
-        );
+        // Build exclude IDs list
+        const excludeIds = [
+            ...fixedSongs.map(s => s.id),
+            ...(lockedTracks.track3 ? [lockedTracks.track3.id] : []),
+            ...(lockedTracks.track4 ? [lockedTracks.track4.id] : [])
+        ];
 
-        const animate = () => {
-            const elapsed = Date.now() - animationStartTimeRef.current;
-            const duration = 3000; // 3 seconds animation
+        try {
+            // Call API to get random results and animation pool
+            const response = await fetch('/api/random', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    poolId,
+                    randomCount,
+                    excludeIds,
+                    animationPoolSize: 60
+                })
+            });
 
-            if (elapsed < duration) {
-                // Fast random cycling
-                const tempSlots = getRandomUniqueSongs(availablePool, randomCount);
-                setSlots(tempSlots);
-                animationFrameRef.current = requestAnimationFrame(animate);
-            } else {
-                // Final result - store in ref to prevent mismatch
-                const finalResults = getRandomUniqueSongs(availablePool, randomCount);
-                finalResultsRef.current = finalResults;
-                hasCompletedRef.current = true;
-                setSlots(finalResults);
-                setIsAnimating(false);
-
-                if (onRandomComplete) {
-                    // Use ref to ensure same results
-                    onRandomComplete(finalResultsRef.current);
-                }
+            if (!response.ok) {
+                throw new Error('Failed to get random results');
             }
-        };
 
-        animate();
+            const data = await response.json();
+            const { results, animationPool: fetchedAnimationPool } = data;
+
+            // Store final results
+            finalResultsRef.current = results;
+
+            // Use fetched animation pool or fallback to local pool
+            const poolForAnimation = fetchedAnimationPool && fetchedAnimationPool.length > 0
+                ? fetchedAnimationPool
+                : pool.filter(song => !fixedSongs.find(f => f.id === song.id));
+
+            // Preload animation pool images
+            poolForAnimation.forEach((song: Song) => {
+                if (!preloadedImagesRef.current.has(song.imgUrl)) {
+                    const img = new Image();
+                    img.src = song.imgUrl;
+                    preloadedImagesRef.current.add(song.imgUrl);
+                }
+            });
+
+            // Run animation with fetched pool
+            const animate = () => {
+                const elapsed = Date.now() - animationStartTimeRef.current;
+                const duration = 3000; // 3 seconds animation
+
+                if (elapsed < duration) {
+                    // Fast random cycling using animation pool
+                    const tempSlots = getRandomUniqueSongs(poolForAnimation, randomCount);
+                    setSlots(tempSlots);
+                    animationFrameRef.current = requestAnimationFrame(animate);
+                } else {
+                    // Show final results from server
+                    hasCompletedRef.current = true;
+                    setSlots(finalResultsRef.current);
+                    setIsAnimating(false);
+
+                    if (onRandomComplete) {
+                        onRandomComplete(finalResultsRef.current);
+                    }
+                }
+            };
+
+            animate();
+        } catch (error) {
+            console.error('Random API error:', error);
+            // Fallback to client-side random if API fails
+            const availablePool = pool.filter(
+                song => !fixedSongs.find(f => f.id === song.id)
+            );
+
+            const animate = () => {
+                const elapsed = Date.now() - animationStartTimeRef.current;
+                const duration = 3000;
+
+                if (elapsed < duration) {
+                    const tempSlots = getRandomUniqueSongs(availablePool, randomCount);
+                    setSlots(tempSlots);
+                    animationFrameRef.current = requestAnimationFrame(animate);
+                } else {
+                    const finalResults = getRandomUniqueSongs(availablePool, randomCount);
+                    finalResultsRef.current = finalResults;
+                    hasCompletedRef.current = true;
+                    setSlots(finalResults);
+                    setIsAnimating(false);
+
+                    if (onRandomComplete) {
+                        onRandomComplete(finalResultsRef.current);
+                    }
+                }
+            };
+
+            animate();
+        }
     };
 
     // Enter key handler

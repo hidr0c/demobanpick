@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { subscribeToMessages, ChannelMessage } from '../lib/gameChannel';
 
 interface StreamTextData {
     player1: string;
@@ -27,84 +28,36 @@ export default function TextDisplayPage() {
         roundName: ''
     });
 
-    // Load and listen for text data changes - supports both localStorage and API sync
+    // Listen for text data changes via BroadcastChannel
     useEffect(() => {
-        let lastTimestamp = 0;
-        let isFirstLoad = true;
-
-        // Lightweight check - only fetch timestamp
-        const checkForUpdates = async (): Promise<boolean> => {
-            try {
-                const res = await fetch('/api/sync-state?check=1', {
-                    cache: 'no-store'
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.timestamp && data.timestamp !== lastTimestamp) {
-                        return true; // Has updates
-                    }
-                }
-            } catch {
-                // Silent fail
+        // Load initial data from localStorage
+        try {
+            const saved = localStorage.getItem('streamTextData');
+            if (saved) {
+                setTextData(JSON.parse(saved));
             }
-            return false;
-        };
+        } catch {
+            // localStorage not available (OBS)
+        }
 
-        // Full data fetch
-        const fetchFullData = async () => {
-            try {
-                const res = await fetch('/api/sync-state', {
-                    cache: 'no-store'
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.timestamp) {
-                        lastTimestamp = data.timestamp;
-                    }
-                    if (data.textData) {
-                        setTextData(data.textData);
-                        isFirstLoad = false;
-                    }
-                }
-            } catch {
-                // Silent fail
+        // Subscribe to BroadcastChannel updates
+        const unsubscribe = subscribeToMessages((message: ChannelMessage) => {
+            if (message.type === 'SETTINGS_UPDATE' && message.payload?.textData) {
+                setTextData(message.payload.textData);
+            }
+        });
+
+        // Also listen to storage events (fallback)
+        const handleStorage = (e: StorageEvent) => {
+            if (e.key === 'streamTextData' && e.newValue) {
+                setTextData(JSON.parse(e.newValue));
             }
         };
-
-        const loadTextData = async () => {
-            if (isFirstLoad) {
-                // First load - get full data
-                await fetchFullData();
-
-                // Fallback to localStorage if API failed
-                if (isFirstLoad) {
-                    try {
-                        const saved = localStorage.getItem('streamTextData');
-                        if (saved) {
-                            setTextData(JSON.parse(saved));
-                            isFirstLoad = false;
-                        }
-                    } catch {
-                        // localStorage not available (OBS)
-                    }
-                }
-            } else {
-                // Subsequent loads - lightweight check first
-                const hasUpdates = await checkForUpdates();
-                if (hasUpdates) {
-                    await fetchFullData();
-                }
-            }
-        };
-
-        // Initial load
-        loadTextData();
-
-        // Poll for updates - lightweight check most of the time
-        const pollInterval = setInterval(loadTextData, 200);
+        window.addEventListener('storage', handleStorage);
 
         return () => {
-            clearInterval(pollInterval);
+            unsubscribe();
+            window.removeEventListener('storage', handleStorage);
         };
     }, []);
 

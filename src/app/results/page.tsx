@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Song } from '../page';
+import { Song } from '../interface';
 
 export default function Results() {
   const [history, setHistory] = useState<Song[]>([]);

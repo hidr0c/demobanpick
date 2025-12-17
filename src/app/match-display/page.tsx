@@ -1,220 +1,84 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useGameDisplay } from '../hooks/useGame';
 import { Song } from '../interface';
 
+// Match Display - controlled by Controller via BroadcastChannel
 export default function MatchDisplay() {
     const router = useRouter();
-    const [songs, setSongs] = useState<Song[]>([]);
-    const [currentIndex, setCurrentIndex] = useState(0);
+    const { state } = useGameDisplay();
 
-    // Track last user interaction to prevent sync overwriting local changes
-    const lastInteractionRef = useRef<number>(0);
+    const songs = state.matchSongs;
+    const currentIndex = state.currentMatchIndex;
 
-    // Update timestamp on any key press
+    // Redirect if no songs
     useEffect(() => {
-        const handleInteraction = () => {
-            lastInteractionRef.current = Date.now();
-        };
-        // Use capture to ensure we detect interaction before state updates triggers
-        window.addEventListener('keydown', handleInteraction, true);
-        return () => window.removeEventListener('keydown', handleInteraction, true);
-    }, []);
-
-    useEffect(() => {
-        const stored = localStorage.getItem('matchSongs');
-        const lockedTracksStored = localStorage.getItem('lockedTracks');
-
-        if (stored) {
-            const parsed = JSON.parse(stored);
-            let finalSongs = parsed;
-
-            // Inject locked tracks at positions 3 & 4 if they exist
-            if (lockedTracksStored) {
-                const locked = JSON.parse(lockedTracksStored);
-                const firstTwo = parsed.slice(0, 2);
-                const remaining = parsed.slice(2);
-
-                // Build final array: [track1, track2, locked3?, locked4?, ...rest]
-                finalSongs = [
-                    ...firstTwo,
-                    ...(locked.track3 ? [locked.track3] : []),
-                    ...(locked.track4 ? [locked.track4] : []),
-                    ...remaining
-                ];
-            }
-
-            setSongs(finalSongs);
-        } else {
-            // No songs, redirect back
-            router.push('/');
-        }
-    }, [router]);
-
-    // Sync to API when songs or currentIndex changes
-    useEffect(() => {
-        if (songs.length > 0) {
-            const syncMatchDisplay = async () => {
-                // Update interaction timestamp to prevent immediate overwrite
-                lastInteractionRef.current = Date.now();
-
-                try {
-                    await fetch('/api/sync-state', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            matchDisplay: {
-                                songs,
-                                currentIndex
-                            }
-                        })
-                    });
-                } catch (error) {
-                    console.error('Failed to sync match display:', error);
+        // Give some time for BroadcastChannel to sync
+        const timeout = setTimeout(() => {
+            if (songs.length === 0 && state.phase !== 'match') {
+                // Try localStorage fallback
+                const stored = localStorage.getItem('matchSongs');
+                if (!stored) {
+                    router.push('/');
                 }
-            };
-            syncMatchDisplay();
-
-            // Also save to localStorage for fallback
-            localStorage.setItem('matchCurrentIndex', String(currentIndex));
-        }
-    }, [songs, currentIndex]);
-
-    // Poll for updates from other clients (e.g. controller)
-    useEffect(() => {
-        let lastTimestamp = 0;
-
-        const checkForUpdates = async () => {
-            // Prevent fighting: If user interacted recently (< 2 seconds), don't poll
-            if (Date.now() - lastInteractionRef.current < 2000) {
-                return;
             }
+        }, 2000);
 
-            try {
-                // Lightweight check first
-                const res = await fetch('/api/sync-state?check=1', { cache: 'no-store' });
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.timestamp && data.timestamp !== lastTimestamp) {
-                        // Timestamp changed, fetch full data
-                        const fullRes = await fetch('/api/sync-state', { cache: 'no-store' });
-                        if (fullRes.ok) {
-                            const fullData = await fullRes.json();
-                            lastTimestamp = fullData.timestamp;
+        return () => clearTimeout(timeout);
+    }, [songs.length, state.phase, router]);
 
-                            // Update match display if data exists
-                            if (fullData.matchDisplay) {
-                                if (fullData.matchDisplay.songs) setSongs(fullData.matchDisplay.songs);
-                                if (typeof fullData.matchDisplay.currentIndex === 'number') {
-                                    setCurrentIndex(fullData.matchDisplay.currentIndex);
-                                }
-                            } else if (fullData.matchSongs) {
-                                // Fallback: try to reconstruct from game state if matchDisplay specific object is missing
-                                // logic similar to initial load can go here if needed, but matchDisplay object is safer
-                            }
-                        }
-                    }
+    // Fallback to localStorage if BroadcastChannel hasn't synced yet
+    const displaySongs = songs.length > 0 ? songs : (() => {
+        if (typeof window !== 'undefined') {
+            const stored = localStorage.getItem('matchSongs');
+            const lockedTracksStored = localStorage.getItem('lockedTracks');
+
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                if (lockedTracksStored) {
+                    const locked = JSON.parse(lockedTracksStored);
+                    const firstTwo = parsed.slice(0, 2);
+                    return [
+                        ...firstTwo,
+                        ...(locked.track3 ? [locked.track3] : []),
+                        ...(locked.track4 ? [locked.track4] : []),
+                    ];
                 }
-            } catch {
-                // Silent fail
+                return parsed;
             }
-        };
+        }
+        return [];
+    })();
 
-        const pollInterval = setInterval(checkForUpdates, 200);
-        return () => clearInterval(pollInterval);
-    }, []);
-
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === 'ArrowDown') {
-                setCurrentIndex(prev => (prev + 1) % songs.length);
-            } else if (e.key === 'ArrowUp') {
-                setCurrentIndex(prev => (prev - 1 + songs.length) % songs.length);
-            } else if (e.key === 'Escape') {
-                router.push('/');
-            }
-        };
-
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [songs.length, router]);
-
-    if (songs.length === 0) {
-        return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    if (displaySongs.length === 0) {
+        return (
+            <div className="min-h-screen flex items-center justify-center text-white text-xl">
+                Waiting for Controller...
+            </div>
+        );
     }
 
-    const currentSong = songs[currentIndex];
-
-    const getBorderColor = (diff: string) => {
-        switch (diff) {
-            case 'EXPERT':
-                return '#ef4444';
-            case 'MASTER':
-                return '#9333ea';
-            case 'RE:MASTER':
-            case 'Re:MASTER':
-                return '#ec4899';
-            default:
-                return '#a855f7';
-        }
-    };
-
-    const getDiffColor = (diff: string) => {
-        switch (diff) {
-            case 'EXPERT':
-                return '#fe6069';
-            case 'MASTER':
-                return '#a352de';
-            case 'RE:MASTER':
-            case 'Re:MASTER':
-                return '#e5d0f5';
-            default:
-                return '#a352de';
-        }
-    };
-
-    const getFrameImage = (diff: string, isDx: string) => {
-        const type = isDx === 'True' ? 'dx' : 'std';
-        let diffName = diff.toLowerCase();
-
-        // Handle Re:MASTER -> re
-        if (diffName.includes('re:master') || diffName === 're:master') {
-            diffName = 're';
-        } else if (diffName.includes('master')) {
-            diffName = 'master';
-        } else if (diffName.includes('expert')) {
-            diffName = 'expert';
-        }
-
-        return `/assets/${diffName}-${type}.png`;
-    };
+    const currentSong = displaySongs[currentIndex] || displaySongs[0];
 
     const getGradientColor = (diff: string) => {
         switch (diff) {
-            case 'EXPERT':
-                return '#ef4444';
-            case 'MASTER':
-                return '#9333ea';
+            case 'EXPERT': return '#ef4444';
+            case 'MASTER': return '#9333ea';
             case 'RE:MASTER':
-            case 'Re:MASTER':
-                return '#c084fc';
-            default:
-                return '#a855f7';
+            case 'Re:MASTER': return '#c084fc';
+            default: return '#a855f7';
         }
     };
 
     const getDiffBgColor = (diff: string) => {
         switch (diff) {
-            case 'EXPERT':
-                return '#ef4444';
-            case 'MASTER':
-                return '#9333ea';
+            case 'EXPERT': return '#ef4444';
+            case 'MASTER': return '#9333ea';
             case 'RE:MASTER':
-            case 'Re:MASTER':
-                return '#c084fc';
-            default:
-                return '#9333ea';
+            case 'Re:MASTER': return '#c084fc';
+            default: return '#9333ea';
         }
     };
 
@@ -262,7 +126,7 @@ export default function MatchDisplay() {
                             marginBottom: '4px'
                         }}
                     >
-                        TRACK {currentIndex + 1}/{songs.length}
+                        TRACK {currentIndex + 1}/{displaySongs.length}
                     </div>
 
                     {/* Title */}
@@ -337,30 +201,15 @@ export default function MatchDisplay() {
                 </div>
             </div>
 
-            {/* Navigation hints
-            <div className="mt-8 text-white text-center space-y-2">
-                <div className="text-lg">
-                    Press <kbd className="px-3 py-1 bg-white/20 rounded">↓</kbd> for next track
-                </div>
-                <div className="text-lg">
-                    Press <kbd className="px-3 py-1 bg-white/20 rounded">↑</kbd> for previous track
-                </div>
-                <div className="text-sm opacity-70">
-                    Press <kbd className="px-2 py-1 bg-white/20 rounded text-sm">ESC</kbd> to return
-                </div>
-            </div> */}
-
             {/* Track list indicator */}
             <div className="mt-8 flex gap-2">
-                {songs.map((_, idx) => (
+                {displaySongs.map((_: Song, idx: number) => (
                     <div
                         key={idx}
                         className={`w-3 h-3 rounded-full transition-all ${idx === currentIndex
                             ? 'bg-white scale-125'
-                            : 'bg-white/30 hover:bg-white/50'
+                            : 'bg-white/30'
                             }`}
-                        onClick={() => setCurrentIndex(idx)}
-                        style={{ cursor: 'pointer' }}
                     />
                 ))}
             </div>

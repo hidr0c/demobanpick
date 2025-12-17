@@ -218,10 +218,12 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
                                     ? 'scale(1)'
                                     : picked
                                         ? 'scale(1.05) translateY(-10px)'
-                                        : banned || notChosen
-                                            ? 'scale(0.9) translateY(10px)'
-                                            : 'scale(1)',
-                                opacity: 1,
+                                        : banned
+                                            ? 'scale(0.85) translateY(15px) rotateZ(-2deg)'
+                                            : notChosen
+                                                ? 'scale(0.9) translateY(10px)'
+                                                : 'scale(1)',
+                                opacity: banned ? 0.7 : 1,
                                 zIndex: picked ? 10 : banned || notChosen ? 1 : 5,
                                 marginTop: showFinalOnly ? '40px' : '0' // Space for track label
                             }}
@@ -393,16 +395,7 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
                                 </div>
                             </div>
 
-                            {/* Selection Overlay with Glow */}
-                            {isSelected && !processed && !showFinalOnly && !banned && !notChosen && (
-                                <div
-                                    className="absolute inset-0 rounded-lg pointer-events-none z-50"
-                                    style={{
-                                        boxShadow: `0 0 0 4px ${getDiffColor(song.diff)}, 0 0 20px ${getDiffColor(song.diff)}80, 0 0 40px ${getDiffColor(song.diff)}40`,
-                                        animation: 'pulse 1.5s ease-in-out infinite'
-                                    }}
-                                />
-                            )}
+                            {/* Selection Overlay - REMOVED for cleaner look */}
 
                             {/* Track number label for final results */}
                             {showFinalOnly && (
