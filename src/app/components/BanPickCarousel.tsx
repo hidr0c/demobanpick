@@ -388,7 +388,7 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
                                         fontSize: 12,
                                         color: '#000',
                                         whiteSpace: 'nowrap',
-                                        animation: (!showFinalOnly || !isHiddenLockedTrack(song)) && song.artist.length > 20 ? 'marquee 18s linear infinite' : 'none',
+                                        animation: (!showFinalOnly || !isHiddenLockedTrack(song)) && song.artist.length > 30 ? 'marquee 18s linear infinite' : 'none',
                                         display: 'inline-block'
                                     }}
                                 >
