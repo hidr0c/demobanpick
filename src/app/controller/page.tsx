@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Song } from '../interface';
+import { sendMessage } from '../lib/gameChannel';
 
 // Pool file mapping
 const POOL_FILES: Record<string, string> = {
@@ -89,6 +90,11 @@ export default function ControllerPage() {
     const [selectedSongIndex, setSelectedSongIndex] = useState(0);
     const lastSyncTime = useRef(0);
 
+    // Match control state
+    const [matchSongs, setMatchSongs] = useState<Song[]>([]);
+    const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
+    const [isMatchPhase, setIsMatchPhase] = useState(false);
+
     // Load settings from localStorage on mount
     useEffect(() => {
         const savedPool = localStorage.getItem('selectedPool');
@@ -159,51 +165,26 @@ export default function ControllerPage() {
             .catch(() => setRoundJsonData([]));
     }, []);
 
-    // Poll game state from API
-    useEffect(() => {
-        const pollGameState = async () => {
-            // Don't poll if we just synced
-            if (Date.now() - lastSyncTime.current < 1000) return;
-
-            try {
-                const res = await fetch('/api/sync-state', { cache: 'no-store' });
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.gameState) {
-                        const gs = data.gameState;
-                        if (gs.randomResults) setRandomResults(gs.randomResults);
-                        if (gs.bannedSongs) setBannedSongs(gs.bannedSongs);
-                        if (gs.pickedSongs) setPickedSongs(gs.pickedSongs);
-                        if (gs.showBanPick !== undefined) setShowBanPick(gs.showBanPick);
-                        if (gs.showFinalResults !== undefined) setShowFinalResults(gs.showFinalResults);
-                    }
-                }
-            } catch {
-                // Silent
-            }
-        };
-
-        pollGameState();
-        const interval = setInterval(pollGameState, 1000); // 1s polling for controller (less frequent)
-        return () => clearInterval(interval);
-    }, []);
-
-    // Sync game state to API
-    const syncGameState = async (updates: any) => {
-        lastSyncTime.current = Date.now();
-        try {
-            await fetch('/api/sync-state', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ gameState: updates })
-            });
-        } catch (error) {
-            console.error('Failed to sync game state:', error);
+    // Sync game state via BroadcastChannel (no API)
+    const syncGameState = (updates: any) => {
+        // Send to all display pages via BroadcastChannel
+        if (updates.randomResults !== undefined) {
+            sendMessage('RANDOM_COMPLETE', { results: updates.randomResults });
+        }
+        if (updates.showBanPick !== undefined && updates.showBanPick) {
+            sendMessage('SHOW_BAN_PICK', {});
+        }
+        if (updates.showFinalResults !== undefined && updates.showFinalResults) {
+            sendMessage('SHOW_FINAL_RESULTS', {});
+        }
+        if (updates.bannedSongs !== undefined && updates.bannedSongs.length === 0 &&
+            updates.pickedSongs !== undefined && updates.pickedSongs.length === 0) {
+            sendMessage('RESET', {});
         }
     };
 
     // Trigger random from controller
-    const triggerRandom = async () => {
+    const triggerRandom = () => {
         const availablePool = songData.filter(
             song => !fixedSongs.find(f => f.id === song.id) &&
                 song.id !== lockedTracks.track3?.id &&
@@ -226,25 +207,35 @@ export default function ControllerPage() {
         setPickedSongs([]);
         setSelectedSongIndex(0);
 
-        await syncGameState({
-            randomResults: results,
-            showBanPick: false,
-            showFinalResults: false,
-            bannedSongs: [],
-            pickedSongs: []
-        });
+        // Send animation pool to display pages with randomCount
+        const animationPool = shuffled.slice(0, Math.min(60, availablePool.length));
+        sendMessage('RANDOM_START', { animationPool, randomCount });
+
+        // Animate for 3 seconds then show results
+        const animationStart = Date.now();
+        const animate = () => {
+            const elapsed = Date.now() - animationStart;
+            if (elapsed < 3000) {
+                const slots = shuffled.sort(() => Math.random() - 0.5).slice(0, randomCount);
+                sendMessage('RANDOM_ANIMATION', { slots });
+                requestAnimationFrame(animate);
+            } else {
+                sendMessage('RANDOM_COMPLETE', { results });
+            }
+        };
+        animate();
     };
 
     // Go to ban/pick phase
-    const goToBanPickPhase = async () => {
+    const goToBanPickPhase = () => {
         if (randomResults.length === 0) return;
         setShowBanPick(true);
         setShowFinalResults(false);
-        await syncGameState({ showBanPick: true, showFinalResults: false });
+        sendMessage('SHOW_BAN_PICK', {});
     };
 
     // Ban a song
-    const handleBanSong = async (song: Song) => {
+    const handleBanSong = (song: Song) => {
         if (bannedSongs.length >= banCount) return;
         const newBanned = [...bannedSongs, song];
         setBannedSongs(newBanned);
@@ -254,12 +245,12 @@ export default function ControllerPage() {
         setBanPickLog(newLog);
         localStorage.setItem('banPickLog', JSON.stringify(newLog));
 
-        // Sync both bannedSongs and log to API
-        await syncGameState({ bannedSongs: newBanned, banPickLog: newLog });
+        // Sync via BroadcastChannel
+        sendMessage('BAN_SONG', { song });
     };
 
     // Pick a song
-    const handlePickSong = async (song: Song) => {
+    const handlePickSong = (song: Song) => {
         if (bannedSongs.length < banCount) return; // Must finish banning first
         if (pickedSongs.length >= pickCount) return;
 
@@ -271,18 +262,20 @@ export default function ControllerPage() {
         setBanPickLog(newLog);
         localStorage.setItem('banPickLog', JSON.stringify(newLog));
 
-        // Sync both pickedSongs and log to API
-        await syncGameState({ pickedSongs: newPicked, banPickLog: newLog });
+        // Sync via BroadcastChannel
+        sendMessage('PICK_SONG', { song });
 
         // Check if complete
         if (newPicked.length >= pickCount) {
-            setShowFinalResults(true);
-            await syncGameState({ showFinalResults: true });
+            setTimeout(() => {
+                setShowFinalResults(true);
+                sendMessage('SHOW_FINAL_RESULTS', {});
+            }, 500);
         }
     };
 
     // Reset game
-    const handleGameReset = async () => {
+    const handleGameReset = () => {
         setRandomResults([]);
         setBannedSongs([]);
         setPickedSongs([]);
@@ -290,15 +283,50 @@ export default function ControllerPage() {
         setShowFinalResults(false);
         setSelectedSongIndex(0);
         setBanPickLog([]);
+        setMatchSongs([]);
+        setCurrentMatchIndex(0);
+        setIsMatchPhase(false);
         localStorage.removeItem('banPickLog');
 
-        await syncGameState({
-            randomResults: [],
-            bannedSongs: [],
-            pickedSongs: [],
-            showBanPick: false,
-            showFinalResults: false
-        });
+        sendMessage('RESET', {});
+    };
+
+    // Go to match display
+    const goToMatch = () => {
+        const songs = [
+            ...pickedSongs,
+            ...(lockedTracks.track3 ? [lockedTracks.track3] : []),
+            ...(lockedTracks.track4 ? [lockedTracks.track4] : [])
+        ];
+        
+        setMatchSongs(songs);
+        setCurrentMatchIndex(0);
+        setIsMatchPhase(true);
+        
+        // Save to localStorage for OBS fallback
+        localStorage.setItem('matchSongs', JSON.stringify(songs));
+        localStorage.setItem('matchCurrentIndex', '0');
+        
+        sendMessage('GO_TO_MATCH', { songs });
+    };
+
+    // Match navigation
+    const matchNext = () => {
+        if (currentMatchIndex < matchSongs.length - 1) {
+            const newIndex = currentMatchIndex + 1;
+            setCurrentMatchIndex(newIndex);
+            localStorage.setItem('matchCurrentIndex', String(newIndex));
+            sendMessage('MATCH_NEXT', {});
+        }
+    };
+
+    const matchPrev = () => {
+        if (currentMatchIndex > 0) {
+            const newIndex = currentMatchIndex - 1;
+            setCurrentMatchIndex(newIndex);
+            localStorage.setItem('matchCurrentIndex', String(newIndex));
+            sendMessage('MATCH_PREV', {});
+        }
     };
 
     // Check if song is banned/picked
@@ -355,8 +383,8 @@ export default function ControllerPage() {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [randomResults, selectedSongIndex, showBanPick, isBanPhase, isPickPhase, bannedSongs, pickedSongs]);
 
-    // Push stream text to localStorage AND API (for OBS sync)
-    const pushStreamText = async () => {
+    // Push stream text via BroadcastChannel
+    const pushStreamText = () => {
         const textData = {
             player1: streamText.player1,
             player1Tag: streamText.player1Tag,
@@ -376,20 +404,12 @@ export default function ControllerPage() {
             newValue: JSON.stringify(textData)
         }));
 
-        // Save to API (for OBS browser source sync)
-        try {
-            await fetch('/api/sync-state', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ textData })
-            });
-        } catch (error) {
-            console.error('Failed to sync to API:', error);
-        }
+        // Send via BroadcastChannel
+        sendMessage('SETTINGS_UPDATE', { textData });
     };
 
-    // Save all settings to localStorage AND API
-    const saveSettings = async () => {
+    // Save all settings to localStorage AND sync via BroadcastChannel
+    const saveSettings = () => {
         localStorage.setItem('selectedPool', selectedPool);
         localStorage.setItem('randomCount', String(randomCount));
         localStorage.setItem('pickCount', String(pickCount));
@@ -404,26 +424,16 @@ export default function ControllerPage() {
             newValue: Date.now().toString()
         }));
 
-        // Also sync to API for OBS
-        try {
-            await fetch('/api/sync-state', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    gameState: {
-                        selectedPool,
-                        randomCount,
-                        pickCount,
-                        banCount,
-                        fixedSongs,
-                        lockedTracks,
-                        hiddenTracks
-                    }
-                })
-            });
-        } catch (error) {
-            console.error('Failed to sync settings to API:', error);
-        }
+        // Sync via BroadcastChannel
+        sendMessage('SETTINGS_UPDATE', {
+            selectedPool,
+            randomCount,
+            pickCount,
+            banCount,
+            fixedSongs,
+            lockedTracks,
+            hiddenTracks
+        });
     };
 
     // Auto-save when settings change
@@ -613,7 +623,7 @@ export default function ControllerPage() {
 
     const handleReset = () => {
         setFixedSongs([]);
-        setRandomCount(4);
+        // Keep randomCount as is - don't reset
         setPickCount(2);
         setBanCount(0);
         setLockedTracks({});
@@ -890,11 +900,77 @@ export default function ControllerPage() {
                                 </button>
 
                                 <button
+                                    onClick={goToMatch}
+                                    disabled={!showFinalResults}
+                                    className="w-full py-2 bg-green-600 hover:bg-green-500 disabled:bg-gray-600 text-white rounded-lg font-bold transition-colors"
+                                >
+                                    Go to Match
+                                </button>
+
+                                <button
                                     onClick={handleGameReset}
                                     className="w-full py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg font-bold transition-colors"
                                 >
                                     Reset Game
                                 </button>
+                            </div>
+
+                            {/* Match Navigation */}
+                            {isMatchPhase && matchSongs.length > 0 && (
+                                <div className="mt-3 pt-3 border-t border-gray-700">
+                                    <h3 className="text-sm font-semibold text-white mb-2">Match Control</h3>
+                                    <div className="flex items-center justify-between gap-2">
+                                        <button
+                                            onClick={matchPrev}
+                                            disabled={currentMatchIndex === 0}
+                                            className="flex-1 py-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:opacity-50 text-white rounded-lg font-bold transition-colors"
+                                        >
+                                            ← Prev
+                                        </button>
+                                        <span className="text-white font-bold px-3">
+                                            {currentMatchIndex + 1}/{matchSongs.length}
+                                        </span>
+                                        <button
+                                            onClick={matchNext}
+                                            disabled={currentMatchIndex === matchSongs.length - 1}
+                                            className="flex-1 py-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:opacity-50 text-white rounded-lg font-bold transition-colors"
+                                        >
+                                            Next →
+                                        </button>
+                                    </div>
+                                    {matchSongs[currentMatchIndex] && (
+                                        <div className="mt-2 p-2 bg-gray-700 rounded-lg flex items-center gap-2">
+                                            <img
+                                                src={matchSongs[currentMatchIndex].imgUrl}
+                                                alt={matchSongs[currentMatchIndex].title}
+                                                className="w-12 h-12 rounded object-cover"
+                                            />
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-white text-sm font-medium truncate">
+                                                    {matchSongs[currentMatchIndex].title}
+                                                </p>
+                                                <p className="text-gray-400 text-xs">
+                                                    Track {currentMatchIndex + 1}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Compact Live Preview */}
+                        <div className="bg-gray-800 rounded-xl p-3">
+                            <h2 className="text-sm font-semibold text-white mb-2 flex items-center gap-2">
+                                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                                Live Preview
+                            </h2>
+                            <div className="relative bg-black rounded-lg overflow-hidden border border-gray-700" style={{ aspectRatio: '16/9' }}>
+                                <iframe
+                                    src="/?preview=1"
+                                    className="w-full h-full border-0"
+                                    title="Live Preview"
+                                />
                             </div>
                         </div>
 

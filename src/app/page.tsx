@@ -1,510 +1,29 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import { Song, RoundSetting } from './interface';
+import { useGameDisplay } from './hooks/useGame';
+import { Song } from './interface';
 
 import QuadRandomSlot from './components/QuadRandomSlot';
 import BanPickCarousel from './components/BanPickCarousel';
 
-// Helper to ensure songs have id field
-const ensureIds = (songs: any[]): Song[] => {
-  return songs.map((song, index) => ({
-    ...song,
-    id: song.id || `${song.title}-${song.diff}-${index}`,
-    isDx: String(song.isDx) // Ensure isDx is string
-  }));
-};
-
-// Pool file mapping
-const POOL_FILES: Record<string, string> = {
-  newbieQual1: '/pools/N1 - newbieQual1.json',
-  newbieQual2: '/pools/N2 - newbieQual2.json',
-  newbieSemi: '/pools/N3 - newbieSemi.json',
-  newbieFinals: '/pools/N4 - newbieFinals.json',
-  proQual: '/pools/P1 - proTop3216.json',
-  proTop8: '/pools/P2 - proTop8.json',
-  proSemi: '/pools/P3 - proSemi.json',
-  proFinals: '/pools/P4 - proFinals.json',
-  top32: '/pools/top32.json',
-};
-
-// Helper function to sync state to API
-let syncTimeout: NodeJS.Timeout | null = null;
-let lastSyncedState: string = '';
-let lastImportantState: string = '';
-// Track last sync time globally for this module (or inside component if possible, but syncToAPI is outside currently)
-// Actually syncToAPI is defined outside component scope in original code but depends on nothing external.
-// To use ref, it needs to be inside or we use a module-level variable. 
-// Original code has `syncToAPI` outside `Home`.
-let lastSyncTime = 0;
-
-const syncToAPI = async (gameState: any, forceImmediate = false) => {
-  // Update sync time
-  lastSyncTime = Date.now();
-  const stateString = JSON.stringify(gameState);
-
-  // Check if state actually changed
-  if (stateString === lastSyncedState) {
-    return; // No change, skip sync
-  }
-
-  // Check if important state changed (randomResults, showBanPick, bannedSongs, pickedSongs)
-  const importantState = JSON.stringify({
-    randomResults: gameState.randomResults,
-    showBanPick: gameState.showBanPick,
-    showFinalResults: gameState.showFinalResults,
-    bannedSongs: gameState.bannedSongs,
-    pickedSongs: gameState.pickedSongs
-  });
-
-  const isImportantChange = importantState !== lastImportantState;
-
-  if (isImportantChange || forceImmediate) {
-    // Important changes sync immediately
-    if (syncTimeout) {
-      clearTimeout(syncTimeout);
-      syncTimeout = null;
-    }
-
-    lastSyncedState = stateString;
-    lastImportantState = importantState;
-
-    try {
-      await fetch('/api/sync-state', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ gameState })
-      });
-    } catch (error) {
-      console.error('Failed to sync to API:', error);
-    }
-  } else {
-    // Non-important changes debounce
-    if (syncTimeout) {
-      clearTimeout(syncTimeout);
-    }
-
-    syncTimeout = setTimeout(async () => {
-      try {
-        lastSyncedState = stateString;
-        lastImportantState = importantState;
-
-        await fetch('/api/sync-state', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ gameState })
-        });
-      } catch (error) {
-        console.error('Failed to sync to API:', error);
-      }
-    }, 300);
-  }
-};
-
+// Display-only page - controlled by Controller via BroadcastChannel
 export default function Home() {
-  const router = useRouter();
-  const [roundIndex, setRoundIndex] = useState(0);
+  const { state, isAnimating, animationSlots } = useGameDisplay();
 
-  // Selected pool (default: newbieSemi)
-  const [selectedPool, setSelectedPool] = useState('newbieSemi');
-  const [songData, setSongData] = useState<Song[]>([]);
-  const [isLoadingPool, setIsLoadingPool] = useState(true);
-  const [poolVersion, setPoolVersion] = useState(0); // Force re-render key
-  const abortControllerRef = useRef<AbortController | null>(null);
+  // Combine pools for display
+  const displaySlots = isAnimating ? animationSlots : state.randomResults;
+  const banPickPool = [...state.randomResults, ...state.fixedSongs];
 
-  // Track if this is OBS mode (loaded from API)
-  const [isOBSMode, setIsOBSMode] = useState(false);
-  const lastAPITimestamp = useRef(0);
-
-  // Load all settings from localStorage
-  const loadSettingsFromStorage = useCallback(() => {
-    const savedPool = localStorage.getItem('selectedPool');
-    const savedRandomCount = localStorage.getItem('randomCount');
-    const savedPickCount = localStorage.getItem('pickCount');
-    const savedBanCount = localStorage.getItem('banCount');
-    const savedFixedSongs = localStorage.getItem('fixedSongs');
-    const savedLockedTracks = localStorage.getItem('lockedTracks');
-    const savedHiddenTracks = localStorage.getItem('hiddenTracks');
-
-    if (savedPool && POOL_FILES[savedPool]) {
-      setSelectedPool(prev => {
-        if (prev !== savedPool) {
-          setPoolVersion(v => v + 1);
-          return savedPool;
-        }
-        return prev;
-      });
-    }
-    if (savedRandomCount) setRandomCount(parseInt(savedRandomCount));
-    if (savedPickCount) setPickCount(parseInt(savedPickCount));
-    if (savedBanCount) setBanCount(parseInt(savedBanCount));
-    if (savedFixedSongs) setFixedSongs(JSON.parse(savedFixedSongs));
-    if (savedLockedTracks) setLockedTracks(JSON.parse(savedLockedTracks));
-    if (savedHiddenTracks) setHiddenTracks(JSON.parse(savedHiddenTracks));
-  }, []);
-
-  // Check if API has updates (lightweight)
-  const checkAPIForUpdates = useCallback(async (): Promise<boolean> => {
-    try {
-      const res = await fetch('/api/sync-state?check=1', { cache: 'no-store' });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.timestamp && data.timestamp !== lastAPITimestamp.current) {
-          return true;
-        }
-      }
-    } catch {
-      // Silent fail
-    }
-    return false;
-  }, []);
-
-  // Load settings from API (for OBS mode) - full fetch
-  const loadSettingsFromAPI = useCallback(async (forceFullFetch = false) => {
-    // RACE CONDITION GUARD: Skip polling if we just synced locally (< 1.5 seconds)
-    // This prevents polling from overwriting local state changes before they reach API
-    if (!forceFullFetch && Date.now() - lastSyncTime < 1500) {
-      return;
-    }
-
-    // Lightweight check first (unless forced)
-    if (!forceFullFetch) {
-      const hasUpdates = await checkAPIForUpdates();
-      if (!hasUpdates) return; // No updates, skip full fetch
-    }
-
-    try {
-      const res = await fetch('/api/sync-state', {
-        cache: 'no-store'
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-
-        // Update timestamp
-        if (data.timestamp) {
-          lastAPITimestamp.current = data.timestamp;
-        }
-
-        if (data.gameState) {
-          const gs = data.gameState;
-
-          // Settings from controller (always apply these)
-          if (gs.selectedPool && POOL_FILES[gs.selectedPool]) {
-            setSelectedPool(prev => {
-              if (prev !== gs.selectedPool) {
-                setPoolVersion(v => v + 1);
-                return gs.selectedPool;
-              }
-              return prev;
-            });
-          }
-          if (gs.randomCount !== undefined) setRandomCount(gs.randomCount);
-          if (gs.pickCount !== undefined) setPickCount(gs.pickCount);
-          if (gs.banCount !== undefined) setBanCount(gs.banCount);
-          if (gs.fixedSongs !== undefined) setFixedSongs(gs.fixedSongs || []);
-          if (gs.lockedTracks !== undefined) setLockedTracks(gs.lockedTracks || {});
-          if (gs.hiddenTracks !== undefined) setHiddenTracks(gs.hiddenTracks || { track3Hidden: false, track4Hidden: false });
-
-          // GAME STATE - Always sync from API for real-time consistency
-          // All clients (preview iframe, OBS browser) will show the same state
-          if (gs.randomResults !== undefined) setRandomResults(gs.randomResults || []);
-          if (gs.bannedSongs !== undefined) setBannedSongs(gs.bannedSongs || []);
-          if (gs.pickedSongs !== undefined) setPickedSongs(gs.pickedSongs || []);
-          if (gs.showBanPick !== undefined) setShowBanPick(gs.showBanPick);
-          if (gs.showFinalResults !== undefined) setShowFinalResults(gs.showFinalResults);
-        }
-      }
-    } catch (error) {
-      // Silent fail - don't spam console
-    }
-  }, [checkAPIForUpdates]);
-
-  // Detect if running in OBS mode via URL query param ?obs=1
-  // But ALWAYS poll API for sync (OBS browser source has isolated localStorage)
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const obsParam = urlParams.get('obs');
-
-    if (obsParam === '1' || obsParam === 'true') {
-      // Pure OBS mode - only read from API, don't use localStorage at all
-      setIsOBSMode(true);
-    } else {
-      // Normal mode - load from localStorage initially
-      setIsOBSMode(false);
-      loadSettingsFromStorage();
-    }
-
-    // ALWAYS poll API for sync (works for both regular browser and OBS browser source)
-    // This ensures sync works even if OBS browser source URL doesn't have ?obs=1
-    loadSettingsFromAPI(true); // Initial full fetch
-    const pollInterval = setInterval(() => loadSettingsFromAPI(false), 300); // 300ms balanced polling
-    return () => clearInterval(pollInterval);
-  }, [loadSettingsFromStorage, loadSettingsFromAPI]);
-
-  // Listen for storage events from /controller page
-  useEffect(() => {
-    if (isOBSMode) return; // Skip if OBS mode
-
-    const handleStorageChange = (e: StorageEvent) => {
-      // Reload all settings when controller page updates
-      if (e.key === 'controllerSettings' || e.key === 'selectedPool' ||
-        e.key === 'randomCount' || e.key === 'pickCount' || e.key === 'banCount' ||
-        e.key === 'fixedSongs' || e.key === 'lockedTracks' || e.key === 'hiddenTracks') {
-        loadSettingsFromStorage();
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, [loadSettingsFromStorage, isOBSMode]);
-
-  // Load pool data when selected pool changes
-  useEffect(() => {
-    // Cancel previous request if exists
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-
-    const abortController = new AbortController();
-    abortControllerRef.current = abortController;
-
-    const loadPool = async () => {
-      setIsLoadingPool(true);
-      const poolFile = POOL_FILES[selectedPool];
-
-      if (!poolFile) {
-        console.error('Unknown pool:', selectedPool);
-        setSelectedPool('newbieSemi');
-        return;
-      }
-
-      try {
-        // Add cache busting timestamp
-        const res = await fetch(`${poolFile}?t=${Date.now()}`, {
-          signal: abortController.signal,
-          cache: 'no-store'
-        });
-
-        if (!res.ok) {
-          throw new Error(`Failed to load ${poolFile}`);
-        }
-
-        const data = await res.json();
-
-        // Only update if not aborted
-        if (!abortController.signal.aborted) {
-          setSongData(ensureIds(data));
-          setPoolVersion(prev => prev + 1); // Increment version to force re-render
-        }
-      } catch (error: any) {
-        if (error.name === 'AbortError') {
-          return;
-        }
-
-        console.error('Error loading pool:', error);
-        if (selectedPool === 'top32') {
-          alert('top32.json not found. Please export songs from /song-selector first.');
-        }
-        // Fallback to newbieSemi
-        if (selectedPool !== 'newbieSemi') {
-          setSelectedPool('newbieSemi');
-        }
-      } finally {
-        if (!abortController.signal.aborted) {
-          setIsLoadingPool(false);
-        }
-      }
-    };
-
-    loadPool();
-
-    // Cleanup
-    return () => {
-      abortController.abort();
-    };
-  }, [selectedPool]);
-
-  // Fixed songs selected by user
-  const [fixedSongs, setFixedSongs] = useState<Song[]>([]);
-
-  // Random, pick and ban count (default is stated in the use state)
-  const [randomCount, setRandomCount] = useState(4);
-  const [pickCount, setPickCount] = useState(2);
-  const [banCount, setBanCount] = useState(0);
-
-  // Locked tracks (predetermined tracks 3 & 4)
-  const [lockedTracks, setLockedTracks] = useState<{ track3?: Song; track4?: Song }>({});
-
-  // Hidden tracks settings (which locked tracks are hidden/secret)
-  const [hiddenTracks, setHiddenTracks] = useState<{ track3Hidden: boolean; track4Hidden: boolean }>({
-    track3Hidden: false,
-    track4Hidden: false
-  });
-
-  // Random results (4-6 songs)
-  const [randomResults, setRandomResults] = useState<Song[]>([]);
-
-  // Ban/Pick phase states
-  const [showBanPick, setShowBanPick] = useState(false);
-  const [bannedSongs, setBannedSongs] = useState<Song[]>([]);
-  const [pickedSongs, setPickedSongs] = useState<Song[]>([]);
-  const [showFinalResults, setShowFinalResults] = useState(false);
-
-  // Sync game state to API whenever important state changes
-  useEffect(() => {
-    // Don't sync if in OBS mode (OBS only reads, doesn't write)
-    if (isOBSMode) return;
-
-    const gameState = {
-      selectedPool,
-      randomCount,
-      pickCount,
-      banCount,
-      fixedSongs,
-      lockedTracks,
-      hiddenTracks,
-      randomResults,
-      bannedSongs,
-      pickedSongs,
-      showBanPick,
-      showFinalResults
-    };
-
-    syncToAPI(gameState);
-  }, [selectedPool, randomCount, pickCount, banCount, fixedSongs, lockedTracks,
-    hiddenTracks, randomResults, bannedSongs, pickedSongs, showBanPick, showFinalResults, isOBSMode]);
-
-  // Listen for R key to reset and Enter key for final results navigation
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'r' || e.key === 'R') {
-        handleReset();
-      }
-      // Enter key to navigate to match display from final results screen
-      if (e.key === 'Enter' && showFinalResults) {
-        router.push('/match-display');
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showFinalResults, router]);
-
-  const handleRandomComplete = useCallback((results: Song[]) => {
-    // Set randomResults immediately - the animation in QuadRandomSlot handles the visual delay
-    setRandomResults(results);
-
-    // Small delay before showing ban/pick UI for visual transition
-    // Both will be synced to API together when showBanPick changes
-    setTimeout(() => {
-      setShowBanPick(true);
-    }, 800);
-  }, []);
-
-  // const handleBanPick = useCallback((song: Song) => {
-  //   const remainingBans = banPickSetting.ban - bannedSongs.length;
-
-  //   if (remainingBans > 0) {
-  //     // Ban phase
-  //     setBannedSongs(prev => [...prev, song]);
-  //   } else if (pickedSongs.length < banPickSetting.pick) {
-  //     // Pick phase
-  //     setPickedSongs(prev => [...prev, song]);
-
-  //     // When all picks are done, go to match display
-  //     if (pickedSongs.length + 1 >= banPickSetting.pick) {
-  //       setTimeout(() => {
-  //         // Save picked songs to localStorage for match-display page
-  //         const finalPicked = [...pickedSongs, song];
-  //         localStorage.setItem('matchSongs', JSON.stringify(finalPicked));
-  //         localStorage.setItem('lockedTracks', JSON.stringify(lockedTracks));
-  //         router.push('/match-display');
-  //       }, 500);
-  //     }
-  //   }
-  // }, [bannedSongs.length, pickedSongs.length, banPickSetting, router, pickedSongs]);
-
-  const handleBan = useCallback((song: Song) => {
-    setBannedSongs(prev => [...prev, song]);
-    // Log ban action
-    const currentLog = JSON.parse(localStorage.getItem('banPickLog') || '[]');
-    localStorage.setItem('banPickLog', JSON.stringify([...currentLog, { type: 'ban', song }]));
-  }, []);
-
-  const handlePick = useCallback((song: Song) => {
-    setPickedSongs(prev => [...prev, song]);
-    // Log pick action
-    const currentLog = JSON.parse(localStorage.getItem('banPickLog') || '[]');
-    localStorage.setItem('banPickLog', JSON.stringify([...currentLog, { type: 'pick', song }]));
-
-    // When all picks are done, show final results first
-    if (pickedSongs.length + 1 >= pickCount) {
-      const finalPicked = [...pickedSongs, song];
-      localStorage.setItem('matchSongs', JSON.stringify(finalPicked));
-      localStorage.setItem('lockedTracks', JSON.stringify(lockedTracks));
-
-      // Show final results screen
-      setTimeout(() => {
-        setShowFinalResults(true);
-      }, 500);
-    }
-  }, [pickedSongs, pickCount, lockedTracks]);
-
-  const handleReset = () => {
-    // Clear game progress state only
-    setFixedSongs([]);
-    setRandomResults([]);
-    setShowBanPick(false);
-    setShowFinalResults(false);
-    setBannedSongs([]);
-    setPickedSongs([]);
-    // Clear ban/pick log on reset
-    localStorage.removeItem('banPickLog');
-
-    // Sync reset state to API immediately so all clients get reset
-    // This updates lastSyncTime, pausing polling for 1.5s
-    syncToAPI({
-      randomResults: [],
-      bannedSongs: [],
-      pickedSongs: [],
-      showBanPick: false,
-      showFinalResults: false
-    }, true);
-
-    // Reload settings from storage (not API) to keep controller settings
-    // Don't call loadSettingsFromAPI here - let polling handle it after 1.5s
-    loadSettingsFromStorage();
-  };
-
-  const handlePoolChange = (poolId: string) => {
-    if (poolId === selectedPool) {
-      // Force reload same pool
-      setPoolVersion(prev => prev + 1);
-    }
-    setSelectedPool(poolId);
-    // Reset all selections when pool changes
-    setFixedSongs([]);
-    setLockedTracks({});
-    setRandomResults([]);
-    setShowBanPick(false);
-    setBannedSongs([]);
-    setPickedSongs([]);
-  };
-
-  // Filter out locked tracks AND fixed songs from available pool for random
-  const availablePool = songData.filter(
-    (song) =>
-      song.id !== lockedTracks.track3?.id &&
-      song.id !== lockedTracks.track4?.id &&
-      !fixedSongs.find(f => f.id === song.id)
-  );
-
-  // Combined pool for ban/pick = random results + fixed songs (excluding locked)
-  const banPickPool = [...randomResults, ...fixedSongs];
+  // Final picked songs including locked tracks
+  const finalSongs = [
+    ...state.pickedSongs,
+    ...(state.lockedTracks.track3 ? [state.lockedTracks.track3] : []),
+    ...(state.lockedTracks.track4 ? [state.lockedTracks.track4] : [])
+  ];
 
   return (
     <main className="min-h-screen relative">
+      {/* Background */}
       <iframe
         src="/assets/prism+.html"
         className="fixed inset-0 w-full h-full border-0"
@@ -515,61 +34,261 @@ export default function Home() {
         title="background"
       />
 
-      {showFinalResults ? (
-        /* Final Results Phase - Show picked songs + locked tracks */
+      {state.phase === 'final' ? (
+        /* Final Results Phase */
         <div className="min-h-screen flex flex-col items-center justify-center p-4">
           <h2 className="text-4xl font-bold text-white mb-8 text-center drop-shadow-lg tracking-wide"
             style={{ textShadow: '0 0 20px rgba(168, 85, 247, 0.5), 0 4px 8px rgba(0,0,0,0.3)' }}>
             BAN PICK RESULT
           </h2>
           <BanPickCarousel
-            songs={[
-              ...pickedSongs,
-              ...(lockedTracks.track3 ? [lockedTracks.track3] : []),
-              ...(lockedTracks.track4 ? [lockedTracks.track4] : [])
-            ]}
+            songs={finalSongs}
             onBan={() => { }}
             onPick={() => { }}
             bannedSongs={[]}
-            pickedSongs={[
-              ...pickedSongs,
-              ...(lockedTracks.track3 ? [lockedTracks.track3] : []),
-              ...(lockedTracks.track4 ? [lockedTracks.track4] : [])
-            ]}
+            pickedSongs={finalSongs}
             remainingBans={0}
             remainingPicks={0}
             showFinalOnly={true}
-            lockedTracks={lockedTracks}
-            hiddenTracks={hiddenTracks}
+            lockedTracks={state.lockedTracks}
+            hiddenTracks={state.hiddenTracks}
           />
         </div>
-      ) : !showBanPick ? (
-        /* Random Phase - Locked tracks NOT shown here */
-        <QuadRandomSlot
-          key={`${selectedPool}-${poolVersion}-${fixedSongs.length}-${randomCount}`}
-          pool={availablePool}
-          fixedSongs={fixedSongs}
-          randomCount={randomCount}
-          onRandomComplete={handleRandomComplete}
-          externalResults={isOBSMode ? randomResults : undefined}
-        />
-      ) : (
-        /* Ban/Pick Phase */
+      ) : state.phase === 'banpick' ? (
+        /* Ban/Pick Phase - Display only, no interaction */
         <div className="min-h-screen flex flex-col items-center justify-center p-4">
           <BanPickCarousel
             songs={banPickPool}
-            onBan={handleBan}
-            onPick={handlePick}
-            bannedSongs={bannedSongs}
-            pickedSongs={pickedSongs}
-            remainingBans={banCount - bannedSongs.length}
-            remainingPicks={pickCount - pickedSongs.length}
-            onComplete={() => {
-              // Complete callback if needed
-            }}
+            onBan={() => { }} // No action - Controller handles this
+            onPick={() => { }} // No action - Controller handles this
+            bannedSongs={state.bannedSongs}
+            pickedSongs={state.pickedSongs}
+            remainingBans={state.banCount - state.bannedSongs.length}
+            remainingPicks={state.pickCount - state.pickedSongs.length}
+            onComplete={() => { }}
           />
         </div>
+      ) : (
+        /* Random Phase - Display slots */
+        <QuadRandomSlotDisplay
+          slots={displaySlots}
+          randomCount={state.randomCount}
+          isAnimating={isAnimating}
+        />
       )}
     </main>
+  );
+}
+
+// Simplified display component for random slots
+function QuadRandomSlotDisplay({
+  slots,
+  randomCount,
+  isAnimating
+}: {
+  slots: Song[];
+  randomCount: number;
+  isAnimating: boolean;
+}) {
+  // Grid columns logic: 1-2=cols, 3=3cols, 4=2x2, 5-6=3x2
+  const getGridColumns = () => {
+    if (randomCount <= 0) return 1;
+    if (randomCount === 1) return 1;
+    if (randomCount === 2) return 2;
+    if (randomCount === 3) return 3;
+    if (randomCount === 4) return 2; // 2x2 grid
+    if (randomCount === 5) return 3; // 3x2 grid
+    if (randomCount === 6) return 3; // 3x2 grid
+    return Math.min(randomCount, 4);
+  };
+
+  const gridColumns = getGridColumns();
+
+  const getDiffColor = (diff: string) => {
+    switch (diff) {
+      case 'EXPERT': return '#fe6069';
+      case 'MASTER': return '#a352de';
+      case 'RE:MASTER':
+      case 'Re:MASTER': return '#ca97ca';
+      default: return '#a352de';
+    }
+  };
+
+  const getFrameImage = (diff: string, isDx: string) => {
+    const type = isDx === 'True' ? 'dx' : 'std';
+    let diffName = diff.toLowerCase();
+    if (diffName.includes('re:master')) diffName = 're';
+    else if (diffName.includes('master')) diffName = 'master';
+    else if (diffName.includes('expert')) diffName = 'expert';
+    return `/assets/${diffName}-${type}.png`;
+  };
+
+  const FRAME_OVERLAY_W = 375;
+  const FRAME_OVERLAY_H = 488;
+  const FRAME_W = FRAME_OVERLAY_W * 0.61;
+  const FRAME_H = FRAME_OVERLAY_H * 0.5;
+  const TITLE_FONT_SIZE = 28;
+
+  if (slots.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <p className="text-white text-2xl opacity-50">Waiting for Controller...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen gap-4 p-2">
+      <div
+        className="grid gap-4 justify-center items-center"
+        style={{
+          gridTemplateColumns: `repeat(${gridColumns}, 1fr)`,
+          maxWidth: gridColumns >= 4 ? '1600px' : '1200px',
+          margin: '0 auto'
+        }}
+      >
+        {slots.map((song, index) => (
+          <div
+            key={`slot-${index}`}
+            className="relative"
+            style={{
+              width: FRAME_OVERLAY_W,
+              height: FRAME_OVERLAY_H,
+              transform: isAnimating ? 'scale(0.98)' : 'scale(1)',
+              transition: 'transform 0.1s ease-out'
+            }}
+          >
+            {/* Jacket image */}
+            <img
+              src={song.imgUrl}
+              alt={song.title}
+              loading="eager"
+              className="absolute"
+              style={{
+                width: FRAME_W,
+                height: FRAME_H,
+                objectFit: 'cover',
+                left: '50%',
+                top: '50%',
+                transform: `translate(-50%, -50%) translateY(-${FRAME_OVERLAY_H / 13}px)`,
+                zIndex: 1
+              }}
+            />
+
+            {/* Frame overlay */}
+            <img
+              src={getFrameImage(song.diff, song.isDx)}
+              alt="frame"
+              className="absolute"
+              style={{
+                width: FRAME_OVERLAY_W,
+                height: FRAME_OVERLAY_H,
+                left: '50%',
+                top: '50%',
+                transform: 'translate(-50%, -50%)',
+                pointerEvents: 'none',
+                zIndex: 3
+              }}
+            />
+
+            {/* Diff + Lv */}
+            <div
+              className="absolute"
+              style={{
+                left: '50%',
+                transform: 'translateX(-50%)',
+                bottom: FRAME_OVERLAY_H * 0.235,
+                zIndex: 4,
+                display: 'flex',
+                gap: '4px'
+              }}
+            >
+              <div style={{
+                fontSize: 20,
+                fontWeight: 800,
+                color: '#f1f1f1',
+                textShadow: `
+                  -2px -2px 0 ${getDiffColor(song.diff)}, 
+                  2px -2px 0 ${getDiffColor(song.diff)},
+                  -2px 2px 0 ${getDiffColor(song.diff)},
+                  2px 2px 0 ${getDiffColor(song.diff)}
+                `
+              }}>
+                {song.diff}
+              </div>
+              <div style={{
+                fontSize: 20,
+                fontWeight: 800,
+                color: '#f1f1f1',
+                textShadow: `
+                  -2px -2px 0 ${getDiffColor(song.diff)}, 
+                  2px -2px 0 ${getDiffColor(song.diff)},
+                  -2px 2px 0 ${getDiffColor(song.diff)},
+                  2px 2px 0 ${getDiffColor(song.diff)}
+                `
+              }}>
+                {song.lv}
+              </div>
+            </div>
+
+            {/* Title */}
+            <div
+              className="absolute"
+              style={{
+                left: '50%',
+                transform: 'translateX(-50%)',
+                bottom: FRAME_OVERLAY_H * 0.14,
+                width: FRAME_OVERLAY_W * 0.72,
+                textAlign: 'center',
+                zIndex: 4,
+                overflow: 'hidden',
+                height: `${TITLE_FONT_SIZE + 4}px`
+              }}
+            >
+              <div style={{
+                fontWeight: 800,
+                fontSize: TITLE_FONT_SIZE,
+                color: '#1a1a1a',
+                whiteSpace: 'nowrap',
+                lineHeight: 1.1,
+                textShadow: '0 0 1px rgba(255,255,255,0.8)',
+                WebkitFontSmoothing: 'antialiased',
+                animation: song.title.length > 20 ? 'marquee 15s linear infinite' : 'none'
+              }}>
+                {song.title}
+              </div>
+            </div>
+
+            {/* Artist */}
+            <div
+              className="absolute"
+              style={{
+                left: '50%',
+                transform: 'translateX(-50%)',
+                bottom: FRAME_OVERLAY_H * 0.045,
+                width: FRAME_OVERLAY_W * 0.73,
+                textAlign: 'center',
+                zIndex: 4,
+                overflow: 'hidden',
+                height: '18px'
+              }}
+            >
+              <div style={{
+                fontSize: 13,
+                fontWeight: 500,
+                color: '#1a1a1a',
+                whiteSpace: 'nowrap',
+                lineHeight: 1.3,
+                textShadow: '0 0 1px rgba(255,255,255,0.8)',
+                WebkitFontSmoothing: 'antialiased',
+                animation: song.artist.length > 20 ? 'marquee 18s linear infinite' : 'none'
+              }}>
+                {song.artist}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
