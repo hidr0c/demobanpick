@@ -1,8 +1,8 @@
 {
   "textData": {
-    "roundName": "Test Round",
-    "player1": "TestPlayer1",
-    "player2": "TestPlayer2",
+    "roundName": "",
+    "player1": "",
+    "player2": "",
     "player3": "",
     "player4": "",
     "player1Tag": "",
@@ -12,15 +12,13 @@
   },
   "displaySong2": null,
   "matchSongs": [],
-  "lockedTracks": null,
-  "timestamp": 1765812287493,
+  "lockedTracks": {},
   "gameState": {
-    "selectedPool": "proFinals",
-    "randomCount": 6,
+    "selectedPool": "newbieSemi",
+    "randomCount": 4,
     "pickCount": 2,
     "banCount": 0,
     "fixedSongs": [],
-    "lockedTracks": {},
     "hiddenTracks": {
       "track3Hidden": false,
       "track4Hidden": false
@@ -29,25 +27,101 @@
     "bannedSongs": [],
     "pickedSongs": [],
     "showBanPick": false,
-    "showFinalResults": false
+    "showFinalResults": false,
+    "lockedTracks": {},
+    "banPickLog": [
+      {
+        "type": "ban",
+        "song": {
+          "title": "test",
+          "artist": "test",
+          "imgUrl": "/assets/testjacket.png",
+          "lv": "15",
+          "diff": "RE:MASTER",
+          "isDx": "False",
+          "id": "9"
+        }
+      },
+      {
+        "type": "pick",
+        "song": {
+          "id": "17",
+          "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/696469997791890500b4cb86ffce8c8b6471f5d234f50ae201a4e57f498f9fa8.png",
+          "artist": "EmoCosine",
+          "title": "Feel The Luv",
+          "lv": "11",
+          "diff": "EXPERT",
+          "isDx": "True"
+        }
+      },
+      {
+        "type": "ban",
+        "song": {
+          "id": "224",
+          "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/cc99937dd0be9c2406cd598df758c1b3e01a39db61618d08467e311d3999b12a.png",
+          "artist": "ビートまりお（COOL&CREATE）",
+          "title": "最終鬼畜妹フランドール・S",
+          "lv": "11",
+          "diff": "EXPERT",
+          "isDx": "False"
+        }
+      },
+      {
+        "type": "ban",
+        "song": {
+          "id": "139",
+          "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/f013d7de2376d2ab3fc50ac6da7a0634a405719b794d0aa09de97fc853031846.png",
+          "artist": "linear ring",
+          "title": "enchanted love",
+          "lv": "11+",
+          "diff": "EXPERT",
+          "isDx": "True"
+        }
+      },
+      {
+        "type": "pick",
+        "song": {
+          "id": "145",
+          "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/3b57623b46909acc86602d131f716ce89f8c008cdfd26bed18826e51467a8845.png",
+          "artist": "MAYA AKAI",
+          "title": "LiftOff",
+          "lv": "11+",
+          "diff": "EXPERT",
+          "isDx": "True"
+        }
+      },
+      {
+        "type": "pick",
+        "song": {
+          "id": "231",
+          "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/0e533966d5248330c0d83a2a722e3c77e3eb44d607428fe2fe1bb53cadaad9d5.png",
+          "artist": "ビートまりお＋あまね（COOL&CREATE）",
+          "title": "クレイジークレイジーダンサーズ",
+          "lv": "11+",
+          "diff": "MASTER",
+          "isDx": "False"
+        }
+      }
+    ]
   },
+  "timestamp": 1765894923699,
   "matchDisplay": {
     "songs": [
       {
-        "id": "66",
-        "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/741df965f9a59341de3aa27702e4873fc4ff9043dfba060e3b63f887894541c1.png",
-        "artist": "かねこちはる",
-        "title": "TEmPTaTiON",
-        "lv": "14+",
+        "id": "142",
+        "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/4477873931977be49098771ec6753e068f0afe3c52c87ed8795ff87ea8c0d773.png",
+        "artist": "koyori（電ポルP）",
+        "title": "ヱデン",
+        "lv": "12+",
         "diff": "MASTER",
         "isDx": "True"
       },
       {
-        "id": "0",
-        "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/1ead33086c0eff4af90de97530951984666c5224a91c0289857b982dc24a0e49.png",
-        "artist": "かめりあ",
-        "title": "False Amber (from the Black Bazaar, Or by A Kervan Trader from the Lands Afar, Or Buried Beneath the Shifting Sands That Lead Everywhere but Nowhere)",
-        "lv": "14+",
+        "id": "58",
+        "imgUrl": "https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/499cae0991bdafd23c0e80fc42b15029b98799b5cd427429246a50b9970a2446.png",
+        "artist": "Teary Planet",
+        "title": "パラドクスイヴ",
+        "lv": "13",
         "diff": "MASTER",
         "isDx": "True"
       }

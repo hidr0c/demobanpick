@@ -187,12 +187,12 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
         if (count === 2) return 2;
         if (count === 3) return 3;
         if (count === 4) return 4;
-        if (count === 5) return 5; // 5 columns for 5 songs
-        if (count === 6) return 3; // 2 rows x 3 columns
-        if (count === 7) return 4; // 2 rows, 4+3
-        if (count === 8) return 4; // 2 rows x 4 columns
-        if (count === 9) return 3; // 3 rows x 3 columns
-        if (count === 10) return 5; // 2 rows x 5 columns
+        if (count === 5) return 3; // 3 columns (row 1: 3, row 2: 2)
+        if (count === 6) return 3; // 3 columns (3x2)
+        if (count === 7) return 4;
+        if (count === 8) return 4;
+        if (count === 9) return 3;
+        if (count === 10) return 5;
         // For larger counts
         if (count % 4 === 0) return 4;
         if (count % 3 === 0) return 3;
@@ -211,7 +211,7 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
         <div className="flex flex-col items-center justify-center min-h-screen gap-4 p-2">
             {/* Random slots display */}
             <div
-                className="flex flex-row gap-4 justify-center items-center flex-wrap"
+                className="grid gap-4 justify-center items-center"
                 style={{
                     gridTemplateColumns: `repeat(${gridColumns}, 1fr)`,
                     gridTemplateRows: 'repeat(auto-fill, 1fr)',

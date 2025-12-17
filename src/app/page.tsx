@@ -30,15 +30,75 @@ const POOL_FILES: Record<string, string> = {
 };
 
 // Helper function to sync state to API
-const syncToAPI = async (gameState: any) => {
-  try {
-    await fetch('/api/sync-state', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ gameState })
-    });
-  } catch (error) {
-    console.error('Failed to sync to API:', error);
+let syncTimeout: NodeJS.Timeout | null = null;
+let lastSyncedState: string = '';
+let lastImportantState: string = '';
+// Track last sync time globally for this module (or inside component if possible, but syncToAPI is outside currently)
+// Actually syncToAPI is defined outside component scope in original code but depends on nothing external.
+// To use ref, it needs to be inside or we use a module-level variable. 
+// Original code has `syncToAPI` outside `Home`.
+let lastSyncTime = 0;
+
+const syncToAPI = async (gameState: any, forceImmediate = false) => {
+  // Update sync time
+  lastSyncTime = Date.now();
+  const stateString = JSON.stringify(gameState);
+
+  // Check if state actually changed
+  if (stateString === lastSyncedState) {
+    return; // No change, skip sync
+  }
+
+  // Check if important state changed (randomResults, showBanPick, bannedSongs, pickedSongs)
+  const importantState = JSON.stringify({
+    randomResults: gameState.randomResults,
+    showBanPick: gameState.showBanPick,
+    showFinalResults: gameState.showFinalResults,
+    bannedSongs: gameState.bannedSongs,
+    pickedSongs: gameState.pickedSongs
+  });
+
+  const isImportantChange = importantState !== lastImportantState;
+
+  if (isImportantChange || forceImmediate) {
+    // Important changes sync immediately
+    if (syncTimeout) {
+      clearTimeout(syncTimeout);
+      syncTimeout = null;
+    }
+
+    lastSyncedState = stateString;
+    lastImportantState = importantState;
+
+    try {
+      await fetch('/api/sync-state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gameState })
+      });
+    } catch (error) {
+      console.error('Failed to sync to API:', error);
+    }
+  } else {
+    // Non-important changes debounce
+    if (syncTimeout) {
+      clearTimeout(syncTimeout);
+    }
+
+    syncTimeout = setTimeout(async () => {
+      try {
+        lastSyncedState = stateString;
+        lastImportantState = importantState;
+
+        await fetch('/api/sync-state', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ gameState })
+        });
+      } catch (error) {
+        console.error('Failed to sync to API:', error);
+      }
+    }, 300);
   }
 };
 
@@ -84,72 +144,102 @@ export default function Home() {
     if (savedHiddenTracks) setHiddenTracks(JSON.parse(savedHiddenTracks));
   }, []);
 
-  // Load settings from API (for OBS mode)
-  const loadSettingsFromAPI = useCallback(async () => {
+  // Check if API has updates (lightweight)
+  const checkAPIForUpdates = useCallback(async (): Promise<boolean> => {
+    try {
+      const res = await fetch('/api/sync-state?check=1', { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.timestamp && data.timestamp !== lastAPITimestamp.current) {
+          return true;
+        }
+      }
+    } catch {
+      // Silent fail
+    }
+    return false;
+  }, []);
+
+  // Load settings from API (for OBS mode) - full fetch
+  const loadSettingsFromAPI = useCallback(async (forceFullFetch = false) => {
+    // RACE CONDITION GUARD: Skip polling if we just synced locally (< 1.5 seconds)
+    // This prevents polling from overwriting local state changes before they reach API
+    if (!forceFullFetch && Date.now() - lastSyncTime < 1500) {
+      return;
+    }
+
+    // Lightweight check first (unless forced)
+    if (!forceFullFetch) {
+      const hasUpdates = await checkAPIForUpdates();
+      if (!hasUpdates) return; // No updates, skip full fetch
+    }
+
     try {
       const res = await fetch('/api/sync-state', {
-        cache: 'no-store',
-        headers: { 'Cache-Control': 'no-cache' }
+        cache: 'no-store'
       });
 
       if (res.ok) {
         const data = await res.json();
 
-        // Only update if timestamp changed
-        if (data.timestamp && data.timestamp !== lastAPITimestamp.current) {
+        // Update timestamp
+        if (data.timestamp) {
           lastAPITimestamp.current = data.timestamp;
+        }
 
-          if (data.gameState) {
-            const gs = data.gameState;
+        if (data.gameState) {
+          const gs = data.gameState;
 
-            if (gs.selectedPool && POOL_FILES[gs.selectedPool]) {
-              setSelectedPool(prev => {
-                if (prev !== gs.selectedPool) {
-                  setPoolVersion(v => v + 1);
-                  return gs.selectedPool;
-                }
-                return prev;
-              });
-            }
-            if (gs.randomCount !== undefined) setRandomCount(gs.randomCount);
-            if (gs.pickCount !== undefined) setPickCount(gs.pickCount);
-            if (gs.banCount !== undefined) setBanCount(gs.banCount);
-            if (gs.fixedSongs !== undefined) setFixedSongs(gs.fixedSongs || []);
-            if (gs.lockedTracks !== undefined) setLockedTracks(gs.lockedTracks || {});
-            if (gs.hiddenTracks !== undefined) setHiddenTracks(gs.hiddenTracks || { track3Hidden: false, track4Hidden: false });
-            if (gs.randomResults !== undefined) setRandomResults(gs.randomResults || []);
-            if (gs.bannedSongs !== undefined) setBannedSongs(gs.bannedSongs || []);
-            if (gs.pickedSongs !== undefined) setPickedSongs(gs.pickedSongs || []);
-            if (gs.showBanPick !== undefined) setShowBanPick(gs.showBanPick);
-            if (gs.showFinalResults !== undefined) setShowFinalResults(gs.showFinalResults);
-
-            console.log('[Main] API sync - randomResults:', gs.randomResults?.length, 'showBanPick:', gs.showBanPick);
+          // Settings from controller (always apply these)
+          if (gs.selectedPool && POOL_FILES[gs.selectedPool]) {
+            setSelectedPool(prev => {
+              if (prev !== gs.selectedPool) {
+                setPoolVersion(v => v + 1);
+                return gs.selectedPool;
+              }
+              return prev;
+            });
           }
+          if (gs.randomCount !== undefined) setRandomCount(gs.randomCount);
+          if (gs.pickCount !== undefined) setPickCount(gs.pickCount);
+          if (gs.banCount !== undefined) setBanCount(gs.banCount);
+          if (gs.fixedSongs !== undefined) setFixedSongs(gs.fixedSongs || []);
+          if (gs.lockedTracks !== undefined) setLockedTracks(gs.lockedTracks || {});
+          if (gs.hiddenTracks !== undefined) setHiddenTracks(gs.hiddenTracks || { track3Hidden: false, track4Hidden: false });
+
+          // GAME STATE - Always sync from API for real-time consistency
+          // All clients (preview iframe, OBS browser) will show the same state
+          if (gs.randomResults !== undefined) setRandomResults(gs.randomResults || []);
+          if (gs.bannedSongs !== undefined) setBannedSongs(gs.bannedSongs || []);
+          if (gs.pickedSongs !== undefined) setPickedSongs(gs.pickedSongs || []);
+          if (gs.showBanPick !== undefined) setShowBanPick(gs.showBanPick);
+          if (gs.showFinalResults !== undefined) setShowFinalResults(gs.showFinalResults);
         }
       }
     } catch (error) {
-      console.log('[Main] API not available, using localStorage');
+      // Silent fail - don't spam console
     }
-  }, []);
+  }, [checkAPIForUpdates]);
 
   // Detect if running in OBS mode via URL query param ?obs=1
+  // But ALWAYS poll API for sync (OBS browser source has isolated localStorage)
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const obsParam = urlParams.get('obs');
 
     if (obsParam === '1' || obsParam === 'true') {
-      // OBS mode - only read from API, don't use localStorage
+      // Pure OBS mode - only read from API, don't use localStorage at all
       setIsOBSMode(true);
-      console.log('[Main] OBS mode enabled via URL param');
     } else {
-      // Normal mode - use localStorage
+      // Normal mode - load from localStorage initially
       setIsOBSMode(false);
       loadSettingsFromStorage();
     }
 
-    // Always poll API for updates (works for both modes)
-    const pollInterval = setInterval(loadSettingsFromAPI, 500);
-
+    // ALWAYS poll API for sync (works for both regular browser and OBS browser source)
+    // This ensures sync works even if OBS browser source URL doesn't have ?obs=1
+    loadSettingsFromAPI(true); // Initial full fetch
+    const pollInterval = setInterval(() => loadSettingsFromAPI(false), 300); // 300ms balanced polling
     return () => clearInterval(pollInterval);
   }, [loadSettingsFromStorage, loadSettingsFromAPI]);
 
@@ -207,11 +297,9 @@ export default function Home() {
         if (!abortController.signal.aborted) {
           setSongData(ensureIds(data));
           setPoolVersion(prev => prev + 1); // Increment version to force re-render
-          console.log(`Pool loaded: ${selectedPool}, songs: ${data.length}`);
         }
       } catch (error: any) {
         if (error.name === 'AbortError') {
-          console.log('Pool load aborted:', selectedPool);
           return;
         }
 
@@ -304,9 +392,11 @@ export default function Home() {
   }, [showFinalResults, router]);
 
   const handleRandomComplete = useCallback((results: Song[]) => {
-    console.log('[Main] handleRandomComplete called with', results.length, 'songs');
+    // Set randomResults immediately - the animation in QuadRandomSlot handles the visual delay
     setRandomResults(results);
-    // Auto transition to ban/pick after showing result
+
+    // Small delay before showing ban/pick UI for visual transition
+    // Both will be synced to API together when showBanPick changes
     setTimeout(() => {
       setShowBanPick(true);
     }, 800);
@@ -362,19 +452,29 @@ export default function Home() {
   }, [pickedSongs, pickCount, lockedTracks]);
 
   const handleReset = () => {
+    // Clear game progress state only
     setFixedSongs([]);
     setRandomResults([]);
     setShowBanPick(false);
     setShowFinalResults(false);
     setBannedSongs([]);
     setPickedSongs([]);
-    setRandomCount(4);
-    setPickCount(2);
-    setBanCount(0);
-    setLockedTracks({});
     // Clear ban/pick log on reset
     localStorage.removeItem('banPickLog');
-    setHiddenTracks({ track3Hidden: false, track4Hidden: false });
+
+    // Sync reset state to API immediately so all clients get reset
+    // This updates lastSyncTime, pausing polling for 1.5s
+    syncToAPI({
+      randomResults: [],
+      bannedSongs: [],
+      pickedSongs: [],
+      showBanPick: false,
+      showFinalResults: false
+    }, true);
+
+    // Reload settings from storage (not API) to keep controller settings
+    // Don't call loadSettingsFromAPI here - let polling handle it after 1.5s
+    loadSettingsFromStorage();
   };
 
   const handlePoolChange = (poolId: string) => {
@@ -402,9 +502,6 @@ export default function Home() {
 
   // Combined pool for ban/pick = random results + fixed songs (excluding locked)
   const banPickPool = [...randomResults, ...fixedSongs];
-
-  // Debug log
-  console.log('[Main] banPickPool:', banPickPool.length, 'randomResults:', randomResults.length, 'fixedSongs:', fixedSongs.length);
 
   return (
     <main className="min-h-screen relative">
