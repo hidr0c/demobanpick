@@ -230,8 +230,8 @@ export default function ControllerPage() {
     // Go to ban/pick phase
     const goToBanPickPhase = () => {
         if (randomResults.length === 0) return;
-        setShowBanPick(true);
         setPickBanPoolSongs([...randomResults, ...fixedSongs]);
+        setShowBanPick(true);
         setShowFinalResults(false);
         sendMessage('SHOW_BAN_PICK', {});
     };
@@ -282,6 +282,7 @@ export default function ControllerPage() {
         setPickBanPoolSongs([]);
         setBannedSongs([]);
         setPickedSongs([]);
+        setFixedSongs([...fixedSongs]);
         setShowBanPick(false);
         setShowFinalResults(false);
         setSelectedSongIndex(0);
