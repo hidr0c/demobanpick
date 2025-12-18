@@ -127,7 +127,8 @@ function QuadRandomSlotDisplay({
   const FRAME_OVERLAY_H = 488;
   const FRAME_W = FRAME_OVERLAY_W * 0.61;
   const FRAME_H = FRAME_OVERLAY_H * 0.5;
-  const TITLE_FONT_SIZE = 28;
+  const TITLE_FONT_SIZE = 24;
+  const DIFF_FONT_SIZE = 26;
 
   if (slots.length === 0) {
     return (
@@ -152,7 +153,7 @@ function QuadRandomSlotDisplay({
             key={`slot-${index}`}
             className="relative"
             style={{
-              width: FRAME_OVERLAY_W,
+              width: FRAME_OVERLAY_W + 100, // Add 100 to fit the diff text and diff level
               height: FRAME_OVERLAY_H,
               transform: isAnimating ? 'scale(0.98)' : 'scale(1)',
               transition: 'transform 0.1s ease-out'
@@ -204,30 +205,21 @@ function QuadRandomSlotDisplay({
               }}
             >
               <div style={{
-                fontSize: 20,
+                fontSize: DIFF_FONT_SIZE,
                 fontWeight: 800,
                 color: '#f1f1f1',
                 textShadow: `
                   -2px -2px 0 ${getDiffColor(song.diff)}, 
                   2px -2px 0 ${getDiffColor(song.diff)},
                   -2px 2px 0 ${getDiffColor(song.diff)},
-                  2px 2px 0 ${getDiffColor(song.diff)}
+                  2px 2px 0 ${getDiffColor(song.diff)},
+                  -3px 0px 0 ${getDiffColor(song.diff)},
+                  3px 0px 0 ${getDiffColor(song.diff)},
+                  0px -3px 0 ${getDiffColor(song.diff)},
+                  0px 3px 0 ${getDiffColor(song.diff)}
                 `
               }}>
-                {song.diff}
-              </div>
-              <div style={{
-                fontSize: 20,
-                fontWeight: 800,
-                color: '#f1f1f1',
-                textShadow: `
-                  -2px -2px 0 ${getDiffColor(song.diff)}, 
-                  2px -2px 0 ${getDiffColor(song.diff)},
-                  -2px 2px 0 ${getDiffColor(song.diff)},
-                  2px 2px 0 ${getDiffColor(song.diff)}
-                `
-              }}>
-                {song.lv}
+                {song.diff} {song.lv}
               </div>
             </div>
 
@@ -265,7 +257,7 @@ function QuadRandomSlotDisplay({
               style={{
                 left: '50%',
                 transform: 'translateX(-50%)',
-                bottom: FRAME_OVERLAY_H * 0.045,
+                bottom: FRAME_OVERLAY_H * 0.055,
                 width: FRAME_OVERLAY_W * 0.73,
                 textAlign: 'center',
                 zIndex: 4,
@@ -281,7 +273,7 @@ function QuadRandomSlotDisplay({
                 lineHeight: 1.3,
                 textShadow: '0 0 1px rgba(255,255,255,0.8)',
                 WebkitFontSmoothing: 'antialiased',
-                animation: song.artist.length > 20 ? 'marquee 18s linear infinite' : 'none'
+                animation: song.artist.length > 30 ? 'marquee 18s linear infinite' : 'none'
               }}>
                 {song.artist}
               </div>

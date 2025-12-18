@@ -182,7 +182,8 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
     const FRAME_OVERLAY_H = 488;
     const FRAME_W = FRAME_OVERLAY_W * 0.61;
     const FRAME_H = FRAME_OVERLAY_H * 0.5;
-    const TITLE_FONT_SIZE = 28;
+    const TITLE_FONT_SIZE = 24;
+    const DIFF_FONT_SIZE = 26;
 
     return (
         <div className="ban-pick-container py-8">
@@ -283,7 +284,7 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
                             >
                                 <div
                                     style={{
-                                        fontSize: 20,
+                                        fontSize: DIFF_FONT_SIZE,
                                         fontWeight: 800,
                                         color: (banned || notChosen) ? '#d1d5db' : '#f1f1f1',
                                         textShadow: (banned || notChosen)
@@ -305,7 +306,7 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
                                 </div>
                                 <div
                                     style={{
-                                        fontSize: (showFinalOnly && isHiddenLockedTrack(song)) ? 22 : 20,
+                                        fontSize: (showFinalOnly && isHiddenLockedTrack(song)) ? 22 : DIFF_FONT_SIZE,
                                         fontWeight: 800,
                                         color: (banned || notChosen) ? '#9ca3af' : '#f1f1f1',
                                         textShadow: (banned || notChosen)
@@ -342,7 +343,7 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
                                     pointerEvents: 'none',
                                     overflow: 'hidden',
                                     clipPath: 'inset(0)',
-                                    height: '18px',
+                                    height: `${TITLE_FONT_SIZE + 4}px`,
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center'
@@ -350,8 +351,8 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
                             >
                                 <div
                                     style={{
-                                        fontWeight: 700,
-                                        fontSize: `${TITLE_FONT_SIZE}`,
+                                        fontWeight: 800,
+                                        fontSize: TITLE_FONT_SIZE,
                                         color: '#000',
                                         whiteSpace: 'nowrap',
                                         animation: (!showFinalOnly || !isHiddenLockedTrack(song)) && song.title.length > 20 ? 'marquee 15s linear infinite' : 'none',
@@ -387,7 +388,7 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
                                         fontSize: 12,
                                         color: '#000',
                                         whiteSpace: 'nowrap',
-                                        animation: (!showFinalOnly || !isHiddenLockedTrack(song)) && song.artist.length > 20 ? 'marquee 18s linear infinite' : 'none',
+                                        animation: (!showFinalOnly || !isHiddenLockedTrack(song)) && song.artist.length > 30 ? 'marquee 18s linear infinite' : 'none',
                                         display: 'inline-block'
                                     }}
                                 >
