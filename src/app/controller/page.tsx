@@ -83,6 +83,7 @@ export default function ControllerPage() {
 
     // Game control state (synced with Home page)
     const [randomResults, setRandomResults] = useState<Song[]>([]);
+    const [pickBanPoolSongs, setPickBanPoolSongs] = useState<Song[]>([]);
     const [bannedSongs, setBannedSongs] = useState<Song[]>([]);
     const [pickedSongs, setPickedSongs] = useState<Song[]>([]);
     const [showBanPick, setShowBanPick] = useState(false);
@@ -199,7 +200,7 @@ export default function ControllerPage() {
         // Shuffle and pick
         const shuffled = [...availablePool].sort(() => Math.random() - 0.5);
         const results = shuffled.slice(0, randomCount);
-
+    
         setRandomResults(results);
         setShowBanPick(false);
         setShowFinalResults(false);
@@ -230,6 +231,7 @@ export default function ControllerPage() {
     const goToBanPickPhase = () => {
         if (randomResults.length === 0) return;
         setShowBanPick(true);
+        setPickBanPoolSongs([...randomResults, ...fixedSongs]);
         setShowFinalResults(false);
         sendMessage('SHOW_BAN_PICK', {});
     };
@@ -277,6 +279,7 @@ export default function ControllerPage() {
     // Reset game
     const handleGameReset = () => {
         setRandomResults([]);
+        setPickBanPoolSongs([]);
         setBannedSongs([]);
         setPickedSongs([]);
         setShowBanPick(false);
@@ -981,7 +984,7 @@ export default function ControllerPage() {
                                     {showBanPick ? (isBanPhase ? 'Select to Ban' : 'Select to Pick') : 'Random Results'}
                                 </h2>
                                 <div className="grid grid-cols-2 gap-2">
-                                    {randomResults.map((song, index) => {
+                                    {pickBanPoolSongs.map((song, index) => {
                                         const banned = isSongBanned(song);
                                         const picked = isSongPicked(song);
                                         const processed = banned || picked;
