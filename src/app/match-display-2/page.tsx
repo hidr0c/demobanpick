@@ -124,101 +124,102 @@ export default function MatchDisplay2() {
                         position: 'absolute',
                         top: 0,
                         left: 0,
-                        width: FRAME_W,
                         height: FRAME_H,
                         zIndex: 2,
                         pointerEvents: 'none'
                     }}
                 />
 
-                {/* Diff + Lv - centered with gap */}
-                <div
-                    className="absolute"
-                    style={{
-                        position: 'absolute',
-                        bottom: FRAME_H / 4.25,
-                        left: 8,
-                        right: 8,
-                        textAlign: 'center',
-                        fontSize: FRAME_W / 13,
-                        fontWeight: 800,
-                        color: '#FFFFFF',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        zIndex: 3,
-                        gap: '4px',
-                        textShadow: `
+                    {/* Diff + Lv - centered with gap */}
+                    <div
+                        className="absolute"
+                        style={{
+                            position: 'absolute',
+                            bottom: FRAME_H / 4.25,
+                            left: 8,
+                            right: 8,
+                            textAlign: 'center',
+                            fontSize: FRAME_W / 13,
+                            fontWeight: 800,
+                            color: '#FFFFFF',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            zIndex: 3,
+                            gap: '4px',
+                            textShadow: `
                         -2px -2px 0 ${getDiffColor(currentSong.diff)}, 
                         2px -2px 0 ${getDiffColor(currentSong.diff)},
                         -2px 2px 0 ${getDiffColor(currentSong.diff)},
                         2px 2px 0 ${getDiffColor(currentSong.diff)},
-                        -3px 0px 0 ${getDiffColor(currentSong.diff)},
-                        3px 0px 0 ${getDiffColor(currentSong.diff)},
-                        0px -3px 0 ${getDiffColor(currentSong.diff)},
-                        0px 3px 0 ${getDiffColor(currentSong.diff)}
+                        -2px 0px 0 ${getDiffColor(currentSong.diff)},
+                        2px 0px 0 ${getDiffColor(currentSong.diff)},
+                        0px -2px 0 ${getDiffColor(currentSong.diff)},
+                        0px 2px 0 ${getDiffColor(currentSong.diff)}
                         `,
-                        letterSpacing: '0.5px'
-                    }}
-                >
-                    {currentSong.diff} {currentSong.lv}
-                </div>
+                            letterSpacing: '0.5px'
+                        }}
+                    >
+                        {currentSong.diff} {currentSong.lv}
+                    </div>
 
-                {/* Title at bottom of frame */}
-                <div
-                    style={{
-                        position: 'absolute',
-                        bottom: FRAME_W / 5.5,
-                        left: 8,
-                        right: 8,
-                        textAlign: 'center',
-                        fontSize: FRAME_W / 20,
-                        fontWeight: 600,
-                        color: '#333',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        zIndex: 3
-                    }}
-                >
-                    {currentSong.title}
-                </div>
+                    {/* Title at bottom of frame */}
+                    <div
+                        style={{
+                            position: 'absolute',
+                            width: FRAME_W * 0.71,
+                            bottom: FRAME_H / 7.5,
+                            left: FRAME_W * 0.15,
+                            textAlign: 'center',
+                            fontSize: FRAME_W / 17,
+                            fontWeight: 800,
+                            color: '#333',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            zIndex: 3,
+                            // animation: currentSong.title.length > 20 ? 'marquee 15s linear infinite' : 'none'
+                        }}
+                    >
+                        {currentSong.title}
+                    </div>
 
-                {/* Artist at bottom of frame */}
-                <div
-                    style={{
-                        position: 'absolute',
-                        bottom: FRAME_W / 15,
-                        left: 8,
-                        right: 8,
-                        textAlign: 'center',
-                        fontSize: FRAME_W / 20 - 2,
-                        fontWeight: 600,
-                        color: '#333',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        zIndex: 3
-                    }}
-                >
-                    {currentSong.artist}
-                </div>
-
+                    {/* Artist at bottom of frame */}
+                    <div
+                        style={{
+                            position: 'absolute',
+                            width: FRAME_W * 0.72,
+                            bottom: FRAME_W / 15,
+                            left: FRAME_W * 0.15,
+                            textAlign: 'center',
+                            fontSize: FRAME_W / 20 - 2,
+                            fontWeight: 600,
+                            color: '#333',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            zIndex: 3,
+                            // animation: currentSong.artist.length > 30 ? 'marquee 18s linear infinite' : 'none'
+                        }}
+                    >
+                        {currentSong.artist}
+                    </div>
                 {/* Track number badge */}
                 <div
                     style={{
                         position: 'absolute',
-                        top: -FRAME_H / 5,
-                        right: FRAME_W / 4,
+                        top: -FRAME_H/10,
+                        left: FRAME_W/2.7,
                         backgroundColor: 'rgba(0,0,0,0.75)',
                         color: 'white',
+                        padding: '4px 6px',
                         borderRadius: '4px',
-                        fontSize: 20,
+                        fontSize: 9,
                         fontWeight: 700,
                         zIndex: 4
                     }}
                 >
-                    <span>Track</span> {currentIndex + 1}/{songs.length}
+                    <span>TRACK </span>{currentIndex + 1}/{displaySongs.length}
                 </div>
             </div>
         </div>
