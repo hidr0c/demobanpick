@@ -1,37 +1,25 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useGameDisplay } from '../hooks/useGame';
 import { Song } from '../interface';
 
-// Match Display - controlled by Controller via BroadcastChannel
+// Match Display - controlled by Controller via Socket.IO
 export default function MatchDisplay() {
     const router = useRouter();
     const { state } = useGameDisplay();
+    const [localSongs, setLocalSongs] = useState<Song[]>([]);
+    const [isClient, setIsClient] = useState(false);
 
     const songs = state.matchSongs;
     const currentIndex = state.currentMatchIndex;
 
-    // Redirect if no songs
+    // Load localStorage data on client mount
     useEffect(() => {
-        // Give some time for BroadcastChannel to sync
-        const timeout = setTimeout(() => {
-            if (songs.length === 0 && state.phase !== 'match') {
-                // Try localStorage fallback
-                const stored = localStorage.getItem('matchSongs');
-                if (!stored) {
-                    router.push('/');
-                }
-            }
-        }, 2000);
+        setIsClient(true);
 
-        return () => clearTimeout(timeout);
-    }, [songs.length, state.phase, router]);
-
-    // Fallback to localStorage if BroadcastChannel hasn't synced yet
-    const displaySongs = songs.length > 0 ? songs : (() => {
-        if (typeof window !== 'undefined') {
+        if (songs.length === 0) {
             const stored = localStorage.getItem('matchSongs');
             const lockedTracksStored = localStorage.getItem('lockedTracks');
 
@@ -40,19 +28,37 @@ export default function MatchDisplay() {
                 if (lockedTracksStored) {
                     const locked = JSON.parse(lockedTracksStored);
                     const firstTwo = parsed.slice(0, 2);
-                    return [
+                    setLocalSongs([
                         ...firstTwo,
                         ...(locked.track3 ? [locked.track3] : []),
                         ...(locked.track4 ? [locked.track4] : []),
-                    ];
+                    ]);
+                } else {
+                    setLocalSongs(parsed);
                 }
-                return parsed;
             }
         }
-        return [];
-    })();
+    }, [songs.length]);
 
-    if (displaySongs.length === 0) {
+    // Redirect if no songs after timeout
+    useEffect(() => {
+        if (!isClient) return;
+
+        const timeout = setTimeout(() => {
+            const displaySongs = songs.length > 0 ? songs : localSongs;
+            if (displaySongs.length === 0 && state.phase !== 'match') {
+                router.push('/');
+            }
+        }, 2000);
+
+        return () => clearTimeout(timeout);
+    }, [songs.length, localSongs.length, state.phase, router, isClient]);
+
+    // Use songs from state, fallback to localStorage
+    const displaySongs = songs.length > 0 ? songs : localSongs;
+
+    // Show loading during SSR or when no songs
+    if (!isClient || displaySongs.length === 0) {
         return (
             <div className="min-h-screen flex items-center justify-center text-white text-xl">
                 Waiting for Controller...

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { subscribeToMessages, ChannelMessage } from '../lib/gameChannel';
+import { getSocket, onGameEvent } from '../lib/socketClient';
 
 interface StreamTextData {
     player1: string;
@@ -12,7 +12,6 @@ interface StreamTextData {
     player3Tag: string;
     player4: string;
     player4Tag: string;
-    roundName: string;
 }
 
 export default function TextDisplayPage() {
@@ -24,12 +23,17 @@ export default function TextDisplayPage() {
         player3: '',
         player3Tag: '',
         player4: '',
-        player4Tag: '',
-        roundName: ''
+        player4Tag: ''
     });
+    const [isClient, setIsClient] = useState(false);
 
-    // Listen for text data changes via BroadcastChannel
+    // Listen for text data changes via Socket.IO
     useEffect(() => {
+        setIsClient(true);
+
+        // Initialize socket connection
+        getSocket();
+
         // Load initial data from localStorage
         try {
             const saved = localStorage.getItem('streamTextData');
@@ -40,14 +44,15 @@ export default function TextDisplayPage() {
             // localStorage not available (OBS)
         }
 
-        // Subscribe to BroadcastChannel updates
-        const unsubscribe = subscribeToMessages((message: ChannelMessage) => {
-            if (message.type === 'SETTINGS_UPDATE' && message.payload?.textData) {
-                setTextData(message.payload.textData);
+        // Subscribe to Socket.IO updates
+        const unsubSettings = onGameEvent('SETTINGS_UPDATE', (payload: any) => {
+            if (payload?.textData) {
+                setTextData(payload.textData);
+                console.log('📝 Text display updated via Socket.IO');
             }
         });
 
-        // Also listen to storage events (fallback)
+        // Listen to storage events (fallback for same browser)
         const handleStorage = (e: StorageEvent) => {
             if (e.key === 'streamTextData' && e.newValue) {
                 setTextData(JSON.parse(e.newValue));
@@ -56,91 +61,156 @@ export default function TextDisplayPage() {
         window.addEventListener('storage', handleStorage);
 
         return () => {
-            unsubscribe();
+            unsubSettings();
             window.removeEventListener('storage', handleStorage);
         };
     }, []);
 
+    // Don't render during SSR
+    if (!isClient) {
+        return <div style={{ background: 'transparent' }} />;
+    }
+
     return (
         <div className="min-h-screen w-full relative" style={{ background: 'transparent' }}>
-            {/* Row 1: Round Name - Top Left */}
+            {/* Player 1 - positioned at 12.5% (center of first quarter) */}
             <div
-                className="absolute"
                 style={{
-                    top: '8px',
-                    left: '16px',
-                    right: '16px'
+                    position: 'absolute',
+                    bottom: '8px',
+                    left: '12.5%',
+                    transform: 'translateX(-50%)',
+                    textAlign: 'center'
                 }}
             >
                 <div
-                    className="px-4 py-2 rounded-lg inline-block"
                     style={{
-                        background: 'rgba(0, 0, 0, 0.7)',
-                        backdropFilter: 'blur(4px)'
+                        color: 'white',
+                        fontWeight: 'bold',
+                        fontSize: '20px',
+                        textShadow: '2px 2px 4px rgba(0,0,0,0.9), 0 0 10px rgba(0,0,0,0.5)',
+                        whiteSpace: 'nowrap'
                     }}
                 >
-                    <span className="text-white font-bold text-lg">
-                        {textData.roundName || 'Round Name'}
-                    </span>
+                    {textData.player1 || 'Player 1'}
                 </div>
+                {textData.player1Tag && (
+                    <div
+                        style={{
+                            color: '#e5e5e5',
+                            fontSize: '12px',
+                            marginTop: '4px',
+                            textShadow: '1px 1px 3px rgba(0,0,0,0.9)'
+                        }}
+                    >
+                        {textData.player1Tag}
+                    </div>
+                )}
             </div>
 
-            {/* Row 2: Player Names */}
+            {/* Player 2 - positioned at 37.5% (center of second quarter) */}
             <div
-                className="absolute flex justify-between"
                 style={{
-                    top: '60px',
-                    left: '16px',
-                    right: '16px'
+                    position: 'absolute',
+                    bottom: '8px',
+                    left: '37.5%',
+                    transform: 'translateX(-50%)',
+                    textAlign: 'center'
                 }}
             >
-                {/* Player 1 */}
-                <div className="text-center">
-                    <div className="text-white font-bold text-2xl" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>
-                        {textData.player1 || 'Player 1'}
-                    </div>
-                    {textData.player1Tag && (
-                        <div className="text-gray-300 text-sm" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>
-                            {textData.player1Tag}
-                        </div>
-                    )}
+                <div
+                    style={{
+                        color: 'white',
+                        fontWeight: 'bold',
+                        fontSize: '20px',
+                        textShadow: '2px 2px 4px rgba(0,0,0,0.9), 0 0 10px rgba(0,0,0,0.5)',
+                        whiteSpace: 'nowrap'
+                    }}
+                >
+                    {textData.player2 || 'Player 2'}
                 </div>
+                {textData.player2Tag && (
+                    <div
+                        style={{
+                            color: '#e5e5e5',
+                            fontSize: '12px',
+                            marginTop: '4px',
+                            textShadow: '1px 1px 3px rgba(0,0,0,0.9)'
+                        }}
+                    >
+                        {textData.player2Tag}
+                    </div>
+                )}
+            </div>
 
-                {/* Player 2 */}
-                <div className="text-center">
-                    <div className="text-white font-bold text-2xl" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>
-                        {textData.player2 || 'Player 2'}
-                    </div>
-                    {textData.player2Tag && (
-                        <div className="text-gray-300 text-sm" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>
-                            {textData.player2Tag}
-                        </div>
-                    )}
+            {/* Player 3 - positioned at 62.5% (center of third quarter) */}
+            <div
+                style={{
+                    position: 'absolute',
+                    bottom: '8px',
+                    left: '62.5%',
+                    transform: 'translateX(-50%)',
+                    textAlign: 'center'
+                }}
+            >
+                <div
+                    style={{
+                        color: 'white',
+                        fontWeight: 'bold',
+                        fontSize: '20px',
+                        textShadow: '2px 2px 4px rgba(0,0,0,0.9), 0 0 10px rgba(0,0,0,0.5)',
+                        whiteSpace: 'nowrap'
+                    }}
+                >
+                    {textData.player3 || 'Player 3'}
                 </div>
+                {textData.player3Tag && (
+                    <div
+                        style={{
+                            color: '#e5e5e5',
+                            fontSize: '12px',
+                            marginTop: '4px',
+                            textShadow: '1px 1px 3px rgba(0,0,0,0.9)'
+                        }}
+                    >
+                        {textData.player3Tag}
+                    </div>
+                )}
+            </div>
 
-                {/* Player 3 */}
-                <div className="text-center">
-                    <div className="text-white font-bold text-2xl" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>
-                        {textData.player3 || 'Player 3'}
-                    </div>
-                    {textData.player3Tag && (
-                        <div className="text-gray-300 text-sm" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>
-                            {textData.player3Tag}
-                        </div>
-                    )}
+            {/* Player 4 - positioned at 87.5% (center of fourth quarter) */}
+            <div
+                style={{
+                    position: 'absolute',
+                    bottom: '8px',
+                    left: '87.5%',
+                    transform: 'translateX(-50%)',
+                    textAlign: 'center'
+                }}
+            >
+                <div
+                    style={{
+                        color: 'white',
+                        fontWeight: 'bold',
+                        fontSize: '20px',
+                        textShadow: '2px 2px 4px rgba(0,0,0,0.9), 0 0 10px rgba(0,0,0,0.5)',
+                        whiteSpace: 'nowrap'
+                    }}
+                >
+                    {textData.player4 || 'Player 4'}
                 </div>
-
-                {/* Player 4 */}
-                <div className="text-center">
-                    <div className="text-white font-bold text-2xl" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>
-                        {textData.player4 || 'Player 4'}
+                {textData.player4Tag && (
+                    <div
+                        style={{
+                            color: '#e5e5e5',
+                            fontSize: '12px',
+                            marginTop: '4px',
+                            textShadow: '1px 1px 3px rgba(0,0,0,0.9)'
+                        }}
+                    >
+                        {textData.player4Tag}
                     </div>
-                    {textData.player4Tag && (
-                        <div className="text-gray-300 text-sm" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>
-                            {textData.player4Tag}
-                        </div>
-                    )}
-                </div>
+                )}
             </div>
         </div>
     );

@@ -1,0 +1,17 @@
+/* Transparent background for OBS overlay */
+.transparent-bg {
+  background: transparent !important;
+  background-color: transparent !important;
+  min-height: 100vh;
+}
+
+/* Override body background for this route */
+body:has(.transparent-bg) {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+html:has(.transparent-bg) {
+  background: transparent !important;
+  background-color: transparent !important;
+}

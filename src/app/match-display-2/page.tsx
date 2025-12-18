@@ -11,12 +11,39 @@ const JACKET_SIZE = Math.floor(FRAME_W * 0.7);
 const TOP_JACKET_OFFSET = Math.floor(FRAME_W * 0.2);
 const LEFT_JACKET_OFFSET = Math.floor(FRAME_W * 0.15);
 
-// Match Display 2 - controlled by Controller via BroadcastChannel
+// Match Display 2 - controlled by Controller via Socket.IO
 export default function MatchDisplay2() {
     const { state } = useGameDisplay();
+    const [localSongs, setLocalSongs] = useState<Song[]>([]);
+    const [isClient, setIsClient] = useState(false);
 
     const songs = state.matchSongs;
     const currentIndex = state.currentMatchIndex;
+
+    // Load localStorage data only on client after mount
+    useEffect(() => {
+        setIsClient(true);
+
+        if (songs.length === 0) {
+            const stored = localStorage.getItem('matchSongs');
+            const lockedTracksStored = localStorage.getItem('lockedTracks');
+
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                if (lockedTracksStored) {
+                    const locked = JSON.parse(lockedTracksStored);
+                    const firstTwo = parsed.slice(0, 2);
+                    setLocalSongs([
+                        ...firstTwo,
+                        ...(locked.track3 ? [locked.track3] : []),
+                        ...(locked.track4 ? [locked.track4] : []),
+                    ]);
+                } else {
+                    setLocalSongs(parsed);
+                }
+            }
+        }
+    }, [songs.length]);
 
     const getDiffColor = (diff: string) => {
         switch (diff) {
@@ -43,30 +70,11 @@ export default function MatchDisplay2() {
         return `/assets/${diffName}-${type}.png`;
     };
 
-    // Fallback to localStorage
-    const displaySongs = songs.length > 0 ? songs : (() => {
-        if (typeof window !== 'undefined') {
-            const stored = localStorage.getItem('matchSongs');
-            const lockedTracksStored = localStorage.getItem('lockedTracks');
+    // Use songs from state, fallback to localStorage
+    const displaySongs = songs.length > 0 ? songs : localSongs;
 
-            if (stored) {
-                const parsed = JSON.parse(stored);
-                if (lockedTracksStored) {
-                    const locked = JSON.parse(lockedTracksStored);
-                    const firstTwo = parsed.slice(0, 2);
-                    return [
-                        ...firstTwo,
-                        ...(locked.track3 ? [locked.track3] : []),
-                        ...(locked.track4 ? [locked.track4] : []),
-                    ];
-                }
-                return parsed;
-            }
-        }
-        return [];
-    })();
-
-    if (displaySongs.length === 0 || !displaySongs[currentIndex]) {
+    // Show loading state until client-side hydration completes
+    if (!isClient || displaySongs.length === 0 || !displaySongs[currentIndex]) {
         return (
             <div
                 className="min-h-screen w-full flex items-center"
@@ -130,24 +138,24 @@ export default function MatchDisplay2() {
                     }}
                 />
 
-                    {/* Diff + Lv - centered with gap */}
-                    <div
-                        className="absolute"
-                        style={{
-                            position: 'absolute',
-                            bottom: FRAME_H / 4.25,
-                            left: 8,
-                            right: 8,
-                            textAlign: 'center',
-                            fontSize: FRAME_W / 13,
-                            fontWeight: 800,
-                            color: '#FFFFFF',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                            zIndex: 3,
-                            gap: '4px',
-                            textShadow: `
+                {/* Diff + Lv - centered with gap */}
+                <div
+                    className="absolute"
+                    style={{
+                        position: 'absolute',
+                        bottom: FRAME_H / 4.25,
+                        left: 8,
+                        right: 8,
+                        textAlign: 'center',
+                        fontSize: FRAME_W / 13,
+                        fontWeight: 800,
+                        color: '#FFFFFF',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        zIndex: 3,
+                        gap: '4px',
+                        textShadow: `
                         -2px -2px 0 ${getDiffColor(currentSong.diff)}, 
                         2px -2px 0 ${getDiffColor(currentSong.diff)},
                         -2px 2px 0 ${getDiffColor(currentSong.diff)},
@@ -157,59 +165,59 @@ export default function MatchDisplay2() {
                         0px -2px 0 ${getDiffColor(currentSong.diff)},
                         0px 2px 0 ${getDiffColor(currentSong.diff)}
                         `,
-                            letterSpacing: '0.5px'
-                        }}
-                    >
-                        {currentSong.diff} {currentSong.lv}
-                    </div>
+                        letterSpacing: '0.5px'
+                    }}
+                >
+                    {currentSong.diff} {currentSong.lv}
+                </div>
 
-                    {/* Title at bottom of frame */}
-                    <div
-                        style={{
-                            position: 'absolute',
-                            width: FRAME_W * 0.71,
-                            bottom: FRAME_H / 7.5,
-                            left: FRAME_W * 0.15,
-                            textAlign: 'center',
-                            fontSize: FRAME_W / 17,
-                            fontWeight: 800,
-                            color: '#333',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                            zIndex: 3,
-                            // animation: currentSong.title.length > 20 ? 'marquee 15s linear infinite' : 'none'
-                        }}
-                    >
-                        {currentSong.title}
-                    </div>
+                {/* Title at bottom of frame */}
+                <div
+                    style={{
+                        position: 'absolute',
+                        width: FRAME_W * 0.71,
+                        bottom: FRAME_H / 7.5,
+                        left: FRAME_W * 0.15,
+                        textAlign: 'center',
+                        fontSize: FRAME_W / 17,
+                        fontWeight: 800,
+                        color: '#333',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        zIndex: 3,
+                        // animation: currentSong.title.length > 20 ? 'marquee 15s linear infinite' : 'none'
+                    }}
+                >
+                    {currentSong.title}
+                </div>
 
-                    {/* Artist at bottom of frame */}
-                    <div
-                        style={{
-                            position: 'absolute',
-                            width: FRAME_W * 0.72,
-                            bottom: FRAME_W / 15,
-                            left: FRAME_W * 0.15,
-                            textAlign: 'center',
-                            fontSize: FRAME_W / 20 - 2,
-                            fontWeight: 600,
-                            color: '#333',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                            zIndex: 3,
-                            // animation: currentSong.artist.length > 30 ? 'marquee 18s linear infinite' : 'none'
-                        }}
-                    >
-                        {currentSong.artist}
-                    </div>
+                {/* Artist at bottom of frame */}
+                <div
+                    style={{
+                        position: 'absolute',
+                        width: FRAME_W * 0.72,
+                        bottom: FRAME_W / 15,
+                        left: FRAME_W * 0.15,
+                        textAlign: 'center',
+                        fontSize: FRAME_W / 20 - 2,
+                        fontWeight: 600,
+                        color: '#333',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        zIndex: 3,
+                        // animation: currentSong.artist.length > 30 ? 'marquee 18s linear infinite' : 'none'
+                    }}
+                >
+                    {currentSong.artist}
+                </div>
                 {/* Track number badge */}
                 <div
                     style={{
                         position: 'absolute',
-                        top: -FRAME_H/10,
-                        left: FRAME_W/2.7,
+                        top: -FRAME_H / 10,
+                        left: FRAME_W / 2.7,
                         backgroundColor: 'rgba(0,0,0,0.75)',
                         color: 'white',
                         padding: '4px 6px',

@@ -68,12 +68,26 @@ export default function Home() {
             onComplete={() => { }}
           />
         </div>
-      ) : (
+      ) : state.phase === 'random' ? (
         /* Random Phase - Display slots */
         <QuadRandomSlotDisplay
           slots={displaySlots}
           randomCount={state.randomCount}
           isAnimating={isAnimating}
+        />
+      ) : state.phase === 'preview' ? (
+        /* Preview Phase - Display 6 random songs */
+        <QuadRandomSlotDisplay
+          slots={state.previewSongs}
+          randomCount={6}
+          isAnimating={false}
+        />
+      ) : (
+        /* Idle Phase - Waiting for controller */
+        <QuadRandomSlotDisplay
+          slots={[]}
+          randomCount={state.randomCount}
+          isAnimating={false}
         />
       )}
     </main>

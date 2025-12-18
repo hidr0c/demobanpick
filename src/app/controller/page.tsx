@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Song } from '../interface';
-import { sendMessage } from '../lib/gameChannel';
+import { emitGameEvent, getSocket, onGameEvent } from '../lib/socketClient';
 
 // Pool file mapping
 const POOL_FILES: Record<string, string> = {
@@ -96,6 +96,33 @@ export default function ControllerPage() {
     const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
     const [isMatchPhase, setIsMatchPhase] = useState(false);
 
+    // Sync state from server when connecting/reconnecting
+    useEffect(() => {
+        const socket = getSocket();
+
+        // Listen for full state sync from server
+        const unsubFullSync = onGameEvent('FULL_STATE_SYNC', (state: any) => {
+            console.log('🔄 Controller synced from server');
+            if (state.randomResults?.length > 0) {
+                setRandomResults(state.randomResults);
+                setPickBanPoolSongs([...state.randomResults, ...(state.fixedSongs || [])]);
+            }
+            if (state.bannedSongs) setBannedSongs(state.bannedSongs);
+            if (state.pickedSongs) setPickedSongs(state.pickedSongs);
+            if (state.phase === 'banpick') setShowBanPick(true);
+            if (state.phase === 'final') setShowFinalResults(true);
+            if (state.phase === 'match') {
+                setIsMatchPhase(true);
+                setMatchSongs(state.matchSongs || []);
+                setCurrentMatchIndex(state.currentMatchIndex || 0);
+            }
+        });
+
+        return () => {
+            unsubFullSync();
+        };
+    }, []);
+
     // Load settings from localStorage on mount
     useEffect(() => {
         const savedPool = localStorage.getItem('selectedPool');
@@ -170,18 +197,39 @@ export default function ControllerPage() {
     const syncGameState = (updates: any) => {
         // Send to all display pages via BroadcastChannel
         if (updates.randomResults !== undefined) {
-            sendMessage('RANDOM_COMPLETE', { results: updates.randomResults });
+            emitGameEvent('RANDOM_COMPLETE', { results: updates.randomResults });
         }
         if (updates.showBanPick !== undefined && updates.showBanPick) {
-            sendMessage('SHOW_BAN_PICK', {});
+            emitGameEvent('SHOW_BAN_PICK', {});
         }
         if (updates.showFinalResults !== undefined && updates.showFinalResults) {
-            sendMessage('SHOW_FINAL_RESULTS', {});
+            emitGameEvent('SHOW_FINAL_RESULTS', {});
         }
         if (updates.bannedSongs !== undefined && updates.bannedSongs.length === 0 &&
             updates.pickedSongs !== undefined && updates.pickedSongs.length === 0) {
-            sendMessage('RESET', {});
+            emitGameEvent('RESET', {});
         }
+    };
+
+    // Trigger preview (Start) - display 6 random songs
+    const triggerPreview = () => {
+        const availablePool = songData.filter(
+            song => !fixedSongs.find(f => f.id === song.id) &&
+                song.id !== lockedTracks.track3?.id &&
+                song.id !== lockedTracks.track4?.id
+        );
+
+        if (availablePool.length < 6) {
+            alert('Not enough songs in pool for preview!');
+            return;
+        }
+
+        // Shuffle and pick 6 random songs for preview
+        const shuffled = [...availablePool].sort(() => Math.random() - 0.5);
+        const previewSongs = shuffled.slice(0, 6);
+
+        // Send preview to display pages
+        emitGameEvent('PREVIEW_START', { previewSongs, randomCount });
     };
 
     // Trigger random from controller
@@ -200,7 +248,7 @@ export default function ControllerPage() {
         // Shuffle and pick
         const shuffled = [...availablePool].sort(() => Math.random() - 0.5);
         const results = shuffled.slice(0, randomCount);
-    
+
         setRandomResults(results);
         setShowBanPick(false);
         setShowFinalResults(false);
@@ -210,7 +258,7 @@ export default function ControllerPage() {
 
         // Send animation pool to display pages with randomCount
         const animationPool = shuffled.slice(0, Math.min(60, availablePool.length));
-        sendMessage('RANDOM_START', { animationPool, randomCount });
+        emitGameEvent('RANDOM_START', { animationPool, randomCount });
 
         // Animate for 3 seconds then show results
         const animationStart = Date.now();
@@ -218,10 +266,10 @@ export default function ControllerPage() {
             const elapsed = Date.now() - animationStart;
             if (elapsed < 3000) {
                 const slots = shuffled.sort(() => Math.random() - 0.5).slice(0, randomCount);
-                sendMessage('RANDOM_ANIMATION', { slots });
+                emitGameEvent('RANDOM_ANIMATION', { slots });
                 requestAnimationFrame(animate);
             } else {
-                sendMessage('RANDOM_COMPLETE', { results });
+                emitGameEvent('RANDOM_COMPLETE', { results });
             }
         };
         animate();
@@ -233,7 +281,7 @@ export default function ControllerPage() {
         setPickBanPoolSongs([...randomResults, ...fixedSongs]);
         setShowBanPick(true);
         setShowFinalResults(false);
-        sendMessage('SHOW_BAN_PICK', {});
+        emitGameEvent('SHOW_BAN_PICK', {});
     };
 
     // Ban a song
@@ -248,7 +296,7 @@ export default function ControllerPage() {
         localStorage.setItem('banPickLog', JSON.stringify(newLog));
 
         // Sync via BroadcastChannel
-        sendMessage('BAN_SONG', { song });
+        emitGameEvent('BAN_SONG', { song });
     };
 
     // Pick a song
@@ -265,13 +313,13 @@ export default function ControllerPage() {
         localStorage.setItem('banPickLog', JSON.stringify(newLog));
 
         // Sync via BroadcastChannel
-        sendMessage('PICK_SONG', { song });
+        emitGameEvent('PICK_SONG', { song });
 
         // Check if complete
         if (newPicked.length >= pickCount) {
             setTimeout(() => {
                 setShowFinalResults(true);
-                sendMessage('SHOW_FINAL_RESULTS', {});
+                emitGameEvent('SHOW_FINAL_RESULTS', {});
             }, 500);
         }
     };
@@ -292,7 +340,7 @@ export default function ControllerPage() {
         setIsMatchPhase(false);
         localStorage.removeItem('banPickLog');
 
-        sendMessage('RESET', {});
+        emitGameEvent('RESET', {});
     };
 
     // Go to match display
@@ -311,7 +359,7 @@ export default function ControllerPage() {
         localStorage.setItem('matchSongs', JSON.stringify(songs));
         localStorage.setItem('matchCurrentIndex', '0');
 
-        sendMessage('GO_TO_MATCH', { songs });
+        emitGameEvent('GO_TO_MATCH', { songs });
     };
 
     // Match navigation
@@ -320,7 +368,7 @@ export default function ControllerPage() {
             const newIndex = currentMatchIndex + 1;
             setCurrentMatchIndex(newIndex);
             localStorage.setItem('matchCurrentIndex', String(newIndex));
-            sendMessage('MATCH_NEXT', {});
+            emitGameEvent('MATCH_NEXT', {});
         }
     };
 
@@ -329,7 +377,7 @@ export default function ControllerPage() {
             const newIndex = currentMatchIndex - 1;
             setCurrentMatchIndex(newIndex);
             localStorage.setItem('matchCurrentIndex', String(newIndex));
-            sendMessage('MATCH_PREV', {});
+            emitGameEvent('MATCH_PREV', {});
         }
     };
 
@@ -409,7 +457,7 @@ export default function ControllerPage() {
         }));
 
         // Send via BroadcastChannel
-        sendMessage('SETTINGS_UPDATE', { textData });
+        emitGameEvent('SETTINGS_UPDATE', { textData });
     };
 
     // Save all settings to localStorage AND sync via BroadcastChannel
@@ -429,7 +477,7 @@ export default function ControllerPage() {
         }));
 
         // Sync via BroadcastChannel
-        sendMessage('SETTINGS_UPDATE', {
+        emitGameEvent('SETTINGS_UPDATE', {
             selectedPool,
             randomCount,
             pickCount,
@@ -888,6 +936,14 @@ export default function ControllerPage() {
                             {/* Control Buttons */}
                             <div className="space-y-2">
                                 <button
+                                    onClick={triggerPreview}
+                                    disabled={isLoadingPool}
+                                    className="w-full py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-600 text-white rounded-lg font-bold transition-colors"
+                                >
+                                    Start
+                                </button>
+
+                                <button
                                     onClick={triggerRandom}
                                     disabled={isLoadingPool}
                                     className="w-full py-2 bg-purple-600 hover:bg-purple-500 disabled:bg-gray-600 text-white rounded-lg font-bold transition-colors"
@@ -961,21 +1017,6 @@ export default function ControllerPage() {
                                     )}
                                 </div>
                             )}
-                        </div>
-
-                        {/* Compact Live Preview */}
-                        <div className="bg-gray-800 rounded-xl p-3">
-                            <h2 className="text-sm font-semibold text-white mb-2 flex items-center gap-2">
-                                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                                Live Preview
-                            </h2>
-                            <div className="relative bg-black rounded-lg overflow-hidden border border-gray-700" style={{ aspectRatio: '16/9' }}>
-                                <iframe
-                                    src="/?preview=1"
-                                    className="w-full h-full border-0"
-                                    title="Live Preview"
-                                />
-                            </div>
                         </div>
 
                         {/* Random Results / Ban Pick Grid */}
@@ -1522,50 +1563,51 @@ export default function ControllerPage() {
                             </button>
                         </div>
                     </div>
-
-                    {/* Column 4 - Ban/Pick Log */}
-                    <div className="bg-gray-800 rounded-xl p-3 h-fit">
-                        <div className="flex items-center justify-between mb-2">
-                            <h2 className="text-sm font-semibold text-white">Ban/Pick Log</h2>
-                            <button
-                                onClick={() => {
-                                    localStorage.removeItem('banPickLog');
-                                    setBanPickLog([]);
-                                }}
-                                className="px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded text-gray-300 text-xs"
-                            >
-                                Clear
-                            </button>
-                        </div>
-                        {banPickLog.length === 0 ? (
-                            <p className="text-gray-500 text-xs">No actions yet...</p>
-                        ) : (
-                            <div className="max-h-[600px] overflow-y-auto space-y-1">
-                                {banPickLog.map((entry, idx) => (
-                                    <div
-                                        key={idx}
-                                        className={`flex items-center gap-2 px-2 py-1 rounded ${entry.type === 'ban' ? 'bg-red-900/30' : 'bg-green-900/30'}`}
-                                    >
-                                        <span className={`text-xs font-bold px-1 py-0.5 rounded ${entry.type === 'ban' ? 'bg-red-600 text-white' : 'bg-green-600 text-white'}`}>
-                                            {entry.type === 'ban' ? 'B' : 'P'}
-                                        </span>
-                                        <img src={entry.song.imgUrl} alt="" className="w-6 h-6 rounded object-cover" />
-                                        <div className="flex-1 min-w-0">
-                                            <span className="text-white text-xs truncate block">{entry.song.title}</span>
-                                            <span className={`text-xs ${getDiffColor(entry.song.diff)}`}>{entry.song.diff} {entry.song.lv}</span>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
                 </div>
 
-                {/* Info */}
-                <div className="text-center text-gray-400 text-sm mt-6">
-                    <p>Made by PXT with luv &lt;3 (and chatgbt). Ofc Shard and Necros1s also</p>
+                {/* Column 4 - Ban/Pick Log */}
+                <div className="bg-gray-800 rounded-xl p-3 h-fit">
+                    <div className="flex items-center justify-between mb-2">
+                        <h2 className="text-sm font-semibold text-white">Ban/Pick Log</h2>
+                        <button
+                            onClick={() => {
+                                localStorage.removeItem('banPickLog');
+                                setBanPickLog([]);
+                            }}
+                            className="px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded text-gray-300 text-xs"
+                        >
+                            Clear
+                        </button>
+                    </div>
+                    {banPickLog.length === 0 ? (
+                        <p className="text-gray-500 text-xs">No actions yet...</p>
+                    ) : (
+                        <div className="max-h-[600px] overflow-y-auto space-y-1">
+                            {banPickLog.map((entry, idx) => (
+                                <div
+                                    key={idx}
+                                    className={`flex items-center gap-2 px-2 py-1 rounded ${entry.type === 'ban' ? 'bg-red-900/30' : 'bg-green-900/30'}`}
+                                >
+                                    <span className={`text-xs font-bold px-1 py-0.5 rounded ${entry.type === 'ban' ? 'bg-red-600 text-white' : 'bg-green-600 text-white'}`}>
+                                        {entry.type === 'ban' ? 'B' : 'P'}
+                                    </span>
+                                    <img src={entry.song.imgUrl} alt="" className="w-6 h-6 rounded object-cover" />
+                                    <div className="flex-1 min-w-0">
+                                        <span className="text-white text-xs truncate block">{entry.song.title}</span>
+                                        <span className={`text-xs ${getDiffColor(entry.song.diff)}`}>{entry.song.diff} {entry.song.lv}</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
+
+            {/* Info */}
+            <div className="text-center text-gray-400 text-sm mt-6">
+                <p>Made by PXT with luv &lt;3 (and chatgbt). Ofc Shard and Necros1s also</p>
+            </div>
         </div>
+
     );
 }

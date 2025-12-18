@@ -2,13 +2,13 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import {
-  subscribeToMessages,
-  sendMessage,
+  getSocket,
+  onGameEvent,
+  emitGameEvent,
   GameState,
   DEFAULT_GAME_STATE,
-  ChannelMessage,
   MessageType,
-} from "../lib/gameChannel";
+} from "../lib/socketClient";
 import { Song } from "../interface";
 
 // Hook for display pages (Home, Match Display) - LISTEN ONLY
@@ -16,122 +16,180 @@ export function useGameDisplay() {
   const [state, setState] = useState<GameState>(DEFAULT_GAME_STATE);
   const [isAnimating, setIsAnimating] = useState(false);
   const [animationSlots, setAnimationSlots] = useState<Song[]>([]);
+  const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = subscribeToMessages((message: ChannelMessage) => {
-      switch (message.type) {
-        case "FULL_STATE_SYNC":
-          setState(message.payload);
-          break;
+    const socket = getSocket();
 
-        case "SETTINGS_UPDATE":
-          setState((prev) => ({ ...prev, ...message.payload }));
-          break;
+    // Connection status
+    const handleConnect = () => {
+      console.log('🎮 Game display connected to server');
+      setIsConnected(true);
+    };
 
-        case "RANDOM_START":
-          setIsAnimating(true);
-          // Set initial animation slots from pool immediately
-          const initialPool = message.payload.animationPool || [];
-          const randomCount = message.payload.randomCount || 4;
-          if (initialPool.length > 0) {
-            const shuffled = [...initialPool].sort(() => Math.random() - 0.5);
-            setAnimationSlots(shuffled.slice(0, randomCount));
-          }
-          setState((prev) => ({
-            ...prev,
-            phase: "random",
-            randomCount: randomCount, // Sync randomCount from controller
-            animationPool: initialPool,
-            randomResults: [],
-          }));
-          break;
+    const handleDisconnect = () => {
+      console.log('🎮 Game display disconnected');
+      setIsConnected(false);
+    };
 
-        case "RANDOM_ANIMATION":
-          // Update slots during animation
-          setAnimationSlots(message.payload.slots);
-          break;
+    socket.on('connect', handleConnect);
+    socket.on('disconnect', handleDisconnect);
 
-        case "RANDOM_COMPLETE":
-          setIsAnimating(false);
-          setAnimationSlots([]);
-          setState((prev) => ({
-            ...prev,
-            randomResults: message.payload.results,
-            phase: "random",
-          }));
-          break;
+    // Game event handlers
+    const unsubscribers: (() => void)[] = [];
 
-        case "SHOW_BAN_PICK":
-          setState((prev) => ({ ...prev, phase: "banpick" }));
-          break;
+    unsubscribers.push(
+      onGameEvent('FULL_STATE_SYNC', (payload: GameState) => {
+        setState(payload);
+        console.log('📦 Full state synced');
+      })
+    );
 
-        case "BAN_SONG":
-          setState((prev) => ({
-            ...prev,
-            bannedSongs: [...prev.bannedSongs, message.payload.song],
-          }));
-          break;
+    unsubscribers.push(
+      onGameEvent('SETTINGS_UPDATE', (payload: Partial<GameState>) => {
+        setState((prev) => ({ ...prev, ...payload }));
+      })
+    );
 
-        case "PICK_SONG":
-          setState((prev) => ({
-            ...prev,
-            pickedSongs: [...prev.pickedSongs, message.payload.song],
-          }));
-          break;
+    unsubscribers.push(
+      onGameEvent('PREVIEW_START', (payload: any) => {
+        setState((prev) => ({
+          ...prev,
+          phase: 'preview',
+          previewSongs: payload.previewSongs || [],
+          randomCount: payload.randomCount || prev.randomCount,
+        }));
+        console.log('📺 Preview started with', payload.previewSongs?.length, 'songs');
+      })
+    );
 
-        case "SHOW_FINAL_RESULTS":
-          setState((prev) => ({ ...prev, phase: "final" }));
-          break;
+    unsubscribers.push(
+      onGameEvent('RANDOM_START', (payload: any) => {
+        setIsAnimating(true);
+        const initialPool = payload.animationPool || [];
+        const randomCount = payload.randomCount || 4;
+        if (initialPool.length > 0) {
+          const shuffled = [...initialPool].sort(() => Math.random() - 0.5);
+          setAnimationSlots(shuffled.slice(0, randomCount));
+        }
+        setState((prev) => ({
+          ...prev,
+          phase: "random",
+          randomCount: randomCount,
+          animationPool: initialPool,
+          randomResults: [],
+        }));
+      })
+    );
 
-        case "GO_TO_MATCH":
-          setState((prev) => ({
-            ...prev,
-            phase: "match",
-            matchSongs: message.payload.songs,
-            currentMatchIndex: 0,
-          }));
-          break;
+    unsubscribers.push(
+      onGameEvent('RANDOM_ANIMATION', (payload: any) => {
+        setAnimationSlots(payload.slots);
+      })
+    );
 
-        case "MATCH_NEXT":
-          setState((prev) => ({
-            ...prev,
-            currentMatchIndex: Math.min(
-              prev.currentMatchIndex + 1,
-              prev.matchSongs.length - 1
-            ),
-          }));
-          break;
+    unsubscribers.push(
+      onGameEvent('RANDOM_COMPLETE', (payload: any) => {
+        setIsAnimating(false);
+        setAnimationSlots([]);
+        setState((prev) => ({
+          ...prev,
+          randomResults: payload.results,
+          phase: "random",
+        }));
+      })
+    );
 
-        case "MATCH_PREV":
-          setState((prev) => ({
-            ...prev,
-            currentMatchIndex: Math.max(prev.currentMatchIndex - 1, 0),
-          }));
-          break;
+    unsubscribers.push(
+      onGameEvent('SHOW_BAN_PICK', () => {
+        setState((prev) => ({ ...prev, phase: "banpick" }));
+      })
+    );
 
-        case "RESET":
-          setState({
-            ...DEFAULT_GAME_STATE,
-            selectedPool: state.selectedPool,
-            randomCount: state.randomCount,
-            pickCount: state.pickCount,
-            banCount: state.banCount,
-            lockedTracks: state.lockedTracks,
-            hiddenTracks: state.hiddenTracks,
-          });
-          setIsAnimating(false);
-          setAnimationSlots([]);
-          break;
-      }
-    });
+    unsubscribers.push(
+      onGameEvent('BAN_SONG', (payload: any) => {
+        setState((prev) => ({
+          ...prev,
+          bannedSongs: [...prev.bannedSongs, payload.song],
+        }));
+      })
+    );
 
-    return unsubscribe;
+    unsubscribers.push(
+      onGameEvent('PICK_SONG', (payload: any) => {
+        setState((prev) => ({
+          ...prev,
+          pickedSongs: [...prev.pickedSongs, payload.song],
+        }));
+      })
+    );
+
+    unsubscribers.push(
+      onGameEvent('SHOW_FINAL_RESULTS', () => {
+        setState((prev) => ({ ...prev, phase: "final" }));
+      })
+    );
+
+    unsubscribers.push(
+      onGameEvent('GO_TO_MATCH', (payload: any) => {
+        setState((prev) => ({
+          ...prev,
+          phase: "match",
+          matchSongs: payload.songs,
+          currentMatchIndex: 0,
+        }));
+      })
+    );
+
+    unsubscribers.push(
+      onGameEvent('MATCH_NEXT', (payload: any) => {
+        setState((prev) => ({
+          ...prev,
+          currentMatchIndex: payload.currentMatchIndex,
+        }));
+      })
+    );
+
+    unsubscribers.push(
+      onGameEvent('MATCH_PREV', (payload: any) => {
+        setState((prev) => ({
+          ...prev,
+          currentMatchIndex: payload.currentMatchIndex,
+        }));
+      })
+    );
+
+    // Reset game state when controller resets
+    unsubscribers.push(
+      onGameEvent('RESET', () => {
+        setState({
+          ...DEFAULT_GAME_STATE
+        });
+        setIsAnimating(false);
+        setAnimationSlots([]);
+        // Also clear localStorage
+        try {
+          localStorage.removeItem('matchSongs');
+          localStorage.removeItem('banPickLog');
+          localStorage.removeItem('lockedTracks');
+        } catch {}
+        console.log('🔄 Game reset');
+      })
+    );
+
+    // Cleanup
+    return () => {
+      socket.off('connect', handleConnect);
+      socket.off('disconnect', handleDisconnect);
+      unsubscribers.forEach((unsub) => unsub());
+    };
   }, []);
 
   return {
     state,
     isAnimating,
     animationSlots,
+    isConnected,
   };
 }
 
@@ -140,7 +198,8 @@ export function useGameController() {
   const [state, setState] = useState<GameState>(DEFAULT_GAME_STATE);
   const [songData, setSongData] = useState<Song[]>([]);
   const [isLoadingPool, setIsLoadingPool] = useState(true);
-  const animationFrameRef = useRef<number>();
+  const [isConnected, setIsConnected] = useState(false);
+  const animationFrameRef = useRef<number | undefined>(undefined);
   const animationStartRef = useRef<number>(0);
 
   // Pool file mapping
@@ -155,6 +214,31 @@ export function useGameController() {
     proFinals: "/pools/P4 - proFinals.json",
     top32: "/pools/top32.json",
   };
+
+  // Socket connection setup
+  useEffect(() => {
+    const socket = getSocket();
+
+    const handleConnect = () => {
+      console.log('🎮 Controller connected to server');
+      setIsConnected(true);
+      // Sync current state to server
+      emitGameEvent('SETTINGS_UPDATE', state);
+    };
+
+    const handleDisconnect = () => {
+      console.log('🎮 Controller disconnected');
+      setIsConnected(false);
+    };
+
+    socket.on('connect', handleConnect);
+    socket.on('disconnect', handleDisconnect);
+
+    return () => {
+      socket.off('connect', handleConnect);
+      socket.off('disconnect', handleDisconnect);
+    };
+  }, []);
 
   // Load pool data
   useEffect(() => {
@@ -190,145 +274,115 @@ export function useGameController() {
     loadPool();
   }, [state.selectedPool]);
 
-  // Sync full state to display pages
-  const syncState = useCallback(() => {
-    sendMessage("FULL_STATE_SYNC", state);
-  }, [state]);
-
   // Update settings
   const updateSettings = useCallback((updates: Partial<GameState>) => {
     setState((prev) => {
       const newState = { ...prev, ...updates };
-      sendMessage("SETTINGS_UPDATE", updates);
+      emitGameEvent('SETTINGS_UPDATE', updates);
       return newState;
     });
   }, []);
 
-  // Get random unique songs
-  const getRandomSongs = useCallback((pool: Song[], count: number): Song[] => {
-    const shuffled = [...pool].sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, count);
-  }, []);
+  // Start randomization
+  const startRandom = useCallback(() => {
+    const pool = [...songData];
+    const count = state.randomCount;
 
-  // Start random with animation
-  const triggerRandom = useCallback(() => {
-    const excludeIds = [
-      ...state.fixedSongs.map((s: Song) => s.id),
-      state.lockedTracks.track3?.id,
-      state.lockedTracks.track4?.id,
-    ].filter(Boolean);
-
-    const availablePool = songData.filter((s) => !excludeIds.includes(s.id));
-
-    if (availablePool.length < state.randomCount) {
-      alert("Not enough songs in pool!");
+    if (pool.length === 0) {
+      console.error("Pool is empty");
       return;
     }
 
-    // Pre-calculate final results
-    const finalResults = getRandomSongs(availablePool, state.randomCount);
-    const animationPool = getRandomSongs(
-      availablePool,
-      Math.min(60, availablePool.length)
+    // Remove fixed songs from pool
+    const availablePool = pool.filter(
+      (song) => !state.fixedSongs.some((fixed) => fixed.id === song.id)
     );
 
-    // Update local state
-    setState((prev) => ({
-      ...prev,
-      phase: "random",
-      randomResults: [],
-      bannedSongs: [],
-      pickedSongs: [],
-      animationPool,
-    }));
+    // Send RANDOM_START event with pool data
+    emitGameEvent('RANDOM_START', {
+      randomCount: count,
+      animationPool: availablePool,
+    });
 
-    // Notify display pages to start animation
-    sendMessage("RANDOM_START", { animationPool });
+    // Animate randomization
+    const ANIMATION_DURATION = 3000;
+    const SLOT_UPDATE_INTERVAL = 100;
 
-    // Run animation
-    animationStartRef.current = Date.now();
+    animationStartRef.current = performance.now();
 
-    const animate = () => {
-      const elapsed = Date.now() - animationStartRef.current;
-      const duration = 3000;
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - animationStartRef.current;
 
-      if (elapsed < duration) {
-        const slots = getRandomSongs(animationPool, state.randomCount);
-        sendMessage("RANDOM_ANIMATION", { slots });
+      if (elapsed < ANIMATION_DURATION) {
+        // Update slots during animation
+        const shuffled = [...availablePool].sort(() => Math.random() - 0.5);
+        const newSlots = shuffled.slice(0, count);
+
+        emitGameEvent('RANDOM_ANIMATION', { slots: newSlots });
+
         animationFrameRef.current = requestAnimationFrame(animate);
       } else {
-        // Animation complete
-        setState((prev) => ({ ...prev, randomResults: finalResults }));
-        sendMessage("RANDOM_COMPLETE", { results: finalResults });
+        // Animation complete - pick final results
+        const finalShuffled = [...availablePool].sort(() => Math.random() - 0.5);
+        const finalResults = finalShuffled.slice(0, count);
+
+        emitGameEvent('RANDOM_COMPLETE', { results: finalResults });
+
+        setState((prev) => ({
+          ...prev,
+          randomResults: finalResults,
+          phase: "random",
+        }));
       }
     };
 
-    animate();
-  }, [songData, state, getRandomSongs]);
+    animationFrameRef.current = requestAnimationFrame(animate);
+  }, [songData, state.randomCount, state.fixedSongs]);
 
-  // Go to ban/pick phase
-  const goToBanPick = useCallback(() => {
+  // Show ban/pick phase
+  const showBanPick = useCallback(() => {
+    emitGameEvent('SHOW_BAN_PICK');
     setState((prev) => ({ ...prev, phase: "banpick" }));
-    sendMessage("SHOW_BAN_PICK", {});
   }, []);
 
   // Ban a song
-  const banSong = useCallback(
-    (song: Song) => {
-      if (state.bannedSongs.length >= state.banCount) return;
-
-      setState((prev) => ({
-        ...prev,
-        bannedSongs: [...prev.bannedSongs, song],
-      }));
-      sendMessage("BAN_SONG", { song });
-    },
-    [state.bannedSongs.length, state.banCount]
-  );
+  const banSong = useCallback((song: Song) => {
+    emitGameEvent('BAN_SONG', { song });
+    setState((prev) => ({
+      ...prev,
+      bannedSongs: [...prev.bannedSongs, song],
+    }));
+  }, []);
 
   // Pick a song
-  const pickSong = useCallback(
-    (song: Song) => {
-      if (state.bannedSongs.length < state.banCount) return;
-      if (state.pickedSongs.length >= state.pickCount) return;
+  const pickSong = useCallback((song: Song) => {
+    emitGameEvent('PICK_SONG', { song });
+    setState((prev) => ({
+      ...prev,
+      pickedSongs: [...prev.pickedSongs, song],
+    }));
+  }, []);
 
-      const newPicked = [...state.pickedSongs, song];
-      setState((prev) => ({
-        ...prev,
-        pickedSongs: newPicked,
-      }));
-      sendMessage("PICK_SONG", { song });
-
-      // Check if complete
-      if (newPicked.length >= state.pickCount) {
-        setTimeout(() => {
-          setState((prev) => ({ ...prev, phase: "final" }));
-          sendMessage("SHOW_FINAL_RESULTS", {});
-        }, 500);
-      }
-    },
-    [state]
-  );
+  // Show final results
+  const showFinalResults = useCallback(() => {
+    emitGameEvent('SHOW_FINAL_RESULTS');
+    setState((prev) => ({ ...prev, phase: "final" }));
+  }, []);
 
   // Go to match display
-  const goToMatch = useCallback(() => {
-    const matchSongs = [
-      ...state.pickedSongs,
-      ...(state.lockedTracks.track3 ? [state.lockedTracks.track3] : []),
-      ...(state.lockedTracks.track4 ? [state.lockedTracks.track4] : []),
-    ];
-
+  const goToMatch = useCallback((songs: Song[]) => {
+    emitGameEvent('GO_TO_MATCH', { songs });
     setState((prev) => ({
       ...prev,
       phase: "match",
-      matchSongs,
+      matchSongs: songs,
       currentMatchIndex: 0,
     }));
-    sendMessage("GO_TO_MATCH", { songs: matchSongs });
-  }, [state.pickedSongs, state.lockedTracks]);
+  }, []);
 
   // Match navigation
-  const matchNext = useCallback(() => {
+  const nextMatch = useCallback(() => {
+    emitGameEvent('MATCH_NEXT');
     setState((prev) => ({
       ...prev,
       currentMatchIndex: Math.min(
@@ -336,58 +390,50 @@ export function useGameController() {
         prev.matchSongs.length - 1
       ),
     }));
-    sendMessage("MATCH_NEXT", {});
   }, []);
 
-  const matchPrev = useCallback(() => {
+  const prevMatch = useCallback(() => {
+    emitGameEvent('MATCH_PREV');
     setState((prev) => ({
       ...prev,
       currentMatchIndex: Math.max(prev.currentMatchIndex - 1, 0),
     }));
-    sendMessage("MATCH_PREV", {});
   }, []);
 
   // Reset game
-  const resetGame = useCallback(() => {
+  const reset = useCallback(() => {
+    // Cancel any ongoing animation
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
     }
 
+    emitGameEvent('RESET');
+    
     setState((prev) => ({
-      ...prev,
-      phase: "idle",
-      randomResults: [],
-      bannedSongs: [],
-      pickedSongs: [],
-      animationPool: [],
-      matchSongs: [],
-      currentMatchIndex: 0,
+      ...DEFAULT_GAME_STATE,
+      selectedPool: prev.selectedPool,
+      randomCount: prev.randomCount,
+      pickCount: prev.pickCount,
+      banCount: prev.banCount,
+      lockedTracks: prev.lockedTracks,
+      hiddenTracks: prev.hiddenTracks,
     }));
-    sendMessage("RESET", {});
-  }, []);
-
-  // Cleanup
-  useEffect(() => {
-    return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
-    };
   }, []);
 
   return {
     state,
     songData,
     isLoadingPool,
+    isConnected,
     updateSettings,
-    triggerRandom,
-    goToBanPick,
+    startRandom,
+    showBanPick,
     banSong,
     pickSong,
+    showFinalResults,
     goToMatch,
-    matchNext,
-    matchPrev,
-    resetGame,
-    syncState,
+    nextMatch,
+    prevMatch,
+    reset,
   };
 }
