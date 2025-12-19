@@ -1,5 +1,6 @@
 'use client';
 
+import '../css/embla.css';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import { Song } from '../interface';
@@ -332,11 +333,11 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
 
                             {/* Title */}
                             <div
-                                className="absolute"
+                                className="absolute custom-title-font"
                                 style={{
                                     left: '50%',
                                     transform: 'translateX(-50%)',
-                                    bottom: FRAME_OVERLAY_H * 0.14,
+                                    bottom: FRAME_OVERLAY_H * 0.145,
                                     width: FRAME_OVERLAY_W * 0.72,
                                     textAlign: 'center',
                                     zIndex: 4,
@@ -370,7 +371,7 @@ const BanPickCarousel: React.FC<BanPickCarouselProps> = ({
                                 style={{
                                     left: '51%',
                                     transform: 'translateX(-50%)',
-                                    bottom: FRAME_OVERLAY_H * 0.05,
+                                    bottom: FRAME_OVERLAY_H * 0.053,
                                     width: FRAME_OVERLAY_W * 0.73,
                                     textAlign: 'center',
                                     zIndex: 4,

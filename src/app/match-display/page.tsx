@@ -1,5 +1,6 @@
 'use client';
 
+import '../css/embla.css';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useGameDisplay } from '../hooks/useGame';
@@ -40,25 +41,25 @@ export default function MatchDisplay() {
         }
     }, [songs.length]);
 
-    // Redirect if no songs after timeout
-    useEffect(() => {
-        if (!isClient) return;
+    // // Redirect if no songs after timeout
+    // useEffect(() => {
+    //     if (!isClient) return;
 
-        const timeout = setTimeout(() => {
-            const displaySongs = songs.length > 0 ? songs : localSongs;
-            if (displaySongs.length === 0 && state.phase !== 'match') {
-                router.push('/');
-            }
-        }, 2000);
+    //     const timeout = setTimeout(() => {
+    //         const displaySongs = songs.length > 0 ? songs : localSongs;
+    //         if (displaySongs.length === 0 && state.phase !== 'match') {
+    //             router.push('/');
+    //         }
+    //     }, 2000);
 
-        return () => clearTimeout(timeout);
-    }, [songs.length, localSongs.length, state.phase, router, isClient]);
+    //     return () => clearTimeout(timeout);
+    // }, [songs.length, localSongs.length, state.phase, router, isClient]);
 
     // Use songs from state, fallback to localStorage
     const displaySongs = songs.length > 0 ? songs : localSongs;
 
     // Show loading during SSR or when no songs
-    if (!isClient || displaySongs.length === 0) {
+    if (!isClient || displaySongs.length === 0 || !displaySongs[currentIndex]) {
         return (
             <div className="min-h-screen flex items-center justify-center text-white text-xl">
                 Waiting for Controller...
@@ -137,6 +138,7 @@ export default function MatchDisplay() {
 
                     {/* Title */}
                     <div
+                        className="custom-title-font"
                         style={{
                             fontSize: '20px',
                             fontWeight: 700,

@@ -1,5 +1,6 @@
 'use client';
 
+import './css/embla.css'
 import { useGameDisplay } from './hooks/useGame';
 import { Song } from './interface';
 
@@ -23,7 +24,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen relative">
-      {/* Background */}
+      {/* Background
       <iframe
         src="/assets/prism+.html"
         className="fixed inset-0 w-full h-full border-0"
@@ -32,7 +33,7 @@ export default function Home() {
           pointerEvents: 'none'
         }}
         title="background"
-      />
+      /> */}
 
       {state.phase === 'final' ? (
         /* Final Results Phase */
@@ -239,7 +240,7 @@ function QuadRandomSlotDisplay({
 
             {/* Title */}
             <div
-              className="absolute"
+              className="absolute custom-title-font"
               style={{
                 left: '50%',
                 transform: 'translateX(-50%)',
@@ -248,7 +249,7 @@ function QuadRandomSlotDisplay({
                 textAlign: 'center',
                 zIndex: 4,
                 overflow: 'hidden',
-                height: `${TITLE_FONT_SIZE + 4}px`
+                height: `${TITLE_FONT_SIZE + 10}px`
               }}
             >
               <div style={{
@@ -256,7 +257,7 @@ function QuadRandomSlotDisplay({
                 fontSize: TITLE_FONT_SIZE,
                 color: '#1a1a1a',
                 whiteSpace: 'nowrap',
-                lineHeight: 1.1,
+                // lineHeight: 1.1,
                 textShadow: '0 0 1px rgba(255,255,255,0.8)',
                 WebkitFontSmoothing: 'antialiased',
                 animation: song.title.length > 20 ? 'marquee 15s linear infinite' : 'none'
@@ -271,7 +272,7 @@ function QuadRandomSlotDisplay({
               style={{
                 left: '50%',
                 transform: 'translateX(-50%)',
-                bottom: FRAME_OVERLAY_H * 0.055,
+                bottom: FRAME_OVERLAY_H * 0.057,
                 width: FRAME_OVERLAY_W * 0.73,
                 textAlign: 'center',
                 zIndex: 4,

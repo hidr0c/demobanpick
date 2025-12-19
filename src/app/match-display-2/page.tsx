@@ -1,15 +1,17 @@
 'use client';
 
+import '../css/embla.css'
 import { useEffect, useState } from 'react';
 import { useGameDisplay } from '../hooks/useGame';
 import { Song } from '../interface';
 
 // Frame dimensions - match the frame PNG aspect ratio
-const FRAME_W = 200;
-const FRAME_H = 260;
+const FRAME_W = 400;
+const FRAME_H = 520;
 const JACKET_SIZE = Math.floor(FRAME_W * 0.7);
 const TOP_JACKET_OFFSET = Math.floor(FRAME_W * 0.2);
 const LEFT_JACKET_OFFSET = Math.floor(FRAME_W * 0.15);
+const TITLE_FONT_SIZE = 28;
 
 // Match Display 2 - controlled by Controller via Socket.IO
 export default function MatchDisplay2() {
@@ -173,13 +175,14 @@ export default function MatchDisplay2() {
 
                 {/* Title at bottom of frame */}
                 <div
+                    className="custom-title-font"
                     style={{
                         position: 'absolute',
                         width: FRAME_W * 0.71,
                         bottom: FRAME_H / 7.5,
                         left: FRAME_W * 0.15,
                         textAlign: 'center',
-                        fontSize: FRAME_W / 17,
+                        fontSize: TITLE_FONT_SIZE,
                         fontWeight: 800,
                         color: '#333',
                         overflow: 'hidden',
