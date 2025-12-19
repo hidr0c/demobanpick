@@ -80,7 +80,7 @@ export default function TextDisplayPage() {
                 style={{
                     position: 'absolute',
                     bottom: '8px',
-                    left: '12.5%',
+                    left: '13%',
                     transform: 'translateX(-50%)',
                     textAlign: 'center'
                 }}
@@ -115,7 +115,7 @@ export default function TextDisplayPage() {
                 style={{
                     position: 'absolute',
                     bottom: '8px',
-                    left: '37.5%',
+                    left: '37.6%',
                     transform: 'translateX(-50%)',
                     textAlign: 'center'
                 }}
@@ -150,7 +150,7 @@ export default function TextDisplayPage() {
                 style={{
                     position: 'absolute',
                     bottom: '8px',
-                    left: '62.5%',
+                    left: '62.4%',
                     transform: 'translateX(-50%)',
                     textAlign: 'center'
                 }}
@@ -185,7 +185,7 @@ export default function TextDisplayPage() {
                 style={{
                     position: 'absolute',
                     bottom: '8px',
-                    left: '87.5%',
+                    left: '87%',
                     transform: 'translateX(-50%)',
                     textAlign: 'center'
                 }}
