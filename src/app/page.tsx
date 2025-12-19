@@ -77,10 +77,10 @@ export default function Home() {
           isAnimating={isAnimating}
         />
       ) : state.phase === 'preview' ? (
-        /* Preview Phase - Display 6 random songs */
+        /* Preview Phase - Display random songs based on randomCount */
         <QuadRandomSlotDisplay
           slots={state.previewSongs}
-          randomCount={6}
+          randomCount={state.randomCount}
           isAnimating={false}
         />
       ) : (

@@ -219,14 +219,14 @@ export default function ControllerPage() {
                 song.id !== lockedTracks.track4?.id
         );
 
-        if (availablePool.length < 6) {
+        if (availablePool.length < randomCount) {
             alert('Not enough songs in pool for preview!');
             return;
         }
 
-        // Shuffle and pick 6 random songs for preview
+        // Shuffle and pick songs based on randomCount for preview
         const shuffled = [...availablePool].sort(() => Math.random() - 0.5);
-        const previewSongs = shuffled.slice(0, 6);
+        const previewSongs = shuffled.slice(0, randomCount);
 
         // Send preview to display pages
         emitGameEvent('PREVIEW_START', { previewSongs, randomCount });

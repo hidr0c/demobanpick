@@ -79,17 +79,23 @@ const DisplayAll: React.FC<DisplayAllProps> = ({
         try {
             const songsToExport = slots.filter(song => selectedSongs.has(song.id));
 
-            const response = await fetch('/api/export-pool', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ songs: songsToExport, filename: 'top32.json' })
-            });
-
-            if (response.ok) {
-                alert(`Exported ${songsToExport.length} songs to pools/top32.json!`);
-            } else {
-                alert('Export failed!');
-            }
+            // Create JSON blob
+            const jsonData = JSON.stringify(songsToExport, null, 2);
+            const blob = new Blob([jsonData], { type: 'application/json' });
+            
+            // Create download link
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'top32.json';
+            document.body.appendChild(a);
+            a.click();
+            
+            // Cleanup
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            alert(`Exported ${songsToExport.length} songs!`);
         } catch (error) {
             console.error('Export error:', error);
             alert('Export failed!');

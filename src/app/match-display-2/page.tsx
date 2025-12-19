@@ -184,7 +184,7 @@ export default function MatchDisplay2() {
                         textAlign: 'center',
                         fontSize: TITLE_FONT_SIZE,
                         fontWeight: 800,
-                        color: '#333',
+                        color: '#191919',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',

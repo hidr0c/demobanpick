@@ -90,12 +90,12 @@ export default function MatchDisplay() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-end p-8 pb-2">
+        <div className="min-h-screen flex flex-col items-center justify-end p-8 pb-2 bg-transparent">
             {/* Main display - horizontal card */}
             <div
                 className="relative flex items-center transition-all duration-300"
                 style={{
-                    background: `linear-gradient(to right, transparent 0%, ${getGradientColor(currentSong.diff)}90 30%, ${getGradientColor(currentSong.diff)} 100%)`,
+                    background: `linear-gradient(to right, ${getGradientColor(currentSong.diff)}90 20%, ${getGradientColor(currentSong.diff)}90 30%, ${getGradientColor(currentSong.diff)} 100%)`,
                     borderRadius: '12px',
                     paddingBottom: '16px',
                     paddingTop: '16px',
@@ -155,6 +155,7 @@ export default function MatchDisplay() {
                     <div
                         style={{
                             fontSize: '14px',
+                            fontWeight: 500,
                             color: 'rgba(255,255,255,0.8)',
                             whiteSpace: 'nowrap',
                             overflow: 'hidden',
