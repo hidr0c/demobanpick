@@ -82,7 +82,7 @@ const DisplayAll: React.FC<DisplayAllProps> = ({
             // Create JSON blob
             const jsonData = JSON.stringify(songsToExport, null, 2);
             const blob = new Blob([jsonData], { type: 'application/json' });
-            
+
             // Create download link
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -90,11 +90,11 @@ const DisplayAll: React.FC<DisplayAllProps> = ({
             a.download = 'top32.json';
             document.body.appendChild(a);
             a.click();
-            
+
             // Cleanup
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            
+
             alert(`Exported ${songsToExport.length} songs!`);
         } catch (error) {
             console.error('Export error:', error);
