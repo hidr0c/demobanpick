@@ -96,8 +96,8 @@ export default function MatchDisplay() {
                 style={{
                     background: `linear-gradient(to right, transparent 0%, ${getGradientColor(currentSong.diff)}90 30%, ${getGradientColor(currentSong.diff)} 100%)`,
                     borderRadius: '12px',
-                    paddingBottom: '20px',
-                    paddingTop: '12px',
+                    paddingBottom: '16px',
+                    paddingTop: '16px',
                     paddingRight: '24px',
                     paddingLeft: '12px',
                     maxWidth: '600px',
