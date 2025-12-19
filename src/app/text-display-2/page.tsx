@@ -71,7 +71,7 @@ export default function TextDisplayPage() {
         return <div style={{ background: 'transparent' }} />;
     }
 
-    const NAME_FONT_SIZE = 48;
+    const NAME_FONT_SIZE = 75;
     const TAG_FONT_SIZE = 24;
     return (
         <div className="min-h-screen w-full relative" style={{ background: 'transparent' }}>
