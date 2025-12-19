@@ -41,20 +41,6 @@ export default function MatchDisplay() {
         }
     }, [songs.length]);
 
-    // // Redirect if no songs after timeout
-    // useEffect(() => {
-    //     if (!isClient) return;
-
-    //     const timeout = setTimeout(() => {
-    //         const displaySongs = songs.length > 0 ? songs : localSongs;
-    //         if (displaySongs.length === 0 && state.phase !== 'match') {
-    //             router.push('/');
-    //         }
-    //     }, 2000);
-
-    //     return () => clearTimeout(timeout);
-    // }, [songs.length, localSongs.length, state.phase, router, isClient]);
-
     // Use songs from state, fallback to localStorage
     const displaySongs = songs.length > 0 ? songs : localSongs;
 
