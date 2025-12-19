@@ -212,24 +212,25 @@ export default function ControllerPage() {
     };
 
     // Trigger preview (Start) - display 6 random songs
-    const triggerPreview = () => {
+    const triggerPreview = (customCount?: number) => {
+        const countToUse = customCount !== undefined ? customCount : randomCount;
         const availablePool = songData.filter(
             song => !fixedSongs.find(f => f.id === song.id) &&
                 song.id !== lockedTracks.track3?.id &&
                 song.id !== lockedTracks.track4?.id
         );
 
-        if (availablePool.length < randomCount) {
+        if (availablePool.length < countToUse) {
             alert('Not enough songs in pool for preview!');
             return;
         }
 
         // Shuffle and pick songs based on randomCount for preview
         const shuffled = [...availablePool].sort(() => Math.random() - 0.5);
-        const previewSongs = shuffled.slice(0, randomCount);
+        const previewSongs = shuffled.slice(0, countToUse);
 
         // Send preview to display pages
-        emitGameEvent('PREVIEW_START', { previewSongs, randomCount });
+        emitGameEvent('PREVIEW_START', { previewSongs, randomCount: countToUse });
     };
 
     // Trigger random from controller
@@ -585,11 +586,27 @@ export default function ControllerPage() {
     const totalSongs = randomCount + fixedCount;
 
     const handleRandomIncrement = () => {
-        if (randomCount < maxRandom) setRandomCount(randomCount + 1);
+        if (randomCount < maxRandom) {
+            const newCount = randomCount + 1;
+            setRandomCount(newCount);
+            
+            // If already showing random results, trigger a new preview with updated count
+            if (randomResults.length > 0) {
+                triggerPreview(newCount);
+            }
+        }
     };
 
     const handleRandomDecrement = () => {
-        if (randomCount > minRandom) setRandomCount(randomCount - 1);
+        if (randomCount > minRandom) {
+            const newCount = randomCount - 1;
+            setRandomCount(newCount);
+            
+            // If already showing random results, trigger a new preview with updated count
+            if (randomResults.length > 0) {
+                triggerPreview(newCount);
+            }
+        }
     };
 
     const handlePickIncrement = () => {
@@ -936,7 +953,7 @@ export default function ControllerPage() {
                             {/* Control Buttons */}
                             <div className="space-y-2">
                                 <button
-                                    onClick={triggerPreview}
+                                    onClick={() => triggerPreview()}
                                     disabled={isLoadingPool}
                                     className="w-full py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-600 text-white rounded-lg font-bold transition-colors"
                                 >

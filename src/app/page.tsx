@@ -153,6 +153,10 @@ function QuadRandomSlotDisplay({
     );
   }
 
+  // Adjust displayed slots based on randomCount
+  // If randomCount changed after random, display only the first N songs
+  const displayedSlots = slots.slice(0, randomCount);
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen gap-4 p-2">
       <div
@@ -163,7 +167,7 @@ function QuadRandomSlotDisplay({
           margin: '0 auto'
         }}
       >
-        {slots.map((song, index) => (
+        {displayedSlots.map((song, index) => (
           <div
             key={`slot-${index}`}
             className="relative"

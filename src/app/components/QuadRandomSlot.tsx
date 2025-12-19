@@ -34,6 +34,12 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
     const preloadedImagesRef = useRef<Set<string>>(new Set());
     const currentPoolRef = useRef<string>('');
 
+    // Helper function - moved to top for use in useEffects
+    const getRandomUniqueSongs = (availablePool: Song[], count: number): Song[] => {
+        const shuffled = [...availablePool].sort(() => Math.random() - 0.5);
+        return shuffled.slice(0, count);
+    };
+
     // If external results provided (OBS mode), use them directly
     useEffect(() => {
         if (externalResults && externalResults.length > 0) {
@@ -66,6 +72,24 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
         currentPoolRef.current = poolId;
     }, [pool]);
 
+    // Reset when randomCount changes after animation completed
+    useEffect(() => {
+        if (hasCompletedRef.current && finalResultsRef.current.length > 0) {
+            // randomCount changed after completing animation - need to reset and show new count
+            hasCompletedRef.current = false;
+            finalResultsRef.current = [];
+            
+            // Generate new initial slots with new count
+            const availablePool = pool.filter(
+                song => !fixedSongs.find(f => f.id === song.id)
+            );
+            if (availablePool.length >= randomCount) {
+                const initial = getRandomUniqueSongs(availablePool, randomCount);
+                setSlots(initial);
+            }
+        }
+    }, [randomCount]);
+
     // Initialize with random songs (only once per pool, before any animation completes)
     useEffect(() => {
         if (pool.length >= randomCount && !hasCompletedRef.current && slots.length === 0) {
@@ -76,11 +100,6 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
             setSlots(initial);
         }
     }, [pool, randomCount, slots.length]);
-
-    const getRandomUniqueSongs = (availablePool: Song[], count: number): Song[] => {
-        const shuffled = [...availablePool].sort(() => Math.random() - 0.5);
-        return shuffled.slice(0, count);
-    };
 
     const getBorderColor = (diff: string) => {
         switch (diff) {
@@ -259,7 +278,7 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
         if (count === 1) return 1;
         if (count === 2) return 2;
         if (count === 3) return 3;
-        if (count === 4) return 4;
+        if (count === 4) return 2; // 2x2 grid for 4 songs
         if (count === 5) return 3; // 3 columns (row 1: 3, row 2: 2)
         if (count === 6) return 3; // 3 columns (3x2)
         if (count === 7) return 4;
