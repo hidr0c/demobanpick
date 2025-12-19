@@ -71,8 +71,8 @@ export default function TextDisplayPage() {
         return <div style={{ background: 'transparent' }} />;
     }
 
-    const NAME_FONT_SIZE = 30;
-    const TAG_FONT_SIZE = 16;
+    const NAME_FONT_SIZE = 48;
+    const TAG_FONT_SIZE = 24;
     return (
         <div className="min-h-screen w-full relative" style={{ background: 'transparent' }}>
             {/* Player 1 - positioned at 12.5% (center of first quarter) */}
@@ -80,7 +80,7 @@ export default function TextDisplayPage() {
                 style={{
                     position: 'absolute',
                     bottom: '8px',
-                    left: '12.5%',
+                    left: '45.3%',
                     transform: 'translateX(-50%)',
                     textAlign: 'center'
                 }}
@@ -115,7 +115,7 @@ export default function TextDisplayPage() {
                 style={{
                     position: 'absolute',
                     bottom: '8px',
-                    left: '37.5%',
+                    left: '79.1%',
                     transform: 'translateX(-50%)',
                     textAlign: 'center'
                 }}
@@ -141,76 +141,6 @@ export default function TextDisplayPage() {
                         }}
                     >
                         {textData.player2Tag}
-                    </div>
-                )}
-            </div>
-
-            {/* Player 3 - positioned at 62.5% (center of third quarter) */}
-            <div
-                style={{
-                    position: 'absolute',
-                    bottom: '8px',
-                    left: '62.5%',
-                    transform: 'translateX(-50%)',
-                    textAlign: 'center'
-                }}
-            >
-                <div
-                    style={{
-                        color: 'white',
-                        fontWeight: 'bold',
-                        fontSize: NAME_FONT_SIZE,
-                        textShadow: '2px 2px 4px rgba(0,0,0,0.9), 0 0 10px rgba(0,0,0,0.5)',
-                        whiteSpace: 'nowrap'
-                    }}
-                >
-                    {textData.player3 || 'Player 3'}
-                </div>
-                {textData.player3Tag && (
-                    <div
-                        style={{
-                            color: '#e5e5e5',
-                            fontSize: TAG_FONT_SIZE,
-                            marginTop: '4px',
-                            textShadow: '1px 1px 3px rgba(0,0,0,0.9)'
-                        }}
-                    >
-                        {textData.player3Tag}
-                    </div>
-                )}
-            </div>
-
-            {/* Player 4 - positioned at 87.5% (center of fourth quarter) */}
-            <div
-                style={{
-                    position: 'absolute',
-                    bottom: '8px',
-                    left: '87.5%',
-                    transform: 'translateX(-50%)',
-                    textAlign: 'center'
-                }}
-            >
-                <div
-                    style={{
-                        color: 'white',
-                        fontWeight: 'bold',
-                        fontSize: NAME_FONT_SIZE,
-                        textShadow: '2px 2px 4px rgba(0,0,0,0.9), 0 0 10px rgba(0,0,0,0.5)',
-                        whiteSpace: 'nowrap'
-                    }}
-                >
-                    {textData.player4 || 'Player 4'}
-                </div>
-                {textData.player4Tag && (
-                    <div
-                        style={{
-                            color: '#e5e5e5',
-                            fontSize: TAG_FONT_SIZE,
-                            marginTop: '4px',
-                            textShadow: '1px 1px 3px rgba(0,0,0,0.9)'
-                        }}
-                    >
-                        {textData.player4Tag}
                     </div>
                 )}
             </div>
