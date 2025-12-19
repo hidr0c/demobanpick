@@ -589,7 +589,7 @@ export default function ControllerPage() {
         if (randomCount < maxRandom) {
             const newCount = randomCount + 1;
             setRandomCount(newCount);
-            
+
             // If already showing random results, trigger a new preview with updated count
             if (randomResults.length > 0) {
                 triggerPreview(newCount);
@@ -601,7 +601,7 @@ export default function ControllerPage() {
         if (randomCount > minRandom) {
             const newCount = randomCount - 1;
             setRandomCount(newCount);
-            
+
             // If already showing random results, trigger a new preview with updated count
             if (randomResults.length > 0) {
                 triggerPreview(newCount);

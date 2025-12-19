@@ -78,7 +78,7 @@ const QuadRandomSlot: React.FC<QuadRandomSlotProps> = ({
             // randomCount changed after completing animation - need to reset and show new count
             hasCompletedRef.current = false;
             finalResultsRef.current = [];
-            
+
             // Generate new initial slots with new count
             const availablePool = pool.filter(
                 song => !fixedSongs.find(f => f.id === song.id)
