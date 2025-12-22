@@ -74,8 +74,8 @@ npm run dev
 
 ### Official Pages
 
-- Facebook Page: https://www.facebook.com/profile.php?id=61579710413403
-- Stream: https://www.youtube.com/live/Qd18K1g0GOg?si=M-Ci3IHr17kfWfjk
+- Facebook Page: [Facebook Page](https://www.facebook.com/profile.php?id=61579710413403)
+- Stream: [Stream VOD](https://www.youtube.com/live/Qd18K1g0GOg?si=M-Ci3IHr17kfWfjk)
 
 ### Resources
 
