@@ -9,7 +9,7 @@ import BanPickCarousel from './components/BanPickCarousel';
 
 // Display-only page - controlled by Controller via BroadcastChannel
 export default function Home() {
-  const { state, isAnimating, animationSlots } = useGameDisplay();
+  const { state, isAnimating, animationSlots, showOverlay } = useGameDisplay();
 
   // Combine pools for display
   const displaySlots = isAnimating ? animationSlots : state.randomResults;
@@ -70,18 +70,21 @@ export default function Home() {
           />
         </div>
       ) : state.phase === 'random' ? (
-        /* Random Phase - Display slots */
+        /* Random Phase - Display slots with gray overlay fade */
         <QuadRandomSlotDisplay
           slots={displaySlots}
           randomCount={state.randomCount}
           isAnimating={isAnimating}
+          showPlaceholder={false}
+          showOverlay={showOverlay}
         />
       ) : state.phase === 'preview' ? (
-        /* Preview Phase - Display random songs based on randomCount */
+        /* Preview Phase - Show gray placeholder frames */
         <QuadRandomSlotDisplay
-          slots={state.previewSongs}
+          slots={[]}
           randomCount={state.randomCount}
           isAnimating={false}
+          showPlaceholder={true}
         />
       ) : (
         /* Idle Phase - Waiting for controller */
@@ -89,6 +92,7 @@ export default function Home() {
           slots={[]}
           randomCount={state.randomCount}
           isAnimating={false}
+          showPlaceholder={false}
         />
       )}
     </main>
@@ -99,11 +103,15 @@ export default function Home() {
 function QuadRandomSlotDisplay({
   slots,
   randomCount,
-  isAnimating
+  isAnimating,
+  showPlaceholder = false,
+  showOverlay = false
 }: {
   slots: Song[];
   randomCount: number;
   isAnimating: boolean;
+  showPlaceholder?: boolean;
+  showOverlay?: boolean;
 }) {
   // Grid columns logic: 1-2=cols, 3=3cols, 4=2x2, 5-6=3x2
   const getGridColumns = () => {
@@ -145,17 +153,26 @@ function QuadRandomSlotDisplay({
   const TITLE_FONT_SIZE = 24;
   const DIFF_FONT_SIZE = 26;
 
-  if (slots.length === 0) {
+  // If showing placeholder, create empty placeholder slots
+  const displayedSlots = showPlaceholder
+    ? Array(randomCount).fill(null).map((_, i) => ({
+      id: `placeholder-${i}`,
+      imgUrl: '/assets/random.png',
+      title: 'Random',
+      artist: 'Random',
+      lv: 'Random',
+      diff: 'Random',
+      isDx: 'True'
+    } as Song))
+    : slots.slice(0, randomCount);
+
+  if (displayedSlots.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
         <p className="text-white text-2xl opacity-50">Waiting for Controller...</p>
       </div>
     );
   }
-
-  // Adjust displayed slots based on randomCount
-  // If randomCount changed after random, display only the first N songs
-  const displayedSlots = slots.slice(0, randomCount);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen gap-4 p-2">
@@ -167,138 +184,271 @@ function QuadRandomSlotDisplay({
           margin: '0 auto'
         }}
       >
-        {displayedSlots.map((song, index) => (
-          <div
-            key={`slot-${index}`}
-            className="relative"
-            style={{
-              width: FRAME_OVERLAY_W + 100, // Add 100 to fit the diff text and diff level
-              height: FRAME_OVERLAY_H,
-              transform: isAnimating ? 'scale(0.98)' : 'scale(1)',
-              transition: 'transform 0.1s ease-out'
-            }}
-          >
-            {/* Jacket image */}
-            <img
-              src={song.imgUrl}
-              alt={song.title}
-              loading="eager"
-              className="absolute"
-              style={{
-                width: FRAME_W,
-                height: FRAME_H,
-                objectFit: 'cover',
-                left: '50%',
-                top: '50%',
-                transform: `translate(-50%, -50%) translateY(-${FRAME_OVERLAY_H / 13}px)`,
-                zIndex: 1
-              }}
-            />
+        {displayedSlots.map((song, index) => {
+          const isPlaceholder = song.id.startsWith('placeholder-');
 
-            {/* Frame overlay */}
-            <img
-              src={getFrameImage(song.diff, song.isDx)}
-              alt="frame"
-              className="absolute"
+          return (
+            <div
+              key={`slot-${index}`}
+              className="relative"
               style={{
-                width: FRAME_OVERLAY_W,
+                width: FRAME_OVERLAY_W + 100,
                 height: FRAME_OVERLAY_H,
-                left: '50%',
-                top: '50%',
-                transform: 'translate(-50%, -50%)',
-                pointerEvents: 'none',
-                zIndex: 3
-              }}
-            />
-
-            {/* Diff + Lv */}
-            <div
-              className="absolute"
-              style={{
-                left: '50%',
-                transform: 'translateX(-50%)',
-                bottom: FRAME_OVERLAY_H * 0.235,
-                zIndex: 4,
-                display: 'flex',
-                gap: '4px'
               }}
             >
-              <div style={{
-                fontSize: DIFF_FONT_SIZE,
-                fontWeight: 800,
-                color: '#f1f1f1',
-                textShadow: `
-                  -2px -2px 0 ${getDiffColor(song.diff)}, 
-                  2px -2px 0 ${getDiffColor(song.diff)},
-                  -2px 2px 0 ${getDiffColor(song.diff)},
-                  2px 2px 0 ${getDiffColor(song.diff)},
-                  -3px 0px 0 ${getDiffColor(song.diff)},
-                  3px 0px 0 ${getDiffColor(song.diff)},
-                  0px -3px 0 ${getDiffColor(song.diff)},
-                  0px 3px 0 ${getDiffColor(song.diff)}
-                `
-              }}>
-                {song.diff} {song.lv}
-              </div>
-            </div>
+              {/* LAYER 1: Real Card (always rendered) */}
+              {!isPlaceholder && (
+                <>
+                  {/* Real Jacket image */}
+                  <img
+                    src={song.imgUrl}
+                    alt={song.title}
+                    loading="eager"
+                    className="absolute"
+                    style={{
+                      width: FRAME_W,
+                      height: FRAME_H,
+                      objectFit: 'cover',
+                      left: '50%',
+                      top: '50%',
+                      transform: `translate(-50%, -50%) translateY(-${FRAME_OVERLAY_H / 13}px)`,
+                      zIndex: 1
+                    }}
+                  />
 
-            {/* Title */}
-            <div
-              className="absolute custom-title-font"
-              style={{
-                left: '50%',
-                transform: 'translateX(-50%)',
-                bottom: FRAME_OVERLAY_H * 0.14,
-                width: FRAME_OVERLAY_W * 0.72,
-                textAlign: 'center',
-                zIndex: 4,
-                overflow: 'hidden',
-                height: `${TITLE_FONT_SIZE + 10}px`
-              }}
-            >
-              <div style={{
-                fontWeight: 800,
-                fontSize: TITLE_FONT_SIZE,
-                color: '#1a1a1a',
-                whiteSpace: 'nowrap',
-                // lineHeight: 1.1,
-                textShadow: '0 0 1px rgba(255,255,255,0.8)',
-                WebkitFontSmoothing: 'antialiased',
-                animation: song.title.length > 20 ? 'marquee 15s linear infinite' : 'none'
-              }}>
-                {song.title}
-              </div>
-            </div>
+                  {/* Real Frame overlay */}
+                  <img
+                    src={getFrameImage(song.diff, song.isDx)}
+                    alt="frame"
+                    className="absolute"
+                    style={{
+                      width: FRAME_OVERLAY_W,
+                      height: FRAME_OVERLAY_H,
+                      left: '50%',
+                      top: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      pointerEvents: 'none',
+                      zIndex: 3
+                    }}
+                  />
 
-            {/* Artist */}
-            <div
-              className="absolute"
-              style={{
-                left: '50%',
-                transform: 'translateX(-50%)',
-                bottom: FRAME_OVERLAY_H * 0.057,
-                width: FRAME_OVERLAY_W * 0.73,
-                textAlign: 'center',
-                zIndex: 4,
-                overflow: 'hidden',
-                height: '18px'
-              }}
-            >
-              <div style={{
-                fontSize: 13,
-                fontWeight: 500,
-                color: '#1a1a1a',
-                whiteSpace: 'nowrap',
-                lineHeight: 1.3,
-                textShadow: '0 0 1px rgba(255,255,255,0.8)',
-                WebkitFontSmoothing: 'antialiased',
-                animation: song.artist.length > 30 ? 'marquee 18s linear infinite' : 'none'
-              }}>
-                {song.artist}
-              </div>
+                  {/* Real Diff + Lv */}
+                  <div
+                    className="absolute"
+                    style={{
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      bottom: FRAME_OVERLAY_H * 0.235,
+                      zIndex: 4,
+                      display: 'flex',
+                      gap: '4px'
+                    }}
+                  >
+                    <div style={{
+                      fontSize: DIFF_FONT_SIZE,
+                      fontWeight: 800,
+                      color: '#f1f1f1',
+                      textShadow: `
+                      -2px -2px 0 ${getDiffColor(song.diff)}, 
+                      2px -2px 0 ${getDiffColor(song.diff)},
+                      -2px 2px 0 ${getDiffColor(song.diff)},
+                      2px 2px 0 ${getDiffColor(song.diff)},
+                      -3px 0px 0 ${getDiffColor(song.diff)},
+                      3px 0px 0 ${getDiffColor(song.diff)},
+                      0px -3px 0 ${getDiffColor(song.diff)},
+                      0px 3px 0 ${getDiffColor(song.diff)}
+                    `
+                    }}>
+                      {song.diff} {song.lv}
+                    </div>
+                  </div>
+
+                  {/* Real Title */}
+                  <div
+                    className="absolute custom-title-font"
+                    style={{
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      bottom: FRAME_OVERLAY_H * 0.14,
+                      width: FRAME_OVERLAY_W * 0.72,
+                      textAlign: 'center',
+                      zIndex: 4,
+                      overflow: 'hidden',
+                      height: `${TITLE_FONT_SIZE + 10}px`
+                    }}
+                  >
+                    <div style={{
+                      fontWeight: 800,
+                      fontSize: TITLE_FONT_SIZE,
+                      color: '#1a1a1a',
+                      whiteSpace: 'nowrap',
+                      textShadow: '0 0 1px rgba(255,255,255,0.8)',
+                      WebkitFontSmoothing: 'antialiased',
+                      animation: song.title.length > 20 ? 'marquee 15s linear infinite' : 'none'
+                    }}>
+                      {song.title}
+                    </div>
+                  </div>
+
+                  {/* Real Artist */}
+                  <div
+                    className="absolute"
+                    style={{
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      bottom: FRAME_OVERLAY_H * 0.057,
+                      width: FRAME_OVERLAY_W * 0.73,
+                      textAlign: 'center',
+                      zIndex: 4,
+                      overflow: 'hidden',
+                      height: '18px'
+                    }}
+                  >
+                    <div style={{
+                      fontSize: 13,
+                      fontWeight: 500,
+                      color: '#1a1a1a',
+                      whiteSpace: 'nowrap',
+                      lineHeight: 1.3,
+                      textShadow: '0 0 1px rgba(255,255,255,0.8)',
+                      WebkitFontSmoothing: 'antialiased',
+                      animation: song.artist.length > 30 ? 'marquee 18s linear infinite' : 'none'
+                    }}>
+                      {song.artist}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* LAYER 2: Overlay with Diagonal "/" Wipe Effect */}
+              {(isPlaceholder || showOverlay !== undefined) && (
+                <div
+                  className={`absolute ${isPlaceholder
+                      ? ''
+                      : showOverlay
+                        ? 'diagonal-wipe-visible'
+                        : 'diagonal-wipe-out'
+                    }`}
+                  style={{
+                    width: FRAME_OVERLAY_W + 100,
+                    height: FRAME_OVERLAY_H,
+                    left: 0,
+                    top: 0,
+                    zIndex: 10,
+                    pointerEvents: 'none'
+                  }}
+                >
+                  {/* Random.png image - scaled to fill the frame (grayscale) */}
+                  <img
+                    src="/assets/random.png"
+                    alt="random"
+                    className="absolute"
+                    style={{
+                      width: FRAME_W + 10,
+                      height: FRAME_H + 15,
+                      objectFit: 'cover',
+                      left: '50%',
+                      top: '50%',
+                      transform: `translate(-50%, -50%) translateY(-${FRAME_OVERLAY_H / 13}px)`,
+                      zIndex: 11,
+                      filter: 'grayscale(100%) brightness(0.6)'
+                    }}
+                  />
+
+                  {/* Gray frame overlay (with grayscale filter) */}
+                  <img
+                    src={isPlaceholder
+                      ? '/assets/master-dx.png'
+                      : getFrameImage(song.diff, song.isDx)}
+                    alt="frame-overlay"
+                    className="absolute"
+                    style={{
+                      width: FRAME_OVERLAY_W,
+                      height: FRAME_OVERLAY_H,
+                      left: '50%',
+                      top: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      pointerEvents: 'none',
+                      zIndex: 13,
+                      filter: 'grayscale(100%) brightness(0.7)'
+                    }}
+                  />
+
+                  {/* Overlay text */}
+                  <div
+                    className="absolute"
+                    style={{
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      bottom: FRAME_OVERLAY_H * 0.235,
+                      zIndex: 14,
+                      display: 'flex',
+                      gap: '4px'
+                    }}
+                  >
+                    <div style={{
+                      fontSize: DIFF_FONT_SIZE,
+                      fontWeight: 800,
+                      color: '#f1f1f1',
+                      textShadow: '0 2px 4px rgba(0,0,0,0.5)'
+                    }}>
+                      ?
+                    </div>
+                  </div>
+
+                  <div
+                    className="absolute custom-title-font"
+                    style={{
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      bottom: FRAME_OVERLAY_H * 0.14,
+                      width: FRAME_OVERLAY_W * 0.72,
+                      textAlign: 'center',
+                      zIndex: 14,
+                      overflow: 'hidden',
+                      height: `${TITLE_FONT_SIZE + 10}px`
+                    }}
+                  >
+                    <div style={{
+                      fontWeight: 800,
+                      fontSize: TITLE_FONT_SIZE,
+                      color: '#1a1a1a',
+                      whiteSpace: 'nowrap',
+                      textShadow: '0 0 1px rgba(255,255,255,0.8)'
+                    }}>
+                      ???
+                    </div>
+                  </div>
+
+                  <div
+                    className="absolute"
+                    style={{
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      bottom: FRAME_OVERLAY_H * 0.057,
+                      width: FRAME_OVERLAY_W * 0.73,
+                      textAlign: 'center',
+                      zIndex: 14,
+                      overflow: 'hidden',
+                      height: '18px'
+                    }}
+                  >
+                    <div style={{
+                      fontSize: 13,
+                      fontWeight: 500,
+                      color: '#1a1a1a',
+                      whiteSpace: 'nowrap',
+                      lineHeight: 1.3,
+                      textShadow: '0 0 1px rgba(255,255,255,0.8)'
+                    }}>
+                      ???
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

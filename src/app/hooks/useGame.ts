@@ -17,57 +17,67 @@ export function useGameDisplay() {
   const [isAnimating, setIsAnimating] = useState(false);
   const [animationSlots, setAnimationSlots] = useState<Song[]>([]);
   const [isConnected, setIsConnected] = useState(false);
+  const [showOverlay, setShowOverlay] = useState(false);
 
   useEffect(() => {
     const socket = getSocket();
 
     // Connection status
     const handleConnect = () => {
-      console.log('🎮 Game display connected to server');
+      console.log("🎮 Game display connected to server");
       setIsConnected(true);
     };
 
     const handleDisconnect = () => {
-      console.log('🎮 Game display disconnected');
+      console.log("🎮 Game display disconnected");
       setIsConnected(false);
     };
 
-    socket.on('connect', handleConnect);
-    socket.on('disconnect', handleDisconnect);
+    socket.on("connect", handleConnect);
+    socket.on("disconnect", handleDisconnect);
 
     // Game event handlers
     const unsubscribers: (() => void)[] = [];
 
     unsubscribers.push(
-      onGameEvent('FULL_STATE_SYNC', (payload: GameState) => {
+      onGameEvent("FULL_STATE_SYNC", (payload: GameState) => {
         setState(payload);
-        console.log('📦 Full state synced');
+        console.log("📦 Full state synced");
       })
     );
 
     unsubscribers.push(
-      onGameEvent('SETTINGS_UPDATE', (payload: Partial<GameState>) => {
+      onGameEvent("SETTINGS_UPDATE", (payload: Partial<GameState>) => {
         setState((prev) => ({ ...prev, ...payload }));
       })
     );
 
     unsubscribers.push(
-      onGameEvent('PREVIEW_START', (payload: any) => {
+      onGameEvent("PREVIEW_START", (payload: any) => {
+        // Preview now shows randomized results with overlay
+        setShowOverlay(true); // Start with overlay visible
         setState((prev) => ({
           ...prev,
-          phase: 'preview',
-          previewSongs: payload.previewSongs || [],
+          phase: "random", // Changed from 'preview' to 'random'
+          randomResults: payload.previewSongs || [],
           randomCount: payload.randomCount || prev.randomCount,
         }));
-        console.log('📺 Preview started with', payload.previewSongs?.length, 'songs');
+        console.log(
+          "📺 Preview started with",
+          payload.previewSongs?.length,
+          "randomized songs"
+        );
       })
     );
 
     unsubscribers.push(
-      onGameEvent('RANDOM_START', (payload: any) => {
-        setIsAnimating(true);
+      onGameEvent("RANDOM_START", (payload: any) => {
         const initialPool = payload.animationPool || [];
         const randomCount = payload.randomCount || 4;
+
+        // Start with animation immediately (no more gray placeholders)
+        setIsAnimating(true);
+
         if (initialPool.length > 0) {
           const shuffled = [...initialPool].sort(() => Math.random() - 0.5);
           setAnimationSlots(shuffled.slice(0, randomCount));
@@ -83,13 +93,13 @@ export function useGameDisplay() {
     );
 
     unsubscribers.push(
-      onGameEvent('RANDOM_ANIMATION', (payload: any) => {
+      onGameEvent("RANDOM_ANIMATION", (payload: any) => {
         setAnimationSlots(payload.slots);
       })
     );
 
     unsubscribers.push(
-      onGameEvent('RANDOM_COMPLETE', (payload: any) => {
+      onGameEvent("RANDOM_COMPLETE", (payload: any) => {
         setIsAnimating(false);
         setAnimationSlots([]);
         setState((prev) => ({
@@ -97,17 +107,37 @@ export function useGameDisplay() {
           randomResults: payload.results,
           phase: "random",
         }));
+
+        // Show overlay initially if specified
+        if (payload.showOverlay) {
+          setShowOverlay(true);
+          // Fade out overlay after short delay
+          setTimeout(() => {
+            setShowOverlay(false);
+          }, 500);
+        } else {
+          setShowOverlay(false);
+        }
       })
     );
 
     unsubscribers.push(
-      onGameEvent('SHOW_BAN_PICK', () => {
+      onGameEvent("AUTO_PICK", (payload: any) => {
+        setState((prev) => ({
+          ...prev,
+          pickedSongs: payload.pickedSongs || [],
+        }));
+      })
+    );
+
+    unsubscribers.push(
+      onGameEvent("SHOW_BAN_PICK", () => {
         setState((prev) => ({ ...prev, phase: "banpick" }));
       })
     );
 
     unsubscribers.push(
-      onGameEvent('BAN_SONG', (payload: any) => {
+      onGameEvent("BAN_SONG", (payload: any) => {
         setState((prev) => ({
           ...prev,
           bannedSongs: [...prev.bannedSongs, payload.song],
@@ -116,7 +146,7 @@ export function useGameDisplay() {
     );
 
     unsubscribers.push(
-      onGameEvent('PICK_SONG', (payload: any) => {
+      onGameEvent("PICK_SONG", (payload: any) => {
         setState((prev) => ({
           ...prev,
           pickedSongs: [...prev.pickedSongs, payload.song],
@@ -125,13 +155,13 @@ export function useGameDisplay() {
     );
 
     unsubscribers.push(
-      onGameEvent('SHOW_FINAL_RESULTS', () => {
+      onGameEvent("SHOW_FINAL_RESULTS", () => {
         setState((prev) => ({ ...prev, phase: "final" }));
       })
     );
 
     unsubscribers.push(
-      onGameEvent('GO_TO_MATCH', (payload: any) => {
+      onGameEvent("GO_TO_MATCH", (payload: any) => {
         setState((prev) => ({
           ...prev,
           phase: "match",
@@ -142,7 +172,7 @@ export function useGameDisplay() {
     );
 
     unsubscribers.push(
-      onGameEvent('MATCH_NEXT', (payload: any) => {
+      onGameEvent("MATCH_NEXT", (payload: any) => {
         setState((prev) => ({
           ...prev,
           currentMatchIndex: payload.currentMatchIndex,
@@ -151,7 +181,7 @@ export function useGameDisplay() {
     );
 
     unsubscribers.push(
-      onGameEvent('MATCH_PREV', (payload: any) => {
+      onGameEvent("MATCH_PREV", (payload: any) => {
         setState((prev) => ({
           ...prev,
           currentMatchIndex: payload.currentMatchIndex,
@@ -161,26 +191,26 @@ export function useGameDisplay() {
 
     // Reset game state when controller resets
     unsubscribers.push(
-      onGameEvent('RESET', () => {
+      onGameEvent("RESET", () => {
         setState({
-          ...DEFAULT_GAME_STATE
+          ...DEFAULT_GAME_STATE,
         });
         setIsAnimating(false);
         setAnimationSlots([]);
         // Also clear localStorage
         try {
-          localStorage.removeItem('matchSongs');
-          localStorage.removeItem('banPickLog');
-          localStorage.removeItem('lockedTracks');
+          localStorage.removeItem("matchSongs");
+          localStorage.removeItem("banPickLog");
+          localStorage.removeItem("lockedTracks");
         } catch {}
-        console.log('🔄 Game reset');
+        console.log("🔄 Game reset");
       })
     );
 
     // Cleanup
     return () => {
-      socket.off('connect', handleConnect);
-      socket.off('disconnect', handleDisconnect);
+      socket.off("connect", handleConnect);
+      socket.off("disconnect", handleDisconnect);
       unsubscribers.forEach((unsub) => unsub());
     };
   }, []);
@@ -190,6 +220,7 @@ export function useGameDisplay() {
     isAnimating,
     animationSlots,
     isConnected,
+    showOverlay,
   };
 }
 
@@ -220,23 +251,23 @@ export function useGameController() {
     const socket = getSocket();
 
     const handleConnect = () => {
-      console.log('🎮 Controller connected to server');
+      console.log("🎮 Controller connected to server");
       setIsConnected(true);
       // Sync current state to server
-      emitGameEvent('SETTINGS_UPDATE', state);
+      emitGameEvent("SETTINGS_UPDATE", state);
     };
 
     const handleDisconnect = () => {
-      console.log('🎮 Controller disconnected');
+      console.log("🎮 Controller disconnected");
       setIsConnected(false);
     };
 
-    socket.on('connect', handleConnect);
-    socket.on('disconnect', handleDisconnect);
+    socket.on("connect", handleConnect);
+    socket.on("disconnect", handleDisconnect);
 
     return () => {
-      socket.off('connect', handleConnect);
-      socket.off('disconnect', handleDisconnect);
+      socket.off("connect", handleConnect);
+      socket.off("disconnect", handleDisconnect);
     };
   }, []);
 
@@ -278,7 +309,7 @@ export function useGameController() {
   const updateSettings = useCallback((updates: Partial<GameState>) => {
     setState((prev) => {
       const newState = { ...prev, ...updates };
-      emitGameEvent('SETTINGS_UPDATE', updates);
+      emitGameEvent("SETTINGS_UPDATE", updates);
       return newState;
     });
   }, []);
@@ -299,7 +330,7 @@ export function useGameController() {
     );
 
     // Send RANDOM_START event with pool data
-    emitGameEvent('RANDOM_START', {
+    emitGameEvent("RANDOM_START", {
       randomCount: count,
       animationPool: availablePool,
     });
@@ -318,15 +349,17 @@ export function useGameController() {
         const shuffled = [...availablePool].sort(() => Math.random() - 0.5);
         const newSlots = shuffled.slice(0, count);
 
-        emitGameEvent('RANDOM_ANIMATION', { slots: newSlots });
+        emitGameEvent("RANDOM_ANIMATION", { slots: newSlots });
 
         animationFrameRef.current = requestAnimationFrame(animate);
       } else {
         // Animation complete - pick final results
-        const finalShuffled = [...availablePool].sort(() => Math.random() - 0.5);
+        const finalShuffled = [...availablePool].sort(
+          () => Math.random() - 0.5
+        );
         const finalResults = finalShuffled.slice(0, count);
 
-        emitGameEvent('RANDOM_COMPLETE', { results: finalResults });
+        emitGameEvent("RANDOM_COMPLETE", { results: finalResults });
 
         setState((prev) => ({
           ...prev,
@@ -341,13 +374,13 @@ export function useGameController() {
 
   // Show ban/pick phase
   const showBanPick = useCallback(() => {
-    emitGameEvent('SHOW_BAN_PICK');
+    emitGameEvent("SHOW_BAN_PICK");
     setState((prev) => ({ ...prev, phase: "banpick" }));
   }, []);
 
   // Ban a song
   const banSong = useCallback((song: Song) => {
-    emitGameEvent('BAN_SONG', { song });
+    emitGameEvent("BAN_SONG", { song });
     setState((prev) => ({
       ...prev,
       bannedSongs: [...prev.bannedSongs, song],
@@ -356,7 +389,7 @@ export function useGameController() {
 
   // Pick a song
   const pickSong = useCallback((song: Song) => {
-    emitGameEvent('PICK_SONG', { song });
+    emitGameEvent("PICK_SONG", { song });
     setState((prev) => ({
       ...prev,
       pickedSongs: [...prev.pickedSongs, song],
@@ -365,13 +398,13 @@ export function useGameController() {
 
   // Show final results
   const showFinalResults = useCallback(() => {
-    emitGameEvent('SHOW_FINAL_RESULTS');
+    emitGameEvent("SHOW_FINAL_RESULTS");
     setState((prev) => ({ ...prev, phase: "final" }));
   }, []);
 
   // Go to match display
   const goToMatch = useCallback((songs: Song[]) => {
-    emitGameEvent('GO_TO_MATCH', { songs });
+    emitGameEvent("GO_TO_MATCH", { songs });
     setState((prev) => ({
       ...prev,
       phase: "match",
@@ -382,7 +415,7 @@ export function useGameController() {
 
   // Match navigation
   const nextMatch = useCallback(() => {
-    emitGameEvent('MATCH_NEXT');
+    emitGameEvent("MATCH_NEXT");
     setState((prev) => ({
       ...prev,
       currentMatchIndex: Math.min(
@@ -393,7 +426,7 @@ export function useGameController() {
   }, []);
 
   const prevMatch = useCallback(() => {
-    emitGameEvent('MATCH_PREV');
+    emitGameEvent("MATCH_PREV");
     setState((prev) => ({
       ...prev,
       currentMatchIndex: Math.max(prev.currentMatchIndex - 1, 0),
@@ -407,8 +440,8 @@ export function useGameController() {
       cancelAnimationFrame(animationFrameRef.current);
     }
 
-    emitGameEvent('RESET');
-    
+    emitGameEvent("RESET");
+
     setState((prev) => ({
       ...DEFAULT_GAME_STATE,
       selectedPool: prev.selectedPool,

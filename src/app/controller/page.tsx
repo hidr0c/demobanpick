@@ -51,6 +51,8 @@ export default function ControllerPage() {
     const [banCount, setBanCount] = useState(0);
     const [fixedSongs, setFixedSongs] = useState<Song[]>([]);
     const [lockedTracks, setLockedTracks] = useState<{ track3?: Song; track4?: Song }>({});
+    const [minLevel, setMinLevel] = useState<string>('');
+    const [maxLevel, setMaxLevel] = useState<string>('');
     const [hiddenTracks, setHiddenTracks] = useState<{ track3Hidden: boolean; track4Hidden: boolean }>({
         track3Hidden: false,
         track4Hidden: false
@@ -69,16 +71,18 @@ export default function ControllerPage() {
 
     // Stream text state
     const [streamText, setStreamText] = useState({
-        player1: '', player1Tag: '', player1UseJson: false,
-        player2: '', player2Tag: '', player2UseJson: false,
-        player3: '', player3Tag: '', player3UseJson: false,
-        player4: '', player4Tag: '', player4UseJson: false,
+        player1: '', player1UseJson: false,
+        player2: '', player2UseJson: false,
+        player3: '', player3UseJson: false,
+        player4: '', player4UseJson: false,
         roundName: '', roundUseJson: false
     });
     const [playerJsonData, setPlayerJsonData] = useState<{ name: string; tag: string }[]>([]);
     const [roundJsonData, setRoundJsonData] = useState<string[]>([]);
     const [showPlayerDropdown, setShowPlayerDropdown] = useState<number | null>(null);
     const [showRoundDropdown, setShowRoundDropdown] = useState(false);
+    const [playerSearch, setPlayerSearch] = useState<string>('');
+    const [roundSearch, setRoundSearch] = useState<string>('');
     const [customPoolData, setCustomPoolData] = useState<Song[]>([]);
 
     // Game control state (synced with Home page)
@@ -211,42 +215,83 @@ export default function ControllerPage() {
         }
     };
 
-    // Trigger preview (Start) - display 6 random songs
+    // Trigger preview (Start) - random immediately and show with overlay
     const triggerPreview = (customCount?: number) => {
         const countToUse = customCount !== undefined ? customCount : randomCount;
-        const availablePool = songData.filter(
+        let availablePool = songData.filter(
             song => !fixedSongs.find(f => f.id === song.id) &&
                 song.id !== lockedTracks.track3?.id &&
                 song.id !== lockedTracks.track4?.id
         );
+
+        // Filter by level range if set
+        if (minLevel || maxLevel) {
+            availablePool = availablePool.filter(song => {
+                const lv = song.lv;
+                let inRange = true;
+                if (minLevel && lv < minLevel) inRange = false;
+                if (maxLevel && lv > maxLevel) inRange = false;
+                return inRange;
+            });
+        }
 
         if (availablePool.length < countToUse) {
-            alert('Not enough songs in pool for preview!');
+            alert(`Not enough songs in pool for preview! Available: ${availablePool.length}, Required: ${countToUse}`);
             return;
         }
 
-        // Shuffle and pick songs based on randomCount for preview
+        // Shuffle and pick results immediately
         const shuffled = [...availablePool].sort(() => Math.random() - 0.5);
-        const previewSongs = shuffled.slice(0, countToUse);
+        const results = shuffled.slice(0, countToUse);
 
-        // Send preview to display pages
-        emitGameEvent('PREVIEW_START', { previewSongs, randomCount: countToUse });
+        // Set state
+        setRandomResults(results);
+
+        // Send preview with results already randomized (overlay will show)
+        emitGameEvent('PREVIEW_START', { previewSongs: results, randomCount: countToUse });
     };
 
-    // Trigger random from controller
+    // Trigger random from controller - just reveal the already randomized results
     const triggerRandom = () => {
-        const availablePool = songData.filter(
+        // Check if we already have random results from preview
+        if (randomResults.length > 0) {
+            // Just trigger the overlay fade-out
+            emitGameEvent('RANDOM_COMPLETE', { results: randomResults, showOverlay: true });
+
+            // Auto-pick if randomCount == pickCount and banCount == 0
+            if (randomCount === pickCount && banCount === 0) {
+                setTimeout(() => {
+                    setPickedSongs(randomResults);
+                    emitGameEvent('AUTO_PICK', { pickedSongs: randomResults });
+                }, 1000);
+            }
+            return;
+        }
+
+        // Fallback: if no preview was done, random now
+        let availablePool = songData.filter(
             song => !fixedSongs.find(f => f.id === song.id) &&
                 song.id !== lockedTracks.track3?.id &&
                 song.id !== lockedTracks.track4?.id
         );
 
+        // Filter by level range if set
+        if (minLevel || maxLevel) {
+            availablePool = availablePool.filter(song => {
+                const lv = song.lv;
+                let inRange = true;
+                if (minLevel && lv < minLevel) inRange = false;
+                if (maxLevel && lv > maxLevel) inRange = false;
+                return inRange;
+            });
+        }
+
         if (availablePool.length < randomCount) {
-            alert('Not enough songs in pool!');
+            alert(`Not enough songs in pool! Available: ${availablePool.length}, Required: ${randomCount}`);
             return;
         }
 
-        // Shuffle and pick
+        // Shuffle and pick immediately
         const shuffled = [...availablePool].sort(() => Math.random() - 0.5);
         const results = shuffled.slice(0, randomCount);
 
@@ -257,23 +302,16 @@ export default function ControllerPage() {
         setPickedSongs([]);
         setSelectedSongIndex(0);
 
-        // Send animation pool to display pages with randomCount
-        const animationPool = shuffled.slice(0, Math.min(60, availablePool.length));
-        emitGameEvent('RANDOM_START', { animationPool, randomCount });
+        // Send results immediately with overlay flag
+        emitGameEvent('RANDOM_COMPLETE', { results, showOverlay: true });
 
-        // Animate for 3 seconds then show results
-        const animationStart = Date.now();
-        const animate = () => {
-            const elapsed = Date.now() - animationStart;
-            if (elapsed < 3000) {
-                const slots = shuffled.sort(() => Math.random() - 0.5).slice(0, randomCount);
-                emitGameEvent('RANDOM_ANIMATION', { slots });
-                requestAnimationFrame(animate);
-            } else {
-                emitGameEvent('RANDOM_COMPLETE', { results });
-            }
-        };
-        animate();
+        // Auto-pick if randomCount == pickCount and banCount == 0
+        if (randomCount === pickCount && banCount === 0) {
+            setTimeout(() => {
+                setPickedSongs(results);
+                emitGameEvent('AUTO_PICK', { pickedSongs: results });
+            }, 1000);
+        }
     };
 
     // Go to ban/pick phase
@@ -438,15 +476,22 @@ export default function ControllerPage() {
 
     // Push stream text via BroadcastChannel
     const pushStreamText = () => {
+        // Get tags from playerJsonData if using JSON
+        const getPlayerTag = (playerNum: number, playerName: string, useJson: boolean) => {
+            if (!useJson || !playerName) return '';
+            const player = playerJsonData.find(p => p.name === playerName);
+            return player?.tag || '';
+        };
+
         const textData = {
             player1: streamText.player1,
-            player1Tag: streamText.player1Tag,
+            player1Tag: getPlayerTag(1, streamText.player1, streamText.player1UseJson),
             player2: streamText.player2,
-            player2Tag: streamText.player2Tag,
+            player2Tag: getPlayerTag(2, streamText.player2, streamText.player2UseJson),
             player3: streamText.player3,
-            player3Tag: streamText.player3Tag,
+            player3Tag: getPlayerTag(3, streamText.player3, streamText.player3UseJson),
             player4: streamText.player4,
-            player4Tag: streamText.player4Tag,
+            player4Tag: getPlayerTag(4, streamText.player4, streamText.player4UseJson),
             roundName: streamText.roundName
         };
 
@@ -558,15 +603,25 @@ export default function ControllerPage() {
             if (!target.closest('.pool-container') && showPoolDropdown) {
                 setShowPoolDropdown(false);
             }
+            // Close player dropdowns
+            if (showPlayerDropdown !== null && !target.closest('.player-dropdown-container')) {
+                setShowPlayerDropdown(null);
+                setPlayerSearch('');
+            }
+            // Close round dropdown
+            if (showRoundDropdown && !target.closest('.round-dropdown-container')) {
+                setShowRoundDropdown(false);
+                setRoundSearch('');
+            }
         };
 
-        if (showTrack3Dropdown || showTrack4Dropdown || showPoolDropdown) {
+        if (showTrack3Dropdown || showTrack4Dropdown || showPoolDropdown || showPlayerDropdown !== null || showRoundDropdown) {
             setTimeout(() => {
                 document.addEventListener('mousedown', handleClickOutside);
             }, 0);
             return () => document.removeEventListener('mousedown', handleClickOutside);
         }
-    }, [showTrack3Dropdown, showTrack4Dropdown, showPoolDropdown]);
+    }, [showTrack3Dropdown, showTrack4Dropdown, showPoolDropdown, showPlayerDropdown, showRoundDropdown]);
 
     const handlePoolChange = (poolId: string) => {
         setSelectedPool(poolId);
@@ -965,7 +1020,7 @@ export default function ControllerPage() {
                                     disabled={isLoadingPool}
                                     className="w-full py-2 bg-purple-600 hover:bg-purple-500 disabled:bg-gray-600 text-white rounded-lg font-bold transition-colors"
                                 >
-                                    Random
+                                    Show song
                                 </button>
 
                                 <button
@@ -1154,6 +1209,31 @@ export default function ControllerPage() {
                         {/* Game Settings */}
                         <div className="bg-gray-800 rounded-xl p-4">
                             <h2 className="text-lg font-semibold text-white mb-3">Game Settings</h2>
+
+                            {/* Min/Max Level Range */}
+                            <div className="mb-4 grid grid-cols-2 gap-3">
+                                <div>
+                                    <p className="text-gray-300 text-sm mb-2">Min Level</p>
+                                    <input
+                                        type="text"
+                                        value={minLevel}
+                                        onChange={(e) => setMinLevel(e.target.value)}
+                                        placeholder="e.g., 13+"
+                                        className="w-full px-3 py-2 bg-gray-700 text-white rounded-lg outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+                                    />
+                                </div>
+                                <div>
+                                    <p className="text-gray-300 text-sm mb-2">Max Level</p>
+                                    <input
+                                        type="text"
+                                        value={maxLevel}
+                                        onChange={(e) => setMaxLevel(e.target.value)}
+                                        placeholder="e.g., 14+"
+                                        className="w-full px-3 py-2 bg-gray-700 text-white rounded-lg outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+                                    />
+                                </div>
+                            </div>
+
                             <div className="grid grid-cols-3 gap-4">
                                 {/* Random Count */}
                                 <div className="text-center">
@@ -1433,7 +1513,7 @@ export default function ControllerPage() {
                         </div>
 
                         {/* Round Name */}
-                        <div className="mb-3">
+                        <div className="mb-3 round-dropdown-container">
                             <div className="flex items-center justify-between mb-1">
                                 <p className="text-gray-300 text-xs">Round</p>
                                 <label className="flex items-center gap-1 text-xs text-gray-400">
@@ -1450,27 +1530,32 @@ export default function ControllerPage() {
                                 <div className="relative">
                                     <input
                                         type="text"
-                                        value={streamText.roundName}
-                                        placeholder="Select round..."
+                                        value={showRoundDropdown ? roundSearch : streamText.roundName}
+                                        placeholder="Search or select round..."
                                         className="w-full px-2 py-1 bg-gray-700 text-white rounded outline-none focus:ring-2 focus:ring-purple-500 text-xs"
-                                        onFocus={() => setShowRoundDropdown(true)}
-                                        readOnly
+                                        onFocus={() => {
+                                            setShowRoundDropdown(true);
+                                            setRoundSearch('');
+                                        }}
+                                        onChange={(e) => setRoundSearch(e.target.value)}
                                     />
                                     {showRoundDropdown && roundJsonData.length > 0 && (
                                         <div className="absolute z-50 left-0 right-0 mt-1 bg-gray-700 rounded-lg shadow-xl max-h-32 overflow-y-auto">
-                                            {roundJsonData.map((round, idx) => (
-                                                <div
-                                                    key={idx}
-                                                    className={`px-2 py-1 cursor-pointer hover:bg-purple-600 text-white text-xs ${streamText.roundName === round ? 'bg-purple-600' : ''}`}
-                                                    onClick={() => {
-                                                        setStreamText({ ...streamText, roundName: round });
-                                                        setShowRoundDropdown(false);
-                                                    }}
-                                                >
-                                                    {round}
-                                                </div>
-                                            ))}
-                                        </div>
+                                            {roundJsonData
+                                                .filter(round => round.toLowerCase().includes(roundSearch.toLowerCase()))
+                                                .map((round, idx) => (
+                                                    <div
+                                                        key={idx}
+                                                        className={`px-2 py-1 cursor-pointer hover:bg-purple-600 text-white text-xs ${streamText.roundName === round ? 'bg-purple-600' : ''}`}
+                                                        onClick={() => {
+                                                            setStreamText({ ...streamText, roundName: round });
+                                                            setShowRoundDropdown(false);
+                                                            setRoundSearch('');
+                                                        }}
+                                                    >
+                                                        {round}
+                                                    </div>
+                                                ))}\n                                        </div>
                                     )}
                                 </div>
                             ) : (
@@ -1487,11 +1572,10 @@ export default function ControllerPage() {
                         {/* Player Inputs */}
                         {[1, 2, 3, 4].map((num) => {
                             const playerKey = `player${num}` as 'player1' | 'player2' | 'player3' | 'player4';
-                            const tagKey = `player${num}Tag` as 'player1Tag' | 'player2Tag' | 'player3Tag' | 'player4Tag';
                             const jsonKey = `player${num}UseJson` as 'player1UseJson' | 'player2UseJson' | 'player3UseJson' | 'player4UseJson';
 
                             return (
-                                <div key={num} className="mb-2">
+                                <div key={num} className="mb-2 player-dropdown-container">
                                     <div className="flex items-center justify-between mb-1">
                                         <p className="text-gray-300 text-xs">P{num}</p>
                                         <label className="flex items-center gap-1 text-xs text-gray-400">
@@ -1508,51 +1592,50 @@ export default function ControllerPage() {
                                         <div className="relative">
                                             <input
                                                 type="text"
-                                                value={streamText[playerKey]}
-                                                placeholder="Select..."
+                                                value={showPlayerDropdown === num ? playerSearch : streamText[playerKey]}
+                                                placeholder="Search or select player..."
                                                 className="w-full px-2 py-1 bg-gray-700 text-white rounded outline-none focus:ring-2 focus:ring-purple-500 text-xs"
-                                                onFocus={() => setShowPlayerDropdown(num)}
-                                                readOnly
+                                                onFocus={() => {
+                                                    setShowPlayerDropdown(num);
+                                                    setPlayerSearch('');
+                                                }}
+                                                onChange={(e) => setPlayerSearch(e.target.value)}
                                             />
                                             {showPlayerDropdown === num && playerJsonData.length > 0 && (
                                                 <div className="absolute z-50 left-0 right-0 mt-1 bg-gray-700 rounded-lg shadow-xl max-h-32 overflow-y-auto">
-                                                    {playerJsonData.map((player, idx) => (
-                                                        <div
-                                                            key={idx}
-                                                            className={`px-2 py-1 cursor-pointer hover:bg-purple-600 ${streamText[playerKey] === player.name ? 'bg-purple-600' : ''}`}
-                                                            onClick={() => {
-                                                                setStreamText({
-                                                                    ...streamText,
-                                                                    [playerKey]: player.name,
-                                                                    [tagKey]: player.tag
-                                                                });
-                                                                setShowPlayerDropdown(null);
-                                                            }}
-                                                        >
-                                                            <span className="text-white text-xs">{player.name}</span>
-                                                            {player.tag && <span className="text-gray-400 text-xs ml-1">{player.tag}</span>}
-                                                        </div>
-                                                    ))}
+                                                    {playerJsonData
+                                                        .filter(player =>
+                                                            player.name.toLowerCase().includes(playerSearch.toLowerCase()) ||
+                                                            (player.tag && player.tag.toLowerCase().includes(playerSearch.toLowerCase()))
+                                                        )
+                                                        .map((player, idx) => (
+                                                            <div
+                                                                key={idx}
+                                                                className={`px-2 py-1 cursor-pointer hover:bg-purple-600 ${streamText[playerKey] === player.name ? 'bg-purple-600' : ''}`}
+                                                                onClick={() => {
+                                                                    setStreamText({
+                                                                        ...streamText,
+                                                                        [playerKey]: player.name
+                                                                    });
+                                                                    setShowPlayerDropdown(null);
+                                                                    setPlayerSearch('');
+                                                                }}
+                                                            >
+                                                                <span className="text-white text-xs">{player.name}</span>
+                                                                {player.tag && <span className="text-gray-400 text-xs ml-1">({player.tag})</span>}
+                                                            </div>
+                                                        ))}
                                                 </div>
                                             )}
                                         </div>
                                     ) : (
-                                        <div className="flex gap-1">
-                                            <input
-                                                type="text"
-                                                value={streamText[playerKey]}
-                                                onChange={(e) => setStreamText({ ...streamText, [playerKey]: e.target.value })}
-                                                placeholder="Name"
-                                                className="flex-1 px-2 py-1 bg-gray-700 text-white rounded outline-none focus:ring-2 focus:ring-purple-500 text-xs"
-                                            />
-                                            <input
-                                                type="text"
-                                                value={streamText[tagKey]}
-                                                onChange={(e) => setStreamText({ ...streamText, [tagKey]: e.target.value })}
-                                                placeholder="Tag"
-                                                className="w-16 px-2 py-1 bg-gray-700 text-white rounded outline-none focus:ring-2 focus:ring-purple-500 text-xs"
-                                            />
-                                        </div>
+                                        <input
+                                            type="text"
+                                            value={streamText[playerKey]}
+                                            onChange={(e) => setStreamText({ ...streamText, [playerKey]: e.target.value })}
+                                            placeholder="Enter player name..."
+                                            className="w-full px-2 py-1 bg-gray-700 text-white rounded outline-none focus:ring-2 focus:ring-purple-500 text-xs"
+                                        />
                                     )}
                                 </div>
                             );
@@ -1568,10 +1651,10 @@ export default function ControllerPage() {
                             </button>
                             <button
                                 onClick={() => setStreamText({
-                                    player1: '', player1Tag: '', player1UseJson: false,
-                                    player2: '', player2Tag: '', player2UseJson: false,
-                                    player3: '', player3Tag: '', player3UseJson: false,
-                                    player4: '', player4Tag: '', player4UseJson: false,
+                                    player1: '', player1UseJson: false,
+                                    player2: '', player2UseJson: false,
+                                    player3: '', player3UseJson: false,
+                                    player4: '', player4UseJson: false,
                                     roundName: '', roundUseJson: false
                                 })}
                                 className="py-1 px-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded text-xs transition-colors"
